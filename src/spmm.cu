@@ -28,6 +28,11 @@
 #include "math_functions.cuh"
 
 #include <cusparse.h>
+#include <thrust/sort.h>
+#include <thrust/reduce.h>
+#include <thrust/execution_policy.h>
+#include <thrust/iterator/zip_iterator.h>
+#include <thrust/tuple.h>
 
 #include <ATen/core/Tensor.h>
 #include <ATen/cuda/CUDAContext.h>

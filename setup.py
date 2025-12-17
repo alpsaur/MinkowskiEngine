@@ -120,7 +120,7 @@ def _argparse(pattern, argv, is_flag=True, is_list=False):
 
 
 run_command("rm", "-rf", "build")
-run_command("pip", "uninstall", "MinkowskiEngine", "-y")
+# run_command("pip", "uninstall", "MinkowskiEngine", "-y")  # Skip - causes issues
 
 # For cpu only build
 CPU_ONLY, argv = _argparse("--cpu_only", argv)
@@ -197,23 +197,9 @@ if not (BLAS is False):  # False only when not set, str otherwise
     if not (BLAS_LIBRARY_DIRS is False):
         extra_link_args += [f"-Wl,-rpath,{BLAS_LIBRARY_DIRS}"]
 else:
-    # find the default BLAS library
-    import numpy.distutils.system_info as sysinfo
-
-    # Search blas in this order
-    for blas in BLAS_LIST:
-        if "libraries" in sysinfo.get_info(blas):
-            BLAS = blas
-            libraries += sysinfo.get_info(blas)["libraries"]
-            break
-    else:
-        # BLAS not found
-        raise ImportError(
-            ' \
-\nBLAS not found from numpy.distutils.system_info.get_info. \
-\nPlease specify BLAS with: python setup.py install --blas=openblas" \
-\nfor more information, please visit https://github.com/NVIDIA/MinkowskiEngine/wiki/Installation'
-        )
+    # Default to openblas (numpy.distutils is deprecated in numpy 2.0)
+    BLAS = "openblas"
+    libraries.append(BLAS)
 
 print(f"\nUsing BLAS={BLAS}")
 
