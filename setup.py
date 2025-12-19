@@ -54,6 +54,7 @@ except ImportError:
     raise ImportError("Pytorch not found. Please install pytorch first.")
 
 import codecs
+import ctypes.util
 import os
 import re
 import subprocess
@@ -63,6 +64,44 @@ from sys import argv, platform
 
 from setuptools import setup
 from torch.utils.cpp_extension import BuildExtension, CppExtension, CUDAExtension
+
+
+# =============================================================================
+# BLAS detection functions (NumPy 2.0 compatible - no numpy.distutils)
+# =============================================================================
+def find_blas_with_pkgconfig(blas_name):
+    """Try to find BLAS library using pkg-config."""
+    try:
+        result = subprocess.run(
+            ["pkg-config", "--libs", blas_name],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        # Parse -l flags to get library names
+        libs = [flag[2:] for flag in result.stdout.split() if flag.startswith("-l")]
+        if libs:
+            return {"libraries": libs}
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+    return {}
+
+
+def find_blas_fallback(blas_name):
+    """Fallback BLAS detection by checking common library paths."""
+    lib_path = ctypes.util.find_library(blas_name)
+    if lib_path:
+        return {"libraries": [blas_name]}
+    return {}
+
+
+def find_blas_info(blas_name):
+    """Find BLAS library info without numpy.distutils (NumPy 2.0 compatible)."""
+    return find_blas_with_pkgconfig(blas_name) or find_blas_fallback(blas_name)
+
+
+# =============================================================================
+
 
 if platform == "win32":
     raise ImportError("Windows is currently not supported.")
@@ -197,23 +236,22 @@ if not (BLAS is False):  # False only when not set, str otherwise
     if not (BLAS_LIBRARY_DIRS is False):
         extra_link_args += [f"-Wl,-rpath,{BLAS_LIBRARY_DIRS}"]
 else:
-    # find the default BLAS library
-    import numpy.distutils.system_info as sysinfo
-
-    # Search blas in this order
+    # Find the default BLAS library (NumPy 2.0 compatible - no numpy.distutils)
     for blas in BLAS_LIST:
-        if "libraries" in sysinfo.get_info(blas):
+        blas_info = find_blas_info(blas)
+        if "libraries" in blas_info:
             BLAS = blas
-            libraries += sysinfo.get_info(blas)["libraries"]
+            libraries += blas_info["libraries"]
             break
     else:
-        # BLAS not found
-        raise ImportError(
-            ' \
-\nBLAS not found from numpy.distutils.system_info.get_info. \
-\nPlease specify BLAS with: python setup.py install --blas=openblas" \
-\nfor more information, please visit https://github.com/NVIDIA/MinkowskiEngine/wiki/Installation'
+        # BLAS not found via auto-detection, default to openblas
+        warnings.warn(
+            "BLAS not found via pkg-config or system libraries. "
+            "Defaulting to openblas. If build fails, specify BLAS explicitly with: "
+            "python setup.py install --blas=openblas"
         )
+        BLAS = "openblas"
+        libraries.append("openblas")
 
 print(f"\nUsing BLAS={BLAS}")
 
@@ -354,6 +392,10 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Topic :: Multimedia :: Graphics",
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
