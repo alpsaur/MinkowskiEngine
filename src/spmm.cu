@@ -95,7 +95,7 @@ torch::Tensor coo_spmm(torch::Tensor const &rows, torch::Tensor const &cols,
 #endif
 
   constexpr bool is_int32 = std::is_same<th_int_type, int32_t>::value;
-  constexpr bool is_int64 = std::is_same<th_int_type, int64_t>::value;
+  [[maybe_unused]] constexpr bool is_int64 = std::is_same<th_int_type, int64_t>::value;
 
   cusparseSpMMAlg_t mm_alg;
 #if defined(CUDART_VERSION) && (CUDART_VERSION < 10010)
@@ -357,7 +357,7 @@ coo_spmm_average(torch::Tensor const &rows, torch::Tensor const &cols,
 #endif
 
   constexpr bool is_int32 = std::is_same<th_int_type, int32_t>::value;
-  constexpr bool is_int64 = std::is_same<th_int_type, int64_t>::value;
+  [[maybe_unused]] constexpr bool is_int64 = std::is_same<th_int_type, int64_t>::value;
 
   cusparseSpMMAlg_t mm_alg;
 #if defined(CUDART_VERSION) && (CUDART_VERSION < 10010)

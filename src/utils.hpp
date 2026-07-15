@@ -202,14 +202,16 @@ class simple_range {
   using index_type = uint32_t;
 
 public:
-  // member typedefs provided through inheriting from std::iterator
-  class iterator
-      : public std::iterator<std::input_iterator_tag, // iterator_category
-                             index_type,              // value_type
-                             index_type,              // difference_type
-                             const index_type *,      // pointer
-                             index_type               // reference
-                             > {
+  // member typedefs (std::iterator is deprecated/removed in C++20)
+  class iterator {
+  public:
+    using iterator_category = std::input_iterator_tag;
+    using value_type = index_type;
+    using difference_type = index_type;
+    using pointer = const index_type *;
+    using reference = index_type;
+
+  private:
     // custom iterator members
     index_type m_num;
 

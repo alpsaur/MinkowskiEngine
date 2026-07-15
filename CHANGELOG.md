@@ -17,6 +17,10 @@
 - Pybind equality error from the package (issue #414)
 - Fix undefined coordinate merge for multiple coordinate unions
 - Add cross-shaped kernel support (issue #436)
+- Fork maintenance (alpsaur/MinkowskiEngine):
+    - CUDA 12.8 / Blackwell (sm_120, RTX 50-series) build compatibility
+    - NumPy 2.0 build fix (numpy.distutils removal; pkg-config/ctypes BLAS auto-detection)
+    - Packaging: pyproject.toml (PEP 517), MinkowskiEngineBackend namespace package, build/ no longer wiped each run, metadata URL fix
 
 ## [0.5.4]
 
