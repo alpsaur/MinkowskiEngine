@@ -29,7 +29,7 @@ from MinkowskiEngine import SparseTensor, MinkowskiConvolution, \
 import MinkowskiEngine as ME
 
 
-from tests.common import data_loader
+from tests.python.common import data_loader
 
 
 def get_random_coords(dimension=2, tensor_stride=2):
