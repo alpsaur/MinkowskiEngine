@@ -1,30 +1,66 @@
-# Use use previous versions, modify these variables
-# ARG PYTORCH="1.9.0"
-# ARG CUDA="11.1"
+# MinkowskiEngine — CUDA 12.8 / Blackwell (RTX 50-series, sm_120) build image.
+# This fork's alpsaur/MinkowskiEngine replaces the archived NVIDIA/MinkowskiEngine,
+# which does not compile under CUDA 12.8 / NumPy 2.0 / Blackwell.
 
-ARG PYTORCH="1.12.0"
-ARG CUDA="11.3"
-ARG CUDNN="8"
+###############################################################################
+# Base image: the -devel flavour ships nvcc + the CUDA toolkit, which the
+# MinkowskiEngine CUDAExtension build requires.
+###############################################################################
+FROM nvidia/cuda:12.8.1-devel-ubuntu24.04
 
-FROM pytorch/pytorch:${PYTORCH}-cuda${CUDA}-cudnn${CUDNN}-devel
+ENV DEBIAN_FRONTEND=noninteractive
 
-##############################################
-# You should modify this to match your GPU compute capability
-# ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 7.0+PTX"
-ENV TORCH_CUDA_ARCH_LIST="6.0 6.1 6.2 7.0 7.2 7.5 8.0 8.6"
-##############################################
+###############################################################################
+# System build dependencies + Python 3.12 + OpenBLAS + Ninja.
+###############################################################################
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3.12 \
+        python3.12-venv \
+        python3.12-dev \
+        python3.12-distutils \
+        python3-pip \
+        build-essential \
+        git \
+        libopenblas-dev \
+        ninja-build \
+        cmake \
+        wget \
+    && rm -rf /var/lib/apt/lists/*
 
+# Make `python` point at python3.12 for the setup.py / pip invocations below.
+RUN ln -sf /usr/bin/python3.12 /usr/local/bin/python && \
+    ln -sf /usr/bin/python3.12 /usr/local/bin/python3
+
+###############################################################################
+# PyTorch (CUDA 12.8 wheels). Resolves to the latest 2.x cu128 build, which is
+# the first line with Blackwell / sm_120 support.
+###############################################################################
+RUN python -m pip install --upgrade pip && \
+    python -m pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu128
+
+###############################################################################
+# Build flags. sm_120 = RTX 5090 / 5080 / 5070 (Blackwell). +PTX keeps a
+# forward-compatible SASS for future Blackwell SKUs.
+###############################################################################
+ENV FORCE_CUDA=1
+ENV CUDA_HOME=/usr/local/cuda-12.8
+ENV TORCH_CUDA_ARCH_LIST="12.0+PTX"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
+# Speed up the kernel compilation; tune to your host core count.
+ENV MAX_JOBS=8
 
-# Install dependencies
-RUN apt-get update
-RUN apt-get install -y git ninja-build cmake build-essential libopenblas-dev \
-    xterm xauth openssh-server tmux wget mate-desktop-environment-core
+###############################################################################
+# Clone this fork (NOT the archived NVIDIA repo) and build the extension.
+# --no-build-isolation so the build uses the torch + nvcc we just installed.
+# The repo ships a MinkowskiEngineBackend/__init__.py namespace stub, so the
+# build_ext copy step succeeds.
+###############################################################################
+RUN git clone https://github.com/alpsaur/MinkowskiEngine.git /opt/MinkowskiEngine
 
-RUN apt-get clean
-RUN rm -rf /var/lib/apt/lists/*
+WORKDIR /opt/MinkowskiEngine
+RUN python -m pip install . --no-build-isolation
 
-# For faster build, use more jobs.
-ENV MAX_JOBS=4
-RUN git clone --recursive "https://github.com/NVIDIA/MinkowskiEngine"
-RUN cd MinkowskiEngine; python setup.py install --force_cuda --blas=openblas
+###############################################################################
+# Smoke check: confirm the compiled extension imports.
+###############################################################################
+CMD ["python", "-c", "import MinkowskiEngine as ME; print('MinkowskiEngine', ME.__version__)"]
