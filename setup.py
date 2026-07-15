@@ -158,7 +158,6 @@ def _argparse(pattern, argv, is_flag=True, is_list=False):
                 return arr[0].split("=")[1], argv
 
 
-run_command("rm", "-rf", "build")
 # run_command("pip", "uninstall", "MinkowskiEngine", "-y")  # Skip - causes issues
 
 # For cpu only build
@@ -358,7 +357,7 @@ ext_modules = [
 setup(
     name="MinkowskiEngine",
     version=find_version("MinkowskiEngine", "__init__.py"),
-    install_requires=["torch", "numpy"],
+    install_requires=["numpy>=1.21", "torch>=2.7"],
     packages=["MinkowskiEngine", "MinkowskiEngine.utils", "MinkowskiEngine.modules"],
     package_dir={"MinkowskiEngine": "./MinkowskiEngine"},
     ext_modules=ext_modules,
@@ -369,7 +368,7 @@ setup(
     description="a convolutional neural network library for sparse tensors",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
-    url="https://github.com/NVIDIA/MinkowskiEngine",
+    url="https://github.com/alpsaur/MinkowskiEngine",
     keywords=[
         "pytorch",
         "Minkowski Engine",
@@ -389,13 +388,11 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Programming Language :: C++",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "Topic :: Multimedia :: Graphics",
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
@@ -403,5 +400,5 @@ setup(
         "Topic :: Scientific/Engineering :: Physics",
         "Topic :: Scientific/Engineering :: Visualization",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.9",
 )
