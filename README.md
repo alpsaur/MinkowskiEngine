@@ -18,7 +18,7 @@ This fork adds compatibility for **CUDA Toolkit 12.8+** and **NVIDIA Blackwell a
 
 ```bash
 # Requires CUDA 12.8+ toolkit installed
-pip install git+https://github.com/alpsaur/MinkowskiEngine@cuda12-compat
+pip install git+https://github.com/alpsaur/MinkowskiEngine@master
 ```
 
 ### What's Changed
@@ -31,7 +31,9 @@ The official MinkowskiEngine repo (last updated 2022) doesn't compile with CUDA 
 
 This fork applies community workarounds from issues [#543](https://github.com/NVIDIA/MinkowskiEngine/issues/543), [#594](https://github.com/NVIDIA/MinkowskiEngine/issues/594), and [#596](https://github.com/NVIDIA/MinkowskiEngine/issues/596).
 
-**Tested on:** RTX 5090, CUDA 12.8, PyTorch 2.7, Python 3.12
+**Tested on:** RTX 5090 (sm_120), CUDA 12.8, PyTorch 2.9 (cu128), Python 3.12, GCC 13
+
+> All changes live on the default `master` branch. The previous `cuda12-compat` branch was merged in and removed — install from `master`. BLAS is auto-detected at build time (OpenBLAS by default), so `--install-option` is not required.
 
 ---
 
@@ -39,6 +41,9 @@ The Minkowski Engine is an auto-differentiation library for sparse tensors. It s
 
 ## News
 
+- 2026-07-15 `cuda12-compat` merged into `master`; NumPy 2.0 and CUDA 12.8 / Blackwell fixes unified on the default branch.
+- 2025-12-19 NumPy 2.0 build compatibility — replaced the removed `numpy.distutils` BLAS detection with `ctypes` / `pkg-config` auto-detection.
+- 2025-12-17 CUDA 12.8+ / Blackwell (RTX 50-series) compatibility.
 - 2021-08-11 Docker installation instruction added
 - 2021-08-06 All installation errors with pytorch 1.8 and 1.9 have been resolved.
 - 2021-04-08 Due to recent errors in [pytorch 1.8 + CUDA 11](https://github.com/NVIDIA/MinkowskiEngine/issues/330), it is recommended to use [anaconda for installation](#anaconda).
@@ -85,23 +90,28 @@ We visualized a sparse tensor network operation on a sparse tensor, convolution,
 
 ## Requirements
 
-- Ubuntu >= 14.04
-- CUDA >= 10.1.243 and **the same CUDA version used for pytorch** (e.g. if you use conda cudatoolkit=11.1, use CUDA=11.1 for MinkowskiEngine compilation)
-- pytorch >= 1.7 To specify CUDA version, please use conda for installation. You must match the CUDA version pytorch uses and CUDA version used for Minkowski Engine installation. `conda install -y -c nvidia -c pytorch pytorch=1.8.1 cudatoolkit=10.2`)
-- python >= 3.6
-- ninja (for installation)
-- GCC >= 7.4.0
+**For this fork (CUDA 12.8+ / Blackwell):**
+- Linux (tested on Ubuntu 24.04 under WSL2); CUDA Toolkit **12.8 or newer** — must match the CUDA PyTorch was built with
+- PyTorch **2.x** (tested on 2.7) with CUDA support
+- Python **3.9–3.12** (tested on 3.12)
+- GCC **11–13** (required by CUDA 12.8)
+- `ninja` (for compilation)
+- OpenBLAS — auto-detected at build time
+
+**Original engine support (reference only, not validated on this fork):** CUDA >= 10.1, PyTorch >= 1.7, Python >= 3.6, GCC >= 7.4.0, Ubuntu >= 14.04. You must always match the CUDA version PyTorch uses with the one used to compile MinkowskiEngine.
 
 
 ## Installation
 
-You can install the Minkowski Engine with `pip`, with anaconda, or on the system directly. If you experience issues installing the package, please checkout the [the installation wiki page](https://github.com/NVIDIA/MinkowskiEngine/wiki/Installation).
-If you cannot find a relevant problem, please report the issue on [the github issue page](https://github.com/NVIDIA/MinkowskiEngine/issues).
+> **Blackwell / RTX 50-series users:** use the [Quick Install](#cuda-128--blackwell-gpu-fork) at the top of this README (`pip install git+...@master`). The detailed sections below are retained from upstream for older CUDA configurations; BLAS is auto-detected, so `--install-option` is not required (and is unsupported on modern pip).
 
-- [PIP](https://github.com/NVIDIA/MinkowskiEngine#pip) installation
-- [Conda](https://github.com/NVIDIA/MinkowskiEngine#anaconda) installation
-- [Python](https://github.com/NVIDIA/MinkowskiEngine#system-python) installation
-- [Docker](https://github.com/NVIDIA/MinkowskiEngine#docker) installation
+You can install the Minkowski Engine with `pip`, with anaconda, or on the system directly. If you experience issues installing the package, please check the [installation wiki page](https://github.com/NVIDIA/MinkowskiEngine/wiki/Installation).
+If you cannot find a relevant problem, please report the issue on [this fork's issue page](https://github.com/alpsaur/MinkowskiEngine/issues).
+
+- [PIP](#pip) installation
+- [Conda](#anaconda) installation
+- [Python](#system-python) installation
+- [Docker](#docker) installation
 
 
 ### Pip
@@ -115,7 +125,7 @@ pip install torch ninja
 pip install -U MinkowskiEngine --install-option="--blas=openblas" -v --no-deps
 
 # For pip installation from the latest source
-# pip install -U git+https://github.com/NVIDIA/MinkowskiEngine --no-deps
+# pip install -U git+https://github.com/alpsaur/MinkowskiEngine --no-deps
 ```
 
 If you want to specify arguments for the setup script, please refer to the following command.
@@ -124,7 +134,7 @@ If you want to specify arguments for the setup script, please refer to the follo
 # Uncomment some options if things don't work
 # export CXX=c++; # set this if you want to use a different C++ compiler
 # export CUDA_HOME=/usr/local/cuda-11.1; # or select the correct cuda version on your system.
-pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps \
+pip install -U git+https://github.com/alpsaur/MinkowskiEngine -v --no-deps \
 #                           \ # uncomment the following line if you want to force cuda installation
 #                           --install-option="--force_cuda" \
 #                           \ # uncomment the following line if you want to force no cuda installation. force_cuda supercedes cpu_only
@@ -154,10 +164,10 @@ conda install pytorch=1.9.0 torchvision cudatoolkit=10.2 -c pytorch -c nvidia
 export CXX=g++-7
 # Uncomment the following line to specify the cuda home. Make sure `$CUDA_HOME/nvcc --version` is 10.2
 # export CUDA_HOME=/usr/local/cuda-10.2
-pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --install-option="--blas_include_dirs=${CONDA_PREFIX}/include" --install-option="--blas=openblas"
+pip install -U git+https://github.com/alpsaur/MinkowskiEngine -v --no-deps --install-option="--blas_include_dirs=${CONDA_PREFIX}/include" --install-option="--blas=openblas"
 
 # Or if you want local MinkowskiEngine
-git clone https://github.com/NVIDIA/MinkowskiEngine.git
+git clone https://github.com/alpsaur/MinkowskiEngine.git
 cd MinkowskiEngine
 export CXX=g++-7
 python setup.py install --blas_include_dirs=${CONDA_PREFIX}/include --blas=openblas
@@ -179,10 +189,10 @@ conda install pytorch=1.9.0 torchvision cudatoolkit=11.1 -c pytorch -c nvidia
 
 # Uncomment the following line to specify the cuda home. Make sure `$CUDA_HOME/nvcc --version` is 11.X
 # export CUDA_HOME=/usr/local/cuda-11.1
-pip install -U git+https://github.com/NVIDIA/MinkowskiEngine -v --no-deps --install-option="--blas_include_dirs=${CONDA_PREFIX}/include" --install-option="--blas=openblas"
+pip install -U git+https://github.com/alpsaur/MinkowskiEngine -v --no-deps --install-option="--blas_include_dirs=${CONDA_PREFIX}/include" --install-option="--blas=openblas"
 
 # Or if you want local MinkowskiEngine
-git clone https://github.com/NVIDIA/MinkowskiEngine.git
+git clone https://github.com/alpsaur/MinkowskiEngine.git
 cd MinkowskiEngine
 python setup.py install --blas_include_dirs=${CONDA_PREFIX}/include --blas=openblas
 ```
@@ -201,7 +211,7 @@ curl https://bootstrap.pypa.io/get-pip.py | python3
 # Get pip and install python requirements
 python3 -m pip install torch numpy ninja
 
-git clone https://github.com/NVIDIA/MinkowskiEngine.git
+git clone https://github.com/alpsaur/MinkowskiEngine.git
 
 cd MinkowskiEngine
 
@@ -213,7 +223,7 @@ python setup.py install
 ### Docker
 
 ```
-git clone https://github.com/NVIDIA/MinkowskiEngine
+git clone https://github.com/alpsaur/MinkowskiEngine
 cd MinkowskiEngine
 docker build -t minkowski_engine docker
 ```
@@ -303,8 +313,8 @@ For API and general usage, please refer to the [MinkowskiEngine documentation
 page](http://nvidia.github.io/MinkowskiEngine/) for more detail.
 
 For issues not listed on the API and feature requests, feel free to submit
-an issue on the [github issue
-page](https://github.com/NVIDIA/MinkowskiEngine/issues).
+an issue on [this fork's issue
+page](https://github.com/alpsaur/MinkowskiEngine/issues).
 
 
 ## Known Issues
@@ -315,6 +325,9 @@ In some cases, you need to explicitly specify which compute capability your GPU 
 
 ```bash
 export TORCH_CUDA_ARCH_LIST="5.2 6.0 6.1 7.0 7.5 8.0 8.6+PTX"; python setup.py install --force_cuda
+
+# For Blackwell (RTX 5090 / RTX 50-series), include compute capability 12.0:
+export TORCH_CUDA_ARCH_LIST="8.9 9.0 12.0+PTX"; python setup.py install --force_cuda
 ```
 
 ### Unhandled Out-Of-Memory thrust::system exception
