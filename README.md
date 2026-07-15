@@ -51,6 +51,7 @@ The Minkowski Engine is an auto-differentiation library for sparse tensors. It s
 
 ## News
 
+- 2026-07-16 (Trench 2) docs build pipeline (Sphinx → `gh-pages`) + CUDA 12.8 wheel-build workflow (cu128 / sm_120, uploads to Releases on tag).
 - 2026-07-16 (Trench 1) test-suite collection fixes — added `batched_coordinates` helper, corrected test import paths — and `setup.py` cleanups (proper `packaging.version` comparison, `MAX_COMPILATION_THREADS` env override).
 - 2026-07-16 v0.5.5 maintenance: packaging overhaul (`pyproject.toml`, version bump, `MinkowskiEngineBackend` namespace, in-place build fix), CI workflow, CUDA 12.8 Dockerfile, source deprecation fixes (`std::iterator` / `thrust::unary_function`), pytest wiring.
 - 2026-07-15 `cuda12-compat` merged into `master`; NumPy 2.0 and CUDA 12.8 / Blackwell fixes unified on the default branch.

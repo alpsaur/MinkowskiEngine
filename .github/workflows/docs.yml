@@ -1,0 +1,46 @@
+name: Docs
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+# peaceiris/actions-gh-pages pushes to the gh-pages branch.
+permissions:
+  contents: write
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libopenblas-dev ninja-build
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # CPU torch is enough for a CPU-only build (docs/autodoc only).
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install sphinx recommonmark sphinx-markdown-tables sphinx-rtd-theme
+
+      # conf.py imports MinkowskiEngine (version + autodoc), so build the
+      # CPU-only extension in-place before running sphinx.
+      - name: Build MinkowskiEngine (CPU-only)
+        run: python setup.py build_ext --inplace --cpu_only
+
+      - name: Build docs
+        run: make -C docs html
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs/_build/html

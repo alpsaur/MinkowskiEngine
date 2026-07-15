@@ -2,7 +2,12 @@ import os
 import sys
 # import pkg_resources
 # pkg_resources.require('MinkowskiEngine==0.4.2a1')
-import MinkowskiEngine as ME
+try:
+    import MinkowskiEngine as ME
+    _ME_VERSION = ME.__version__
+except Exception:
+    ME = None
+    _ME_VERSION = '0.5.5'
 
 # -*- coding: utf-8 -*-
 #
@@ -26,14 +31,14 @@ sys.path.insert(0, os.path.abspath('../../'))
 # -- Project information -----------------------------------------------------
 
 project = 'MinkowskiEngine'
-copyright = '2020, Chris Choy'
+copyright = '2020-2026, Chris Choy'
 author = 'Chris Choy'
 
 # The short X.Y version
-version = ME.__version__
+version = _ME_VERSION
 # The full version, including alpha/beta/rc tags
-release = ME.__version__
-github_doc_root = 'https://github.com/NVIDIA/MinkowskiEngine'
+release = _ME_VERSION
+github_doc_root = 'https://github.com/alpsaur/MinkowskiEngine'
 
 # -- General configuration ---------------------------------------------------
 
@@ -50,6 +55,9 @@ extensions = [
     'sphinx.ext.mathjax',
     'recommonmark',
 ]
+
+# Mock the compiled backend so autodoc works even on a CPU-only / no-GPU build.
+autodoc_mock_imports = ['MinkowskiEngineBackend._C']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

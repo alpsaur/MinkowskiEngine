@@ -1,0 +1,77 @@
+# Build and publish CUDA wheels for MinkowskiEngine (CUDA 12.8 / Blackwell).
+#
+# !! LIMITATIONS — read before relying on these wheels !!
+#  - The wheel is built against a specific torch CUDA major (cu128). It imports
+#    ONLY on a torch install sharing that CUDA major. NOT a universal wheel.
+#  - Built only for compute capability 12.0 (Blackwell / RTX 50-series). Broaden
+#    TORCH_CUDA_ARCH_LIST to add other arches.
+#  - No auditwheel repair is applied on purpose: this extension dynamically links
+#    to torch and CUDA runtime libs that the user's environment provides.
+#  - This workflow is SCAFFOLDING to iterate on. It was NOT run/validated locally;
+#    correctness is confirmed only when this workflow runs green on a tag push.
+#  - Building needs only the CUDA toolkit (nvcc), not a GPU. Runtime GPU validation
+#    is covered by the self-hosted gpu-test job in ci.yml.
+
+name: wheels
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write # softprops/action-gh-release attaches assets to the Release
+
+jobs:
+  build-wheels:
+    name: wheel (py${{ matrix.python }}, cu128, sm_120)
+    runs-on: ubuntu-latest
+    container:
+      image: nvidia/cuda:12.8.1-devel-ubuntu24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Install build deps in CUDA container
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends git build-essential libopenblas-dev ninja-build
+
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install torch (cu128) + build tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu128
+          pip install --no-cache-dir wheel setuptools ninja
+
+      - name: Build wheel
+        env:
+          FORCE_CUDA: "1"
+          CUDA_HOME: /usr/local/cuda
+          TORCH_CUDA_ARCH_LIST: "12.0+PTX"
+          MAX_COMPILATION_THREADS: "8"
+        run: |
+          # --no-build-isolation: build in this env so setup.py sees the installed torch.
+          pip wheel . --no-build-isolation -w wheelhouse/
+          ls -la wheelhouse/
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel-py${{ matrix.python }}
+          path: wheelhouse/*.whl
+
+      - name: Attach wheel to Release (tag builds only)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: wheelhouse/*.whl
