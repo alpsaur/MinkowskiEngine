@@ -9,3 +9,7 @@ build/
 objs/
 dist/
 MinkowskiEngine.egg-info/
+
+# test artifacts
+*.ply
+*.pth

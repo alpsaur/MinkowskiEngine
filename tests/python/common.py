@@ -33,6 +33,10 @@ if not os.path.isfile("1.ply"):
     urlretrieve("http://cvgl.stanford.edu/data2/minkowskiengine/1.ply", "1.ply")
 
 
+def batched_coordinates(coords, dtype=torch.int32, device=None):
+    return ME.utils.batched_coordinates(coords, dtype=dtype, device=device)
+
+
 def load_file(file_name):
     try:
         import open3d as o3d

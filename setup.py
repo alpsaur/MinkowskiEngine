@@ -62,6 +62,7 @@ import warnings
 from pathlib import Path
 from sys import argv, platform
 
+from packaging.version import Version
 from setuptools import setup
 from torch.utils.cpp_extension import BuildExtension, CppExtension, CUDAExtension
 
@@ -180,7 +181,7 @@ CUDA_HOME, argv = _argparse("--cuda_home", argv, False)
 BLAS, argv = _argparse("--blas", argv, False)
 BLAS_INCLUDE_DIRS, argv = _argparse("--blas_include_dirs", argv, False, is_list=True)
 BLAS_LIBRARY_DIRS, argv = _argparse("--blas_library_dirs", argv, False, is_list=True)
-MAX_COMPILATION_THREADS = 12
+MAX_COMPILATION_THREADS = int(os.environ.get("MAX_COMPILATION_THREADS", "12"))
 
 Extension = CUDAExtension
 extra_link_args = []
@@ -319,7 +320,7 @@ if "CC" in os.environ or "CXX" in os.environ:
     else:
         CC = os.environ["CC"]
     print(f"Using {CC} for c++ compilation")
-    if torch.__version__ < "1.7.0":
+    if Version(torch.__version__) < Version("1.7.0"):
         NVCC_FLAGS += [f"-ccbin={CC}"]
 else:
     print("Using the default compiler")
