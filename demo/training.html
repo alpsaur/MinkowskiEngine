@@ -1,106 +1,58 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Training Pipeline &mdash; MinkowskiEngine 0.5.3 documentation</title>
-  
+  <title>Training Pipeline &mdash; MinkowskiEngine 0.5.5 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=45def3bc"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="ModelNet40 Classification" href="modelnet40_classification.html" />
     <link rel="prev" title="Sparse Tensor Basics" href="../tutorial/sparse_tensor_basic.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="../index.html" class="icon icon-home"> MinkowskiEngine
           
-
-          
+          <a href="../index.html" class="icon icon-home">
+            MinkowskiEngine
           </a>
-
-          
-            
-            
-              <div class="version">
-                0.5.3
-              </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Introduction</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../overview.html">Minkowski Engine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sparse_tensor_network.html">Sparse Tensor Networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../terminology.html">Definitions and Terminology</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Tutorials</span></p>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/sparse_tensor_basic.html">Sparse Tensor Basics</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Demos</span></p>
+<p class="caption" role="heading"><span class="caption-text">Demos</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Training Pipeline</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#making-a-dataset">Making a Dataset</a></li>
@@ -116,7 +68,7 @@
 <li class="toctree-l1"><a class="reference internal" href="multigpu.html">Multi-GPU with Pytorch-Lightning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pointnet.html">PointNet</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API</span></p>
+<p class="caption" role="heading"><span class="caption-text">API</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../sparse_tensor.html">SparseTensor and TensorField</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../convolution.html">MinkowskiConvolution</a></li>
@@ -132,7 +84,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../common.html">Miscellaneous Classes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc.html">Miscellanea</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Miscellanea</span></p>
+<p class="caption" role="heading"><span class="caption-text">Miscellanea</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../issues.html">Common Issues</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides.html">Guidelines for Faster Networks</a></li>
@@ -140,91 +92,50 @@
 <li class="toctree-l1"><a class="reference internal" href="../benchmark.html">Benchmark</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">MinkowskiEngine</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
-      <li>Training Pipeline</li>
-    
-    
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Training Pipeline</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/demo/training.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
 
            <div itemprop="articleBody">
-            
-  <div class="section" id="training-pipeline">
-<h1>Training Pipeline<a class="headerlink" href="#training-pipeline" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="training-pipeline">
+<h1>Training Pipeline<a class="headerlink" href="#training-pipeline" title="Link to this heading"></a></h1>
 <p>The Minkowski Engine works seamlessly with the PyTorch
 <a class="reference external" href="https://pytorch.org/docs/stable/data.html">torch.utils.data.DataLoader</a>.
 Before you proceed, make sure that you are familiar with the data loading
 tutorial <a class="reference external" href="https://pytorch.org/docs/stable/data.html">torch.utils.data.DataLoader</a>.</p>
-<div class="section" id="making-a-dataset">
-<h2>Making a Dataset<a class="headerlink" href="#making-a-dataset" title="Permalink to this headline">¶</a></h2>
+<section id="making-a-dataset">
+<h2>Making a Dataset<a class="headerlink" href="#making-a-dataset" title="Link to this heading"></a></h2>
 <p>The first thing you need to do is loading or generating data. This is the most
 time-consuming part if you use your own dataset. However, it is tedious, not
 difficult :) The most important part that you need to fill in is
 <cite>__getitem__(self, index)</cite> if you inherit <a class="reference external" href="https://pytorch.org/docs/stable/data.html#torch.utils.data.Dataset">torch.utils.data.Dataset</a> or
 <cite>__iter__(self)</cite> if you inherit <a class="reference external" href="https://pytorch.org/docs/stable/data.html#torch.utils.data.IterableDataset">torch.utils.data.IterableDataset</a>.
 In this example, let’s create a random dataset that generates a noisy line.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">RandomLineDataset</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">RandomLineDataset</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
 
     <span class="o">...</span>
 
-    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
         <span class="c1"># Regardless of the input index, return randomized data</span>
         <span class="n">angle</span><span class="p">,</span> <span class="n">intercept</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_uniform_to_angle</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">())),</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span>
@@ -253,9 +164,9 @@ In this example, let’s create a random dataset that generates a noisy line.</p
 <p>Here, I created a dataset that inherits the <a class="reference external" href="https://pytorch.org/docs/stable/data.html#torch.utils.data.Dataset">torch.utils.data.Dataset</a>, but you
 can inherit <a class="reference external" href="https://pytorch.org/docs/stable/data.html#torch.utils.data.IterableDataset">torch.utils.data.IterableDataset</a>
 and fill out <cite>__iter__(self)</cite> instead.</p>
-</div>
-<div class="section" id="quantization">
-<h2>Quantization<a class="headerlink" href="#quantization" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="quantization">
+<h2>Quantization<a class="headerlink" href="#quantization" title="Link to this heading"></a></h2>
 <p>We use a sparse tensor as an input. Like any tensors, a sparse tensor value is
 defined at a discrete location (indices). Thus, quantizing the coordinates
 whose features are defined is the critical step and <cite>quantization_size</cite> is an
@@ -264,12 +175,12 @@ drastically. You must choose the correct quantization size as well as quantize
 the coordinate correctly.</p>
 <p>The Minkowski Engine provides a set of fast and optimized functions for
 quantization and sparse tensor generation. Here, we use
-<a class="reference internal" href="../utils.html#MinkowskiEngine.utils.sparse_quantize" title="MinkowskiEngine.utils.sparse_quantize"><code class="xref py py-attr docutils literal notranslate"><span class="pre">MinkowskiEngine.utils.sparse_quantize</span></code></a>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">RandomLineDataset</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">MinkowskiEngine.utils.sparse_quantize</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">RandomLineDataset</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
 
     <span class="o">...</span>
 
-    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
 
         <span class="o">...</span>
 
@@ -285,11 +196,11 @@ quantization and sparse tensor generation. Here, we use
 </div>
 <p>Another way to quantize a coordinate is to use the returned mapping indices.
 This is useful if you have an unconventional input.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">RandomLineDataset</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">RandomLineDataset</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
 
     <span class="o">...</span>
 
-    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
 
         <span class="o">...</span>
 
@@ -303,9 +214,9 @@ This is useful if you have an unconventional input.</p>
         <span class="k">return</span> <span class="n">coords</span><span class="p">[</span><span class="n">mapping</span><span class="p">],</span> <span class="n">feats</span><span class="p">[</span><span class="n">mapping</span><span class="p">],</span> <span class="n">labels</span><span class="p">[</span><span class="n">mapping</span><span class="p">]</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="making-a-dataloader">
-<h2>Making a DataLoader<a class="headerlink" href="#making-a-dataloader" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="making-a-dataloader">
+<h2>Making a DataLoader<a class="headerlink" href="#making-a-dataloader" title="Link to this heading"></a></h2>
 <p>Once you create your dataset, you need a data loader to call the dataset and
 generate a mini-batch for neural network training. This part is relatively
 easy, but we have to use a custom <a class="reference external" href="https://pytorch.org/docs/stable/data.html?highlight=collate_fn#torch.utils.data.DataLoader">collate_fn</a>
@@ -325,11 +236,11 @@ to generate a suitable sparse tensor.</p>
 </pre></div>
 </div>
 <p>Here, we can use the provided collation class
-<a class="reference internal" href="../utils.html#MinkowskiEngine.utils.SparseCollation" title="MinkowskiEngine.utils.SparseCollation"><code class="xref py py-attr docutils literal notranslate"><span class="pre">MinkowskiEngine.utils.SparseCollation</span></code></a> or the function
-<a class="reference internal" href="../utils.html#MinkowskiEngine.utils.batch_sparse_collate" title="MinkowskiEngine.utils.batch_sparse_collate"><code class="xref py py-attr docutils literal notranslate"><span class="pre">MinkowskiEngine.utils.batch_sparse_collate</span></code></a> to convert the inputs into
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">MinkowskiEngine.utils.SparseCollation</span></code> or the function
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">MinkowskiEngine.utils.batch_sparse_collate</span></code> to convert the inputs into
 appropriate outputs that we can use to initialize a sparse tensor. However, if
 you need your own collation function, you can follow the example below.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">custom_collation_fn</span><span class="p">(</span><span class="n">data_labels</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">custom_collation_fn</span><span class="p">(</span><span class="n">data_labels</span><span class="p">):</span>
     <span class="n">coords</span><span class="p">,</span> <span class="n">feats</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">data_labels</span><span class="p">))</span>
 
     <span class="c1"># Create batched coordinates for the SparseTensor input</span>
@@ -350,9 +261,9 @@ you need your own collation function, you can follow the example below.</p>
     <span class="n">collate_fn</span><span class="o">=</span><span class="n">custom_collation_fn</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="training">
-<h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="training">
+<h2>Training<a class="headerlink" href="#training" title="Link to this heading"></a></h2>
 <p>Once you have everything, let’s create a network and train it with the
 generated data. One thing to note is that if you use more than one
 <code class="xref py py-attr docutils literal notranslate"><span class="pre">num_workers</span></code> for the data loader, you have to make sure that the
@@ -403,7 +314,7 @@ maps, cannot be referenced outside the process that generated it.</p>
 
         <span class="k">if</span> <span class="n">tot_iter</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">tot_iter</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s1">&#39;Iter: </span><span class="si">{</span><span class="n">tot_iter</span><span class="si">}</span><span class="s1">, Epoch: </span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s1">, Loss: </span><span class="si">{</span><span class="n">accum_loss</span> <span class="o">/</span> <span class="n">accum_iter</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;Iter: </span><span class="si">{</span><span class="n">tot_iter</span><span class="si">}</span><span class="s1">, Epoch: </span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s1">, Loss: </span><span class="si">{</span><span class="n">accum_loss</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">accum_iter</span><span class="si">}</span><span class="s1">&#39;</span>
             <span class="p">)</span>
             <span class="n">accum_loss</span><span class="p">,</span> <span class="n">accum_iter</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
 </pre></div>
@@ -436,12 +347,11 @@ Epoch: 1 iter: 200, Loss: 0.2116936132311821
 </pre></div>
 </div>
 <p>The original code can be found at <a class="reference external" href="https://github.com/NVIDIA/MinkowskiEngine/blob/master/examples/training.py">examples/training.py</a>.</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
 <a href="https://github.com/NVIDIA/MinkowskiEngine">
     <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub">
@@ -457,48 +367,32 @@ Epoch: 1 iter: 200, Loss: 0.2116936132311821
 </script>
 
 
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="modelnet40_classification.html" class="btn btn-neutral float-right" title="ModelNet40 Classification" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../tutorial/sparse_tensor_basic.html" class="btn btn-neutral float-left" title="Sparse Tensor Basics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="modelnet40_classification.html" class="btn btn-neutral float-right" title="ModelNet40 Classification" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2020, Chris Choy.
-
-    </p>
+    <p>&#169; Copyright 2020-2026, Chris Choy.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

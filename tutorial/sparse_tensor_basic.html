@@ -1,102 +1,55 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Sparse Tensor Basics &mdash; MinkowskiEngine 0.5.3 documentation</title>
-  
+  <title>Sparse Tensor Basics &mdash; MinkowskiEngine 0.5.5 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=45def3bc"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Training Pipeline" href="../demo/training.html" />
     <link rel="prev" title="Definitions and Terminology" href="../terminology.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="../index.html" class="icon icon-home"> MinkowskiEngine
           
-
-          
+          <a href="../index.html" class="icon icon-home">
+            MinkowskiEngine
           </a>
-
-          
-            
-            
-              <div class="version">
-                0.5.3
-              </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Introduction</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../overview.html">Minkowski Engine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sparse_tensor_network.html">Sparse Tensor Networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../terminology.html">Definitions and Terminology</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Tutorials</span></p>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Sparse Tensor Basics</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#data-generation">Data Generation</a></li>
@@ -108,7 +61,7 @@
 </ul>
 </li>
 </ul>
-<p class="caption"><span class="caption-text">Demos</span></p>
+<p class="caption" role="heading"><span class="caption-text">Demos</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../demo/training.html">Training Pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../demo/modelnet40_classification.html">ModelNet40 Classification</a></li>
@@ -118,7 +71,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../demo/multigpu.html">Multi-GPU with Pytorch-Lightning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../demo/pointnet.html">PointNet</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API</span></p>
+<p class="caption" role="heading"><span class="caption-text">API</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../sparse_tensor.html">SparseTensor and TensorField</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../convolution.html">MinkowskiConvolution</a></li>
@@ -134,7 +87,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../common.html">Miscellaneous Classes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc.html">Miscellanea</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Miscellanea</span></p>
+<p class="caption" role="heading"><span class="caption-text">Miscellanea</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../issues.html">Common Issues</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides.html">Guidelines for Faster Networks</a></li>
@@ -142,77 +95,36 @@
 <li class="toctree-l1"><a class="reference internal" href="../benchmark.html">Benchmark</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">MinkowskiEngine</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
-      <li>Sparse Tensor Basics</li>
-    
-    
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Sparse Tensor Basics</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/tutorial/sparse_tensor_basic.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
 
            <div itemprop="articleBody">
-            
-  <div class="section" id="sparse-tensor-basics">
-<h1>Sparse Tensor Basics<a class="headerlink" href="#sparse-tensor-basics" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="sparse-tensor-basics">
+<h1>Sparse Tensor Basics<a class="headerlink" href="#sparse-tensor-basics" title="Link to this heading"></a></h1>
 <p>A sparse tensor is a high-dimensional extension of a sparse matrix where non-zero elements are represented as a set of indices and associated values. Please refer to the <a class="reference external" href="https://nvidia.github.io/MinkowskiEngine/terminology.html">terminology page</a> for more details.</p>
-<div class="section" id="data-generation">
-<h2>Data Generation<a class="headerlink" href="#data-generation" title="Permalink to this headline">¶</a></h2>
+<section id="data-generation">
+<h2>Data Generation<a class="headerlink" href="#data-generation" title="Link to this heading"></a></h2>
 <p>One can generate data directly by extracting non-zero elements. Here, we present a simple 2D array with 5 non-zero elements at the center.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="p">[</span>
     <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
@@ -220,7 +132,7 @@
     <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
 <span class="p">]</span>
 
-<span class="k">def</span> <span class="nf">to_sparse_coo</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_sparse_coo</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
     <span class="c1"># An intuitive way to extract coordinates and features</span>
     <span class="n">coords</span><span class="p">,</span> <span class="n">feats</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
@@ -234,9 +146,9 @@
 </pre></div>
 </div>
 <p>Note that we extract coordinates along with features. This is a simple example and quite inefficient and artificial. In many real applications, it is unlikely that you will get discretized coordinates. For quantizing and extracting discrete values efficiently, please refer to the <a class="reference external" href="https://nvidia.github.io/MinkowskiEngine/demo/training.html">training demo page</a>.</p>
-</div>
-<div class="section" id="sparse-tensor-initialization">
-<h2>Sparse Tensor Initialization<a class="headerlink" href="#sparse-tensor-initialization" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="sparse-tensor-initialization">
+<h2>Sparse Tensor Initialization<a class="headerlink" href="#sparse-tensor-initialization" title="Link to this heading"></a></h2>
 <p>The next step in the pipeline is initializing a sparse tensor. A <code class="xref py py-attr docutils literal notranslate"><span class="pre">MinkowskiEngine.SparseTensor</span></code> requires coordinates with batch indices; this results in a sparse tensor with <span class="math notranslate nohighlight">\(D+1\)</span> spatial dimensions if the original coordinates have <span class="math notranslate nohighlight">\(D\)</span> dimensions.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">coords0</span><span class="p">,</span> <span class="n">feats0</span> <span class="o">=</span> <span class="n">to_sparse_coo</span><span class="p">(</span><span class="n">data_batch_0</span><span class="p">)</span>
 <span class="n">coords1</span><span class="p">,</span> <span class="n">feats1</span> <span class="o">=</span> <span class="n">to_sparse_coo</span><span class="p">(</span><span class="n">data_batch_1</span><span class="p">)</span>
@@ -244,10 +156,10 @@
     <span class="n">coordinates</span><span class="o">=</span><span class="p">[</span><span class="n">coords0</span><span class="p">,</span> <span class="n">coords1</span><span class="p">],</span> <span class="n">features</span><span class="o">=</span><span class="p">[</span><span class="n">feats0</span><span class="p">,</span> <span class="n">feats1</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>Here, we used <a class="reference internal" href="../utils.html#MinkowskiEngine.utils.sparse_collate" title="MinkowskiEngine.utils.sparse_collate"><code class="xref py py-attr docutils literal notranslate"><span class="pre">MinkowskiEngine.utils.sparse_collate</span></code></a> function, but you can use <a class="reference internal" href="../utils.html#MinkowskiEngine.utils.batched_coordinates" title="MinkowskiEngine.utils.batched_coordinates"><code class="xref py py-attr docutils literal notranslate"><span class="pre">MinkowskiEngine.utils.batched_coordinates</span></code></a> to convert a list of coordinates to <code class="xref py py-attr docutils literal notranslate"><span class="pre">MinkowskiEngine.SparseTensor</span></code> compatible coordinates.</p>
-</div>
-<div class="section" id="sparse-tensor-for-continuous-coordinates">
-<h2>Sparse Tensor for Continuous Coordinates<a class="headerlink" href="#sparse-tensor-for-continuous-coordinates" title="Permalink to this headline">¶</a></h2>
+<p>Here, we used <code class="xref py py-attr docutils literal notranslate"><span class="pre">MinkowskiEngine.utils.sparse_collate</span></code> function, but you can use <code class="xref py py-attr docutils literal notranslate"><span class="pre">MinkowskiEngine.utils.batched_coordinates</span></code> to convert a list of coordinates to <code class="xref py py-attr docutils literal notranslate"><span class="pre">MinkowskiEngine.SparseTensor</span></code> compatible coordinates.</p>
+</section>
+<section id="sparse-tensor-for-continuous-coordinates">
+<h2>Sparse Tensor for Continuous Coordinates<a class="headerlink" href="#sparse-tensor-for-continuous-coordinates" title="Link to this heading"></a></h2>
 <p>In many cases, coordinates used in neural networks are continuous.
 However, sparse tensors used in sparse tensor networks are defined in a discrete coordinate system.
 To convert the features in continuous coordinates to discrete coordinates, we provide feature averaging functions that convert features in continuous coordinates to discrete coordinates.
@@ -261,9 +173,9 @@ You can simply use the sparse tensor initialization for this. For example,</p>
 </pre></div>
 </div>
 <p>Please refer to <a class="reference external" href="https://github.com/NVIDIA/MinkowskiEngine/blob/master/examples/indoor.py">indoor semantic segmentation</a> for more detail.</p>
-</div>
-<div class="section" id="sparse-tensor-arithmetics">
-<h2>Sparse Tensor Arithmetics<a class="headerlink" href="#sparse-tensor-arithmetics" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="sparse-tensor-arithmetics">
+<h2>Sparse Tensor Arithmetics<a class="headerlink" href="#sparse-tensor-arithmetics" title="Link to this heading"></a></h2>
 <p>You can use the initialized sparse tensor with a simple feed-forward neural network, but in many cases, you need to do some unconventional operations, and that is why you came to use this library :) Here, we provide some simple operations that allow binary operations between sparse tensors and concatenation along the feature dimension.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># sparse tensors</span>
 <span class="n">A</span> <span class="o">=</span> <span class="n">ME</span><span class="o">.</span><span class="n">SparseTensor</span><span class="p">(</span><span class="n">coordinates</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="n">feats</span><span class="p">)</span>
@@ -298,17 +210,17 @@ You can simply use the sparse tensor initialization for this. For example,</p>
 </pre></div>
 </div>
 <p>Note that we use the same <cite>coordinate_map_key</cite> for the sparse tensor <cite>D</cite>. It will give you an assertion error if you try to use a sparse tensor with different <cite>coordinate_map_key</cite>.</p>
-</div>
-<div class="section" id="feature-concatenation">
-<h2>Feature Concatenation<a class="headerlink" href="#feature-concatenation" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="feature-concatenation">
+<h2>Feature Concatenation<a class="headerlink" href="#feature-concatenation" title="Link to this heading"></a></h2>
 <p>You can concatenate two sparse tensors along the feature dimension if they share the same <cite>coordinate_map_key</cite>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># If you have two or more sparse tensors with the same coordinate_map_key, you can concatenate features</span>
 <span class="n">E</span> <span class="o">=</span> <span class="n">ME</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">D</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="batch-wise-decomposition">
-<h2>Batch-wise Decomposition<a class="headerlink" href="#batch-wise-decomposition" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="batch-wise-decomposition">
+<h2>Batch-wise Decomposition<a class="headerlink" href="#batch-wise-decomposition" title="Link to this heading"></a></h2>
 <p>The internal structure of a sparse tensor collapses all non-zero elements within a batch into a coordinate matrix and a feature matrix.
 To decompose the outputs, you can use a couple function and attributes.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">coords0</span><span class="p">,</span> <span class="n">feats0</span> <span class="o">=</span> <span class="n">to_sparse_coo</span><span class="p">(</span><span class="n">data_batch_0</span><span class="p">)</span>
@@ -334,12 +246,11 @@ To decompose the outputs, you can use a couple function and attributes.</p>
 </pre></div>
 </div>
 <p>For more information, please refer to <a class="reference external" href="https://github.com/NVIDIA/MinkowskiEngine/blob/master/examples/sparse_tensor_basic.py">examples/sparse_tensor_basic.py</a>.</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
 <a href="https://github.com/NVIDIA/MinkowskiEngine">
     <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub">
@@ -355,48 +266,32 @@ To decompose the outputs, you can use a couple function and attributes.</p>
 </script>
 
 
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="../demo/training.html" class="btn btn-neutral float-right" title="Training Pipeline" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../terminology.html" class="btn btn-neutral float-left" title="Definitions and Terminology" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../demo/training.html" class="btn btn-neutral float-right" title="Training Pipeline" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2020, Chris Choy.
-
-    </p>
+    <p>&#169; Copyright 2020-2026, Chris Choy.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

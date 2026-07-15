@@ -1,106 +1,58 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>ModelNet40 Classification &mdash; MinkowskiEngine 0.5.3 documentation</title>
-  
+  <title>ModelNet40 Classification &mdash; MinkowskiEngine 0.5.5 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=45def3bc"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Semantic Segmentation" href="segmentation.html" />
     <link rel="prev" title="Training Pipeline" href="training.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="../index.html" class="icon icon-home"> MinkowskiEngine
           
-
-          
+          <a href="../index.html" class="icon icon-home">
+            MinkowskiEngine
           </a>
-
-          
-            
-            
-              <div class="version">
-                0.5.3
-              </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Introduction</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../overview.html">Minkowski Engine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sparse_tensor_network.html">Sparse Tensor Networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../terminology.html">Definitions and Terminology</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Tutorials</span></p>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/sparse_tensor_basic.html">Sparse Tensor Basics</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Demos</span></p>
+<p class="caption" role="heading"><span class="caption-text">Demos</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="training.html">Training Pipeline</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">ModelNet40 Classification</a><ul>
@@ -116,7 +68,7 @@
 <li class="toctree-l1"><a class="reference internal" href="multigpu.html">Multi-GPU with Pytorch-Lightning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pointnet.html">PointNet</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API</span></p>
+<p class="caption" role="heading"><span class="caption-text">API</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../sparse_tensor.html">SparseTensor and TensorField</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../convolution.html">MinkowskiConvolution</a></li>
@@ -132,7 +84,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../common.html">Miscellaneous Classes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../misc.html">Miscellanea</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Miscellanea</span></p>
+<p class="caption" role="heading"><span class="caption-text">Miscellanea</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../issues.html">Common Issues</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides.html">Guidelines for Faster Networks</a></li>
@@ -140,74 +92,33 @@
 <li class="toctree-l1"><a class="reference internal" href="../benchmark.html">Benchmark</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">MinkowskiEngine</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
-      <li>ModelNet40 Classification</li>
-    
-    
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">ModelNet40 Classification</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="../_sources/demo/modelnet40_classification.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
 
            <div itemprop="articleBody">
-            
-  <div class="section" id="modelnet40-classification">
-<h1>ModelNet40 Classification<a class="headerlink" href="#modelnet40-classification" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="modelnet40-classification">
+<h1>ModelNet40 Classification<a class="headerlink" href="#modelnet40-classification" title="Link to this heading"></a></h1>
 <p>In this page, we will go over a simple demo example that trains a 3D
 convolutional neural network with for classification. The input is a sparse
 tensor and convolution is defined on a sparse tensor as well. The network is an
@@ -215,13 +126,13 @@ extension of the following architecture, but with residual blocks and a lot
 more layers.</p>
 <img alt="../_images/classification_3d_net.png" src="../_images/classification_3d_net.png" />
 <p>Before we proceed, please go over <a class="reference external" href="https://nvidia.github.io/MinkowskiEngine/demo/training.html">the training and data loading tutorial</a> first.</p>
-<div class="section" id="making-a-modelnet40-data-loader">
-<h2>Making a ModelNet40 data loader<a class="headerlink" href="#making-a-modelnet40-data-loader" title="Permalink to this headline">¶</a></h2>
+<section id="making-a-modelnet40-data-loader">
+<h2>Making a ModelNet40 data loader<a class="headerlink" href="#making-a-modelnet40-data-loader" title="Link to this heading"></a></h2>
 <p>First, we need to create a data loader that return a sparse tensor
 representation of a mesh. However, a mesh representation of a 3D model can be sparse if we only use vertices.</p>
 <p>We will first sample points with the same density.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">resample_mesh</span><span class="p">(</span><span class="n">mesh_cad</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">resample_mesh</span><span class="p">(</span><span class="n">mesh_cad</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    https://chrischoy.github.io/research/barycentric-coordinate-for-mesh-sampling/</span>
 <span class="sd">    Samples point cloud on the surface of the model defined as vectices and</span>
 <span class="sd">    faces. This function uses vectorized operations so fast at the cost of some</span>
@@ -277,9 +188,9 @@ representation of a mesh. However, a mesh representation of a 3D model can be sp
 </div>
 <p>The above function will sample points on a mesh with the same density. Next, we
 go through a series of data augmentation steps before quantization steps.</p>
-</div>
-<div class="section" id="data-augmentation">
-<h2>Data Augmentation<a class="headerlink" href="#data-augmentation" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="data-augmentation">
+<h2>Data Augmentation<a class="headerlink" href="#data-augmentation" title="Link to this heading"></a></h2>
 <p>A sparse tensor consists of two components: 1) coordinates and 2) features
 associated to those coordinates. We have to apply data augmentation to both
 components to maximize the utility of the fixed dataset and make the network
@@ -290,49 +201,49 @@ Color distortions such as chromatic translation, Gaussian noise on color
 channels, hue-saturation augmentations are all feature data-augmentation.</p>
 <p>However, since we have only coordinates as data in the ModelNet40 dataset, we
 will only apply coordinate data-augmentation.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">RandomRotation</span><span class="p">:</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">RandomRotation</span><span class="p">:</span>
 
-    <span class="k">def</span> <span class="nf">_M</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_M</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">expm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">axis</span> <span class="o">/</span> <span class="n">norm</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span> <span class="o">*</span> <span class="n">theta</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">feats</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">feats</span><span class="p">):</span>
         <span class="n">R</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_M</span><span class="p">(</span>
             <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">coords</span> <span class="o">@</span> <span class="n">R</span><span class="p">,</span> <span class="n">feats</span>
 
 
-<span class="k">class</span> <span class="nc">RandomScale</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RandomScale</span><span class="p">:</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">min</span><span class="p">,</span> <span class="nb">max</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">min</span><span class="p">,</span> <span class="nb">max</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="nb">max</span> <span class="o">-</span> <span class="nb">min</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bias</span> <span class="o">=</span> <span class="nb">min</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">feats</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">feats</span><span class="p">):</span>
         <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">bias</span>
         <span class="k">return</span> <span class="n">coords</span> <span class="o">*</span> <span class="n">s</span><span class="p">,</span> <span class="n">feats</span>
 
 
-<span class="k">class</span> <span class="nc">RandomShear</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RandomShear</span><span class="p">:</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">feats</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">feats</span><span class="p">):</span>
         <span class="n">T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">coords</span> <span class="o">@</span> <span class="n">T</span><span class="p">,</span> <span class="n">feats</span>
 
 
-<span class="k">class</span> <span class="nc">RandomTranslation</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RandomTranslation</span><span class="p">:</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">feats</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">feats</span><span class="p">):</span>
         <span class="n">trans</span> <span class="o">=</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">coords</span> <span class="o">+</span> <span class="n">trans</span><span class="p">,</span> <span class="n">feats</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="training-a-resnet-for-modelnet40-classification">
-<h2>Training a ResNet for ModelNet40 Classification<a class="headerlink" href="#training-a-resnet-for-modelnet40-classification" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="training-a-resnet-for-modelnet40-classification">
+<h2>Training a ResNet for ModelNet40 Classification<a class="headerlink" href="#training-a-resnet-for-modelnet40-classification" title="Link to this heading"></a></h2>
 <p>The main training function is simple. However, instead of epoch-based training, I used iteration-based training.
 One advantage of iteration-based training over the epoch-based training is that
 the training logic is independent of the batch-size.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
     <span class="n">optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">SGD</span><span class="p">(</span>
         <span class="n">net</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>
         <span class="n">lr</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">lr</span><span class="p">,</span>
@@ -366,9 +277,9 @@ the training logic is independent of the batch-size.</p>
         <span class="o">...</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="running-the-example">
-<h2>Running the Example<a class="headerlink" href="#running-the-example" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="running-the-example">
+<h2>Running the Example<a class="headerlink" href="#running-the-example" title="Link to this heading"></a></h2>
 <p>When you assemble all the code blocks, you can run your own ModelNet40 classification network.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">examples</span><span class="o">.</span><span class="n">modelnet40</span> <span class="o">--</span><span class="n">batch_size</span> <span class="mi">128</span> <span class="o">--</span><span class="n">stat_freq</span> <span class="mi">100</span>
 </pre></div>
@@ -378,12 +289,11 @@ the training logic is independent of the batch-size.</p>
 <p class="admonition-title">Warning</p>
 <p>The ModelNet40 data loading and voxelization is the most time consuming part of the training. Thus, the example caches all ModelNet40 data into memory which takes up about 10G of memory.</p>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
 <a href="https://github.com/NVIDIA/MinkowskiEngine">
     <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub">
@@ -399,48 +309,32 @@ the training logic is independent of the batch-size.</p>
 </script>
 
 
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="segmentation.html" class="btn btn-neutral float-right" title="Semantic Segmentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="training.html" class="btn btn-neutral float-left" title="Training Pipeline" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="segmentation.html" class="btn btn-neutral float-right" title="Semantic Segmentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2020, Chris Choy.
-
-    </p>
+    <p>&#169; Copyright 2020-2026, Chris Choy.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

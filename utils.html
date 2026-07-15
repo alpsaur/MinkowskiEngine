@@ -1,106 +1,58 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Utility Functions and Classes &mdash; MinkowskiEngine 0.5.3 documentation</title>
-  
+  <title>Utility Functions and Classes &mdash; MinkowskiEngine 0.5.5 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=45def3bc"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Miscellaneous Classes" href="common.html" />
     <link rel="prev" title="Coordinate Management" href="coords.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="index.html" class="icon icon-home"> MinkowskiEngine
           
-
-          
+          <a href="index.html" class="icon icon-home">
+            MinkowskiEngine
           </a>
-
-          
-            
-            
-              <div class="version">
-                0.5.3
-              </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Introduction</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="overview.html">Minkowski Engine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sparse_tensor_network.html">Sparse Tensor Networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="terminology.html">Definitions and Terminology</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Tutorials</span></p>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/sparse_tensor_basic.html">Sparse Tensor Basics</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Demos</span></p>
+<p class="caption" role="heading"><span class="caption-text">Demos</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="demo/training.html">Training Pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="demo/modelnet40_classification.html">ModelNet40 Classification</a></li>
@@ -110,7 +62,7 @@
 <li class="toctree-l1"><a class="reference internal" href="demo/multigpu.html">Multi-GPU with Pytorch-Lightning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="demo/pointnet.html">PointNet</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API</span></p>
+<p class="caption" role="heading"><span class="caption-text">API</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="sparse_tensor.html">SparseTensor and TensorField</a></li>
 <li class="toctree-l1"><a class="reference internal" href="convolution.html">MinkowskiConvolution</a></li>
@@ -143,7 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="common.html">Miscellaneous Classes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="misc.html">Miscellanea</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Miscellanea</span></p>
+<p class="caption" role="heading"><span class="caption-text">Miscellanea</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="issues.html">Common Issues</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guides.html">Guidelines for Faster Networks</a></li>
@@ -151,515 +103,82 @@
 <li class="toctree-l1"><a class="reference internal" href="benchmark.html">Benchmark</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">MinkowskiEngine</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
-      <li>Utility Functions and Classes</li>
-    
-    
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Utility Functions and Classes</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="_sources/utils.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
 
            <div itemprop="articleBody">
-            
-  <div class="section" id="utility-functions-and-classes">
-<h1>Utility Functions and Classes<a class="headerlink" href="#utility-functions-and-classes" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="sparse-quantize">
-<h2>sparse_quantize<a class="headerlink" href="#sparse-quantize" title="Permalink to this headline">¶</a></h2>
-<dl class="py function">
-<dt id="MinkowskiEngine.utils.sparse_quantize">
-<code class="sig-prename descclassname">MinkowskiEngine.utils.</code><code class="sig-name descname">sparse_quantize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coordinates</span></em>, <em class="sig-param"><span class="n">features</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">labels</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ignore_label</span><span class="o">=</span><span class="default_value">- 100</span></em>, <em class="sig-param"><span class="n">return_index</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">return_inverse</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">return_maps_only</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">quantization_size</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">'cpu'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.utils.sparse_quantize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given coordinates, and features (optionally labels), the function
-generates quantized (voxelized) coordinates.</p>
-<dl>
-<dt>Args:</dt><dd><blockquote>
-<div><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">coordinates</span></code> (<code class="xref py py-attr docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> or <code class="xref py py-attr docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): a
-matrix of size <span class="math notranslate nohighlight">\(N \times D\)</span> where <span class="math notranslate nohighlight">\(N\)</span> is the number of
-points in the <span class="math notranslate nohighlight">\(D\)</span> dimensional space.</p>
-<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">features</span></code> (<code class="xref py py-attr docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> or <code class="xref py py-attr docutils literal notranslate"><span class="pre">torch.Tensor</span></code>, optional): a
-matrix of size <span class="math notranslate nohighlight">\(N \times D_F\)</span> where <span class="math notranslate nohighlight">\(N\)</span> is the number of
-points and <span class="math notranslate nohighlight">\(D_F\)</span> is the dimension of the features. Must have the
-same container as <cite>coords</cite> (i.e. if <cite>coords</cite> is a torch.Tensor, <cite>feats</cite>
-must also be a torch.Tensor).</p>
-<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">labels</span></code> (<code class="xref py py-attr docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> or <code class="xref py py-attr docutils literal notranslate"><span class="pre">torch.IntTensor</span></code>,
-optional): integer labels associated to eah coordinates.  Must have the
-same container as <cite>coords</cite> (i.e. if <cite>coords</cite> is a torch.Tensor,
-<cite>labels</cite> must also be a torch.Tensor). For classification where a set
-of points are mapped to one label, do not feed the labels.</p>
-<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">ignore_label</span></code> (<code class="xref py py-attr docutils literal notranslate"><span class="pre">int</span></code>, optional): the int value of the
-IGNORE LABEL.
-<code class="xref py py-attr docutils literal notranslate"><span class="pre">torch.nn.CrossEntropyLoss(ignore_index=ignore_label)</span></code></p>
-<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">return_index</span></code> (<code class="xref py py-attr docutils literal notranslate"><span class="pre">bool</span></code>, optional): set True if you want the
-indices of the quantized coordinates. False by default.</p>
-<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">return_inverse</span></code> (<code class="xref py py-attr docutils literal notranslate"><span class="pre">bool</span></code>, optional): set True if you want
-the indices that can recover the discretized original coordinates.
-False by default. <cite>return_index</cite> must be True when <cite>return_reverse</cite> is True.</p>
-<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">return_maps_only</span></code> (<code class="xref py py-attr docutils literal notranslate"><span class="pre">bool</span></code>, optional): if set, return the
-unique_map or optionally inverse map, but not the coordinates. Can be
-used if you don’t care about final coordinates or if you use
-device==cuda and you don’t need coordinates on GPU. This returns either
-unique_map alone or (unique_map, inverse_map) if return_inverse is set.</p>
-<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">quantization_size</span></code> (attr:<cite>float</cite>, optional): if set, will use
-the quanziation size to define the smallest distance between
-coordinates.</p>
-<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">device</span></code> (attr:<cite>str</cite>, optional): Either ‘cpu’ or ‘cuda’.</p>
-<p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">unique_map</span><span class="p">,</span> <span class="n">inverse_map</span> <span class="o">=</span> <span class="n">sparse_quantize</span><span class="p">(</span><span class="n">discrete_coords</span><span class="p">,</span> <span class="n">return_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_inverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">unique_coords</span> <span class="o">=</span> <span class="n">discrete_coords</span><span class="p">[</span><span class="n">unique_map</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">unique_coords</span><span class="p">[</span><span class="n">inverse_map</span><span class="p">]</span> <span class="o">==</span> <span class="n">discrete_coords</span><span class="p">)</span>  <span class="c1"># True</span>
-</pre></div>
-</div>
-<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">quantization_size</span></code> (<code class="xref py py-attr docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">list</span></code>, or
-<code class="xref py py-attr docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>, optional): the length of the each side of the
-hyperrectangle of of the grid cell.</p>
-</div></blockquote>
-<p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Segmentation</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">criterion</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">(</span><span class="n">ignore_index</span><span class="o">=-</span><span class="mi">100</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">coords</span><span class="p">,</span> <span class="n">feats</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">MinkowskiEngine</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">sparse_quantize</span><span class="p">(</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">coords</span><span class="p">,</span> <span class="n">feats</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">ignore_label</span><span class="o">=-</span><span class="mi">100</span><span class="p">,</span> <span class="n">quantization_size</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">net</span><span class="p">(</span><span class="n">MinkowskiEngine</span><span class="o">.</span><span class="n">SparseTensor</span><span class="p">(</span><span class="n">feats</span><span class="p">,</span> <span class="n">coords</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="n">labels</span><span class="o">.</span><span class="n">long</span><span class="p">())</span>
-<span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Classification</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">criterion</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">(</span><span class="n">ignore_index</span><span class="o">=-</span><span class="mi">100</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">coords</span><span class="p">,</span> <span class="n">feats</span> <span class="o">=</span> <span class="n">MinkowskiEngine</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">sparse_quantize</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">feats</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">output</span> <span class="o">=</span> <span class="n">net</span><span class="p">(</span><span class="n">MinkowskiEngine</span><span class="o">.</span><span class="n">SparseTensor</span><span class="p">(</span><span class="n">feats</span><span class="p">,</span> <span class="n">coords</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="n">labels</span><span class="o">.</span><span class="n">long</span><span class="p">())</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-</dd></dl>
-
-</div>
-<div class="section" id="batched-coordinates">
-<h2>batched_coordinates<a class="headerlink" href="#batched-coordinates" title="Permalink to this headline">¶</a></h2>
-<dl class="py function">
-<dt id="MinkowskiEngine.utils.batched_coordinates">
-<code class="sig-prename descclassname">MinkowskiEngine.utils.</code><code class="sig-name descname">batched_coordinates</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coords</span></em>, <em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">torch.int32</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.utils.batched_coordinates" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a <cite>ME.SparseTensor</cite> coordinates from a sequence of coordinates</p>
-<p>Given a list of either numpy or pytorch tensor coordinates, return the
-batched coordinates suitable for <cite>ME.SparseTensor</cite>.</p>
-<dl>
-<dt>Args:</dt><dd><p><a class="reference internal" href="source/MinkowskiEngine.utils.html#module-MinkowskiEngine.utils.coords" title="MinkowskiEngine.utils.coords"><code class="xref py py-attr docutils literal notranslate"><span class="pre">coords</span></code></a> (a sequence of <cite>torch.Tensor</cite> or <cite>numpy.ndarray</cite>): a
-list of coordinates.</p>
-<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">dtype</span></code>: torch data type of the return tensor. torch.int32 by default.</p>
-</dd>
-<dt>Returns:</dt><dd><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">batched_coordindates</span></code> (<cite>torch.Tensor</cite>): a batched coordinates.</p>
-</dd>
-</dl>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>From v0.4, the batch index will be prepended before all coordinates.</p>
-</div>
-</dd></dl>
-
-</div>
-<div class="section" id="sparse-collate">
-<h2>sparse_collate<a class="headerlink" href="#sparse-collate" title="Permalink to this headline">¶</a></h2>
-<dl class="py function">
-<dt id="MinkowskiEngine.utils.sparse_collate">
-<code class="sig-prename descclassname">MinkowskiEngine.utils.</code><code class="sig-name descname">sparse_collate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">coords</span></em>, <em class="sig-param"><span class="n">feats</span></em>, <em class="sig-param"><span class="n">labels</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">torch.int32</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.utils.sparse_collate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create input arguments for a sparse tensor <a class="reference external" href="https://nvidia.github.io/MinkowskiEngine/sparse_tensor.html">the documentation</a>.</p>
-<p>Convert a set of coordinates and features into the batch coordinates and
-batch features.</p>
-<dl>
-<dt>Args:</dt><dd><p><a class="reference internal" href="source/MinkowskiEngine.utils.html#module-MinkowskiEngine.utils.coords" title="MinkowskiEngine.utils.coords"><code class="xref py py-attr docutils literal notranslate"><span class="pre">coords</span></code></a> (set of <cite>torch.Tensor</cite> or <cite>numpy.ndarray</cite>): a set of coordinates.</p>
-<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">feats</span></code> (set of <cite>torch.Tensor</cite> or <cite>numpy.ndarray</cite>): a set of features.</p>
-<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">labels</span></code> (set of <cite>torch.Tensor</cite> or <cite>numpy.ndarray</cite>): a set of labels
-associated to the inputs.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</div>
-<div class="section" id="batch-sparse-collate">
-<h2>batch_sparse_collate<a class="headerlink" href="#batch-sparse-collate" title="Permalink to this headline">¶</a></h2>
-<dl class="py function">
-<dt id="MinkowskiEngine.utils.batch_sparse_collate">
-<code class="sig-prename descclassname">MinkowskiEngine.utils.</code><code class="sig-name descname">batch_sparse_collate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">torch.int32</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.utils.batch_sparse_collate" title="Permalink to this definition">¶</a></dt>
-<dd><p>The wrapper function that can be used in in conjunction with
-<cite>torch.utils.data.DataLoader</cite> to generate inputs for a sparse tensor.</p>
-<p>Please refer to <a class="reference external" href="https://nvidia.github.io/MinkowskiEngine/demo/training.html">the training example</a> for the
-usage.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">data</span></code>: list of (coordinates, features, labels) tuples.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</div>
-<div class="section" id="cat">
-<h2>cat<a class="headerlink" href="#cat" title="Permalink to this headline">¶</a></h2>
-<dl class="py function">
-<dt id="MinkowskiEngine.cat">
-<code class="sig-prename descclassname">MinkowskiEngine.</code><code class="sig-name descname">cat</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">sparse_tensors</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.cat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Concatenate sparse tensors</p>
-<p>Concatenate sparse tensor features. All sparse tensors must have the same
-<cite>coordinate_map_key</cite> (the same coordinates). To concatenate sparse tensors
-with different sparsity patterns, use SparseTensor binary operations, or
-<a class="reference internal" href="union.html#MinkowskiEngine.MinkowskiUnion" title="MinkowskiEngine.MinkowskiUnion"><code class="xref py py-attr docutils literal notranslate"><span class="pre">MinkowskiEngine.MinkowskiUnion</span></code></a>.</p>
-<p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">MinkowskiEngine</span> <span class="k">as</span> <span class="nn">ME</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sin</span> <span class="o">=</span> <span class="n">ME</span><span class="o">.</span><span class="n">SparseTensor</span><span class="p">(</span><span class="n">feats</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sin2</span> <span class="o">=</span> <span class="n">ME</span><span class="o">.</span><span class="n">SparseTensor</span><span class="p">(</span><span class="n">feats2</span><span class="p">,</span> <span class="n">coordinate_map_key</span><span class="o">=</span><span class="n">sin</span><span class="o">.</span><span class="n">coordinate_map_key</span><span class="p">,</span> <span class="n">coordinate_mananger</span><span class="o">=</span><span class="n">sin</span><span class="o">.</span><span class="n">coordinate_manager</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sout</span> <span class="o">=</span> <span class="n">UNet</span><span class="p">(</span><span class="n">sin</span><span class="p">)</span>  <span class="c1"># Returns an output sparse tensor on the same coordinates</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">sout2</span> <span class="o">=</span> <span class="n">ME</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">sin</span><span class="p">,</span> <span class="n">sin2</span><span class="p">,</span> <span class="n">sout</span><span class="p">)</span>  <span class="c1"># Can concatenate multiple sparse tensors</span>
-</pre></div>
-</div>
-</dd></dl>
-
-</div>
-<div class="section" id="to-sparse">
-<h2>to_sparse<a class="headerlink" href="#to-sparse" title="Permalink to this headline">¶</a></h2>
-<dl class="py function">
-<dt id="MinkowskiEngine.to_sparse">
-<code class="sig-prename descclassname">MinkowskiEngine.</code><code class="sig-name descname">to_sparse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">format</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">coordinates</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.to_sparse" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a batched tensor (dimension 0 is the batch dimension) to a SparseTensor</p>
-<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">x</span></code> (<code class="xref py py-attr docutils literal notranslate"><span class="pre">torch.Tensor</span></code>): a batched tensor. The first dimension is the batch dimension.</p>
-<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">format</span></code> (<code class="xref py py-attr docutils literal notranslate"><span class="pre">str</span></code>): Format of the tensor. It must include ‘B’ and ‘C’ indicating the batch and channel dimension respectively. The rest of the dimensions must be ‘X’. .e.g. format=”BCXX” if image data with BCHW format is used. If a 3D data with the channel at the last dimension, use format=”BXXXC” indicating Batch X Height X Width X Depth X Channel. If not provided, the format will be “BCX…X”.</p>
-<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">device</span></code>: Device the sparse tensor will be generated on. If not provided, the device of the input tensor will be used.</p>
-</dd></dl>
-
-</div>
-<div class="section" id="to-sparse-all">
-<h2>to_sparse_all<a class="headerlink" href="#to-sparse-all" title="Permalink to this headline">¶</a></h2>
-<dl class="py function">
-<dt id="MinkowskiEngine.to_sparse_all">
-<code class="sig-prename descclassname">MinkowskiEngine.</code><code class="sig-name descname">to_sparse_all</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dense_tensor</span><span class="p">:</span> <span class="n">torch.Tensor</span></em>, <em class="sig-param"><span class="n">coordinates</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.Tensor<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.to_sparse_all" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a (differentiable) dense tensor to a sparse tensor with all coordinates.</p>
-<p>Assume the input to have BxCxD1xD2x….xDN format.</p>
-<p>If the shape of the tensor do not change, use <cite>dense_coordinates</cite> to cache the coordinates.
-Please refer to tests/python/dense.py for usage</p>
-<p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dense_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>  <span class="c1"># BxCxD1xD2xD3xD4</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dense_tensor</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">stensor</span> <span class="o">=</span> <span class="n">to_sparse</span><span class="p">(</span><span class="n">dense_tensor</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-</div>
-<div class="section" id="sparsecollation">
-<h2>SparseCollation<a class="headerlink" href="#sparsecollation" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="MinkowskiEngine.utils.SparseCollation">
-<em class="property">class </em><code class="sig-prename descclassname">MinkowskiEngine.utils.</code><code class="sig-name descname">SparseCollation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">limit_numpoints</span><span class="o">=</span><span class="default_value">- 1</span></em>, <em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">torch.int32</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.utils.SparseCollation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates collate function for coords, feats, labels.</p>
-<p>Please refer to <a class="reference external" href="https://nvidia.github.io/MinkowskiEngine/demo/training.html">the training example</a> for the
-usage.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p><code class="xref py py-attr docutils literal notranslate"><span class="pre">limit_numpoints</span></code> (int): If positive integer, limits batch size
-so that the number of input coordinates is below limit_numpoints. If 0
-or False, concatenate all points. -1 by default.</p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data_loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">dataset</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="o">...</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">collate_fn</span><span class="o">=</span><span class="n">SparseCollation</span><span class="p">())</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">data_loader</span><span class="p">):</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
-</pre></div>
-</div>
-<dl class="py method">
-<dt id="MinkowskiEngine.utils.SparseCollation.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">limit_numpoints</span><span class="o">=</span><span class="default_value">- 1</span></em>, <em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">torch.int32</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.utils.SparseCollation.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="minkowskitosparsetensor">
-<h2>MinkowskiToSparseTensor<a class="headerlink" href="#minkowskitosparsetensor" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="MinkowskiEngine.MinkowskiToSparseTensor">
-<em class="property">class </em><code class="sig-prename descclassname">MinkowskiEngine.</code><code class="sig-name descname">MinkowskiToSparseTensor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">remove_zeros</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">coordinates</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.Tensor<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.MinkowskiToSparseTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a (differentiable) dense tensor or a <code class="xref py py-attr docutils literal notranslate"><span class="pre">MinkowskiEngine.TensorField</span></code> to a <code class="xref py py-attr docutils literal notranslate"><span class="pre">MinkowskiEngine.SparseTensor</span></code>.</p>
-<p>For dense tensor, the input must have the BxCxD1xD2x….xDN format.</p>
-<p><code class="xref py py-attr docutils literal notranslate"><span class="pre">remove_zeros</span></code> (bool): if True, removes zero valued coordinates. If
-False, use all coordinates to populate a sparse tensor. True by default.</p>
-<p>If the shape of the tensor do not change, use <cite>dense_coordinates</cite> to cache the coordinates.
-Please refer to tests/python/dense.py for usage.</p>
-<p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Differentiable dense torch.Tensor to sparse tensor.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dense_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>  <span class="c1"># BxCxD1xD2x....xDN</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dense_tensor</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Since the shape is fixed, cache the coordinates for faster inference</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">coordinates</span> <span class="o">=</span> <span class="n">dense_coordinates</span><span class="p">(</span><span class="n">dense_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="c1"># Add layers that can be applied on a regular pytorch tensor</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">MinkowskiToSparseTensor</span><span class="p">(</span><span class="n">remove_zeros</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">),</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">MinkowskiConvolution</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">MinkowskiBatchNorm</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">MinkowskiReLU</span><span class="p">(),</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
-<span class="gp">&gt;&gt;&gt; </span>  <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Iteration: </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>  <span class="n">soutput</span> <span class="o">=</span> <span class="n">network</span><span class="p">(</span><span class="n">dense_tensor</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>  <span class="n">soutput</span><span class="o">.</span><span class="n">F</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span>  <span class="n">soutput</span><span class="o">.</span><span class="n">dense</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">dense_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-</pre></div>
-</div>
-<dl class="py method">
-<dt id="MinkowskiEngine.MinkowskiToSparseTensor.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">remove_zeros</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">coordinates</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.Tensor<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.MinkowskiToSparseTensor.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="minkowskitodensetensor">
-<h2>MinkowskiToDenseTensor<a class="headerlink" href="#minkowskitodensetensor" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="MinkowskiEngine.MinkowskiToDenseTensor">
-<em class="property">class </em><code class="sig-prename descclassname">MinkowskiEngine.</code><code class="sig-name descname">MinkowskiToDenseTensor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shape</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.Size<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.MinkowskiToDenseTensor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a (differentiable) sparse tensor to a torch tensor.</p>
-<p>The return type has the BxCxD1xD2x….xDN format.</p>
-<p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dense_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>  <span class="c1"># BxCxD1xD2x....xDN</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dense_tensor</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Since the shape is fixed, cache the coordinates for faster inference</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">coordinates</span> <span class="o">=</span> <span class="n">dense_coordinates</span><span class="p">(</span><span class="n">dense_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="n">network</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="c1"># Add layers that can be applied on a regular pytorch tensor</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">MinkowskiToSparseTensor</span><span class="p">(</span><span class="n">coordinates</span><span class="o">=</span><span class="n">coordinates</span><span class="p">),</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">MinkowskiConvolution</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">MinkowskiBatchNorm</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">MinkowskiReLU</span><span class="p">(),</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">MinkowskiConvolutionTranspose</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">MinkowskiToDenseTensor</span><span class="p">(</span>
-<span class="gp">&gt;&gt;&gt; </span>        <span class="n">dense_tensor</span><span class="o">.</span><span class="n">shape</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="p">),</span>  <span class="c1"># must have the same tensor stride.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Iteration: </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">output</span> <span class="o">=</span> <span class="n">network</span><span class="p">(</span><span class="n">dense_tensor</span><span class="p">)</span> <span class="c1"># returns a regular pytorch tensor</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="n">output</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-</pre></div>
-</div>
-<dl class="py method">
-<dt id="MinkowskiEngine.MinkowskiToDenseTensor.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shape</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>torch.Size<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.MinkowskiToDenseTensor.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="minkowskitofeature">
-<h2>MinkowskiToFeature<a class="headerlink" href="#minkowskitofeature" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="MinkowskiEngine.MinkowskiToFeature">
-<em class="property">class </em><code class="sig-prename descclassname">MinkowskiEngine.</code><code class="sig-name descname">MinkowskiToFeature</code><a class="headerlink" href="#MinkowskiEngine.MinkowskiToFeature" title="Permalink to this definition">¶</a></dt>
-<dd><p>Extract features from a sparse tensor and returns a pytorch tensor.</p>
-<p>Can be used to to make a network construction simpler.</p>
-<p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">net</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">MinkowskiConvolution</span><span class="p">(</span><span class="o">...</span><span class="p">),</span> <span class="n">MinkowskiGlobalMaxPooling</span><span class="p">(</span><span class="o">...</span><span class="p">),</span> <span class="n">MinkowskiToFeature</span><span class="p">(),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="o">...</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">torch_tensor</span> <span class="o">=</span> <span class="n">net</span><span class="p">(</span><span class="n">sparse_tensor</span><span class="p">)</span>
-</pre></div>
-</div>
-<dl class="py method">
-<dt id="MinkowskiEngine.MinkowskiToFeature.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.MinkowskiToFeature.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="minkowskistackcat">
-<h2>MinkowskiStackCat<a class="headerlink" href="#minkowskistackcat" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="MinkowskiEngine.MinkowskiStackCat">
-<em class="property">class </em><code class="sig-prename descclassname">MinkowskiEngine.</code><code class="sig-name descname">MinkowskiStackCat</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">torch.nn.modules.module.Module</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.MinkowskiStackCat" title="Permalink to this definition">¶</a></dt>
-<dt>
-<em class="property">class </em><code class="sig-prename descclassname">MinkowskiEngine.</code><code class="sig-name descname">MinkowskiStackCat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arg</span><span class="p">:</span> <span class="n">OrderedDict<span class="p">[</span>str<span class="p">, </span>Module<span class="p">]</span></span></em><span class="sig-paren">)</span></dt>
-<dd><dl class="py method">
-<dt id="MinkowskiEngine.MinkowskiStackCat.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.MinkowskiStackCat.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="MinkowskiEngine.MinkowskiStackCat.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.MinkowskiStackCat.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="minkowskistacksum">
-<h2>MinkowskiStackSum<a class="headerlink" href="#minkowskistacksum" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="MinkowskiEngine.MinkowskiStackSum">
-<em class="property">class </em><code class="sig-prename descclassname">MinkowskiEngine.</code><code class="sig-name descname">MinkowskiStackSum</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">torch.nn.modules.module.Module</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.MinkowskiStackSum" title="Permalink to this definition">¶</a></dt>
-<dt>
-<em class="property">class </em><code class="sig-prename descclassname">MinkowskiEngine.</code><code class="sig-name descname">MinkowskiStackSum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arg</span><span class="p">:</span> <span class="n">OrderedDict<span class="p">[</span>str<span class="p">, </span>Module<span class="p">]</span></span></em><span class="sig-paren">)</span></dt>
-<dd><dl class="py method">
-<dt id="MinkowskiEngine.MinkowskiStackSum.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.MinkowskiStackSum.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="MinkowskiEngine.MinkowskiStackSum.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.MinkowskiStackSum.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="minkowskistackmean">
-<h2>MinkowskiStackMean<a class="headerlink" href="#minkowskistackmean" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="MinkowskiEngine.MinkowskiStackMean">
-<em class="property">class </em><code class="sig-prename descclassname">MinkowskiEngine.</code><code class="sig-name descname">MinkowskiStackMean</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">torch.nn.modules.module.Module</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.MinkowskiStackMean" title="Permalink to this definition">¶</a></dt>
-<dt>
-<em class="property">class </em><code class="sig-prename descclassname">MinkowskiEngine.</code><code class="sig-name descname">MinkowskiStackMean</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arg</span><span class="p">:</span> <span class="n">OrderedDict<span class="p">[</span>str<span class="p">, </span>Module<span class="p">]</span></span></em><span class="sig-paren">)</span></dt>
-<dd><dl class="py method">
-<dt id="MinkowskiEngine.MinkowskiStackMean.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.MinkowskiStackMean.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="MinkowskiEngine.MinkowskiStackMean.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.MinkowskiStackMean.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="minkowskistackvar">
-<h2>MinkowskiStackVar<a class="headerlink" href="#minkowskistackvar" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="MinkowskiEngine.MinkowskiStackVar">
-<em class="property">class </em><code class="sig-prename descclassname">MinkowskiEngine.</code><code class="sig-name descname">MinkowskiStackVar</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">torch.nn.modules.module.Module</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.MinkowskiStackVar" title="Permalink to this definition">¶</a></dt>
-<dt>
-<em class="property">class </em><code class="sig-prename descclassname">MinkowskiEngine.</code><code class="sig-name descname">MinkowskiStackVar</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arg</span><span class="p">:</span> <span class="n">OrderedDict<span class="p">[</span>str<span class="p">, </span>Module<span class="p">]</span></span></em><span class="sig-paren">)</span></dt>
-<dd><dl class="py method">
-<dt id="MinkowskiEngine.MinkowskiStackVar.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.MinkowskiStackVar.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="MinkowskiEngine.MinkowskiStackVar.forward">
-<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#MinkowskiEngine.MinkowskiStackVar.forward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-</div>
+             
+  <section id="utility-functions-and-classes">
+<h1>Utility Functions and Classes<a class="headerlink" href="#utility-functions-and-classes" title="Link to this heading"></a></h1>
+<section id="sparse-quantize">
+<h2>sparse_quantize<a class="headerlink" href="#sparse-quantize" title="Link to this heading"></a></h2>
+</section>
+<section id="batched-coordinates">
+<h2>batched_coordinates<a class="headerlink" href="#batched-coordinates" title="Link to this heading"></a></h2>
+</section>
+<section id="sparse-collate">
+<h2>sparse_collate<a class="headerlink" href="#sparse-collate" title="Link to this heading"></a></h2>
+</section>
+<section id="batch-sparse-collate">
+<h2>batch_sparse_collate<a class="headerlink" href="#batch-sparse-collate" title="Link to this heading"></a></h2>
+</section>
+<section id="cat">
+<h2>cat<a class="headerlink" href="#cat" title="Link to this heading"></a></h2>
+</section>
+<section id="to-sparse">
+<h2>to_sparse<a class="headerlink" href="#to-sparse" title="Link to this heading"></a></h2>
+</section>
+<section id="to-sparse-all">
+<h2>to_sparse_all<a class="headerlink" href="#to-sparse-all" title="Link to this heading"></a></h2>
+</section>
+<section id="sparsecollation">
+<h2>SparseCollation<a class="headerlink" href="#sparsecollation" title="Link to this heading"></a></h2>
+</section>
+<section id="minkowskitosparsetensor">
+<h2>MinkowskiToSparseTensor<a class="headerlink" href="#minkowskitosparsetensor" title="Link to this heading"></a></h2>
+</section>
+<section id="minkowskitodensetensor">
+<h2>MinkowskiToDenseTensor<a class="headerlink" href="#minkowskitodensetensor" title="Link to this heading"></a></h2>
+</section>
+<section id="minkowskitofeature">
+<h2>MinkowskiToFeature<a class="headerlink" href="#minkowskitofeature" title="Link to this heading"></a></h2>
+</section>
+<section id="minkowskistackcat">
+<h2>MinkowskiStackCat<a class="headerlink" href="#minkowskistackcat" title="Link to this heading"></a></h2>
+</section>
+<section id="minkowskistacksum">
+<h2>MinkowskiStackSum<a class="headerlink" href="#minkowskistacksum" title="Link to this heading"></a></h2>
+</section>
+<section id="minkowskistackmean">
+<h2>MinkowskiStackMean<a class="headerlink" href="#minkowskistackmean" title="Link to this heading"></a></h2>
+</section>
+<section id="minkowskistackvar">
+<h2>MinkowskiStackVar<a class="headerlink" href="#minkowskistackvar" title="Link to this heading"></a></h2>
+</section>
+</section>
 
 
            </div>
-           
           </div>
 <a href="https://github.com/NVIDIA/MinkowskiEngine">
     <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub">
@@ -675,48 +194,32 @@ registered hooks while the latter silently ignores them.</p>
 </script>
 
 
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="common.html" class="btn btn-neutral float-right" title="Miscellaneous Classes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="coords.html" class="btn btn-neutral float-left" title="Coordinate Management" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="common.html" class="btn btn-neutral float-right" title="Miscellaneous Classes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2020, Chris Choy.
-
-    </p>
+    <p>&#169; Copyright 2020-2026, Chris Choy.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

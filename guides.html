@@ -1,106 +1,58 @@
 
 
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Guidelines for Faster Networks &mdash; MinkowskiEngine 0.5.3 documentation</title>
-  
+  <title>Guidelines for Faster Networks &mdash; MinkowskiEngine 0.5.5 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=45def3bc"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Migration Guide from v0.4.x to v0.5.0" href="migration_05.html" />
     <link rel="prev" title="Common Issues" href="issues.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="index.html" class="icon icon-home"> MinkowskiEngine
           
-
-          
+          <a href="index.html" class="icon icon-home">
+            MinkowskiEngine
           </a>
-
-          
-            
-            
-              <div class="version">
-                0.5.3
-              </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Introduction</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="overview.html">Minkowski Engine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sparse_tensor_network.html">Sparse Tensor Networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="terminology.html">Definitions and Terminology</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Tutorials</span></p>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/sparse_tensor_basic.html">Sparse Tensor Basics</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Demos</span></p>
+<p class="caption" role="heading"><span class="caption-text">Demos</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="demo/training.html">Training Pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="demo/modelnet40_classification.html">ModelNet40 Classification</a></li>
@@ -110,7 +62,7 @@
 <li class="toctree-l1"><a class="reference internal" href="demo/multigpu.html">Multi-GPU with Pytorch-Lightning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="demo/pointnet.html">PointNet</a></li>
 </ul>
-<p class="caption"><span class="caption-text">API</span></p>
+<p class="caption" role="heading"><span class="caption-text">API</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="sparse_tensor.html">SparseTensor and TensorField</a></li>
 <li class="toctree-l1"><a class="reference internal" href="convolution.html">MinkowskiConvolution</a></li>
@@ -126,7 +78,7 @@
 <li class="toctree-l1"><a class="reference internal" href="common.html">Miscellaneous Classes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="misc.html">Miscellanea</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Miscellanea</span></p>
+<p class="caption" role="heading"><span class="caption-text">Miscellanea</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="issues.html">Common Issues</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Guidelines for Faster Networks</a><ul>
@@ -140,89 +92,48 @@
 <li class="toctree-l1"><a class="reference internal" href="benchmark.html">Benchmark</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">MinkowskiEngine</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
-      <li>Guidelines for Faster Networks</li>
-    
-    
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Guidelines for Faster Networks</li>
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="_sources/guides.md.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
 
            <div itemprop="articleBody">
-            
-  <div class="section" id="guidelines-for-faster-networks">
-<h1>Guidelines for Faster Networks<a class="headerlink" href="#guidelines-for-faster-networks" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="guidelines-for-faster-networks">
+<h1>Guidelines for Faster Networks<a class="headerlink" href="#guidelines-for-faster-networks" title="Link to this heading"></a></h1>
 <p>The Minkowski Engine requires two main components for convolution on a sparse tensor: efficient kernel mapping management and operations on the features. A kernel map refers to a mapping that defines which row in an input feature maps to which row in an output feature.</p>
 <p>In Minkowski Engine, we use an unordered map whose key is a non-zero index and the corresponding row index as the value. Given two unordered maps that define input and output tensors, we can find which row maps in the input feature to which row in the output feature.</p>
 <p>However, in many cases, a convolutional network consists of repeated blocks of operations. e.g. a residual block that consists of convolutions with the same kernel size. Thus, we end up re-using a lot of kernel map and instead of re-computing every time, we cache all the kernel maps.</p>
-<div class="section" id="reusing-the-cached-kernel-maps">
-<h2>Reusing the cached kernel maps<a class="headerlink" href="#reusing-the-cached-kernel-maps" title="Permalink to this headline">¶</a></h2>
+<section id="reusing-the-cached-kernel-maps">
+<h2>Reusing the cached kernel maps<a class="headerlink" href="#reusing-the-cached-kernel-maps" title="Link to this heading"></a></h2>
 <p>As we mentioned in the previous section, the Minkowski Engine caches all kernel maps. If a network has a lot of repeated layers, such as convolutions, the network will reuse the cached kernel maps.</p>
-</div>
-<div class="section" id="reusing-the-cached-kernel-maps-for-transposed-layers">
-<h2>Reusing the cached kernel maps for transposed layers<a class="headerlink" href="#reusing-the-cached-kernel-maps-for-transposed-layers" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="reusing-the-cached-kernel-maps-for-transposed-layers">
+<h2>Reusing the cached kernel maps for transposed layers<a class="headerlink" href="#reusing-the-cached-kernel-maps-for-transposed-layers" title="Link to this heading"></a></h2>
 <p>The Minkowski Engine can reuse cached kernel maps for transposed layers by swapping the input and output of the kernel maps. For instance, if a stride-2 convolution was used on the sparse tensor with the tensor stride 2, a transposed convolution layer on the tensor stride 4 with stride 2 can reuse the same kernel map generated on the previous stride-2 convolution. Reuse as many repeated network structure as possible.</p>
-</div>
-<div class="section" id="high-dimensional-convolution-with-cross-shaped-or-custom-kernels">
-<h2>High-dimensional convolution with cross-shaped or custom kernels<a class="headerlink" href="#high-dimensional-convolution-with-cross-shaped-or-custom-kernels" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="high-dimensional-convolution-with-cross-shaped-or-custom-kernels">
+<h2>High-dimensional convolution with cross-shaped or custom kernels<a class="headerlink" href="#high-dimensional-convolution-with-cross-shaped-or-custom-kernels" title="Link to this heading"></a></h2>
 <p>As the dimension or the kernel size increases, it becomes computationally inefficient very quickly if we use hyper-cubic kernels (volumetric kernels). Try to use cross shaped kernel or other custom kernels to reduce the load. In the following snippet, we create a cross-shaped kernel for convolution.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">MinkowskiEngine</span> <span class="k">as</span> <span class="nn">ME</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">MinkowskiEngine</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ME</span>
 
 <span class="o">...</span>
 
@@ -244,17 +155,16 @@
       <span class="n">dimension</span><span class="o">=</span><span class="n">dimension</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="strided-pooling-layers-for-high-dimensional-spaces">
-<h2>Strided pooling layers for high-dimensional spaces<a class="headerlink" href="#strided-pooling-layers-for-high-dimensional-spaces" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="strided-pooling-layers-for-high-dimensional-spaces">
+<h2>Strided pooling layers for high-dimensional spaces<a class="headerlink" href="#strided-pooling-layers-for-high-dimensional-spaces" title="Link to this heading"></a></h2>
 <p>In extremely high-dimensional spaces, it is very expensive to use strided convolution. Using a cross-shaped kernel is not a good solution for hierarchical maps as everything is very sparse in high-dimensional spaces and cross shaped kernel will end up being empty. Instead, use a pooling layer to create kernel map efficiently and fast.</p>
 <p>If you use a pooling layer with kernel size == strides, the MinkowskiEngine will generate kernel map very efficiently as the mapping becomes trivial.</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
 <a href="https://github.com/NVIDIA/MinkowskiEngine">
     <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub">
@@ -270,48 +180,32 @@
 </script>
 
 
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="migration_05.html" class="btn btn-neutral float-right" title="Migration Guide from v0.4.x to v0.5.0" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="issues.html" class="btn btn-neutral float-left" title="Common Issues" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="migration_05.html" class="btn btn-neutral float-right" title="Migration Guide from v0.4.x to v0.5.0" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2020, Chris Choy.
-
-    </p>
+    <p>&#169; Copyright 2020-2026, Chris Choy.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
