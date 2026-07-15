@@ -36,6 +36,12 @@
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/iterator/transform_iterator.h>
 #include <thrust/sort.h>
+#include <thrust/remove.h>
+#include <thrust/unique.h>
+#include <thrust/for_each.h>
+#include <thrust/transform.h>
+#include <thrust/sequence.h>
+#include <thrust/scan.h>
 
 namespace minkowski {
 

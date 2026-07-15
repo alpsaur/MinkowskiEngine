@@ -8,6 +8,33 @@
 
 [![PyPI Version][pypi-image]][pypi-url] [![pypi monthly download][pypi-download]][pypi-url] [![slack chat][slack-badge]][slack-url]
 
+---
+
+## CUDA 12.8+ / Blackwell GPU Fork
+
+This fork adds compatibility for **CUDA Toolkit 12.8+** and **NVIDIA Blackwell architecture GPUs** (RTX 5090, 5080, 5070, etc.).
+
+### Quick Install
+
+```bash
+# Requires CUDA 12.8+ toolkit installed
+pip install git+https://github.com/alpsaur/MinkowskiEngine@cuda12-compat
+```
+
+### What's Changed
+
+The official MinkowskiEngine repo (last updated 2022) doesn't compile with CUDA 12.8 due to:
+- Deprecated `numpy.distutils` API (removed in NumPy 2.0)
+- NVTX3 header namespace conflicts with CUDA 12.8's built-in headers
+- Thrust library API changes requiring additional includes
+- `std::shared_ptr` ambiguity with `cuda::std::shared_ptr`
+
+This fork applies community workarounds from issues [#543](https://github.com/NVIDIA/MinkowskiEngine/issues/543), [#594](https://github.com/NVIDIA/MinkowskiEngine/issues/594), and [#596](https://github.com/NVIDIA/MinkowskiEngine/issues/596).
+
+**Tested on:** RTX 5090, CUDA 12.8, PyTorch 2.7, Python 3.12
+
+---
+
 The Minkowski Engine is an auto-differentiation library for sparse tensors. It supports all standard neural network layers such as convolution, pooling, unpooling, and broadcasting operations for sparse tensors. For more information, please visit [the documentation page](http://nvidia.github.io/MinkowskiEngine/overview.html).
 
 ## News
