@@ -6,7 +6,7 @@
 
 # Minkowski Engine
 
-[![PyPI Version][pypi-image]][pypi-url] [![pypi monthly download][pypi-download]][pypi-url] [![slack chat][slack-badge]][slack-url]
+[![CI](https://github.com/alpsaur/MinkowskiEngine/actions/workflows/ci.yml/badge.svg)](https://github.com/alpsaur/MinkowskiEngine/actions/workflows/ci.yml) [![PyPI Version][pypi-image]][pypi-url] [![pypi monthly download][pypi-download]][pypi-url] [![slack chat][slack-badge]][slack-url]
 
 ---
 
@@ -14,12 +14,20 @@
 
 This fork adds compatibility for **CUDA Toolkit 12.8+** and **NVIDIA Blackwell architecture GPUs** (RTX 5090, 5080, 5070, etc.).
 
-### Quick Install
+### Quick Install (v0.5.5)
 
 ```bash
 # Requires CUDA 12.8+ toolkit installed
 pip install git+https://github.com/alpsaur/MinkowskiEngine@master
 ```
+
+Or build a **CUDA 12.8 / Blackwell** Docker image:
+
+```bash
+docker build -t minkowski_engine docker
+```
+
+The build no longer wipes `build/` on every run, `python setup.py build_ext --inplace` works out of the box (a `MinkowskiEngineBackend/` namespace stub is included), and a minimal `pyproject.toml` is provided for PEP 517 installs.
 
 ### What's Changed
 
@@ -35,12 +43,15 @@ This fork applies community workarounds from issues [#543](https://github.com/NV
 
 > All changes live on the default `master` branch. The previous `cuda12-compat` branch was merged in and removed — install from `master`. BLAS is auto-detected at build time (OpenBLAS by default), so `--install-option` is not required.
 
+> **v0.5.5 maintenance:** version bumped to 0.5.5; added `pyproject.toml` (PEP 517); CI workflow (CPU build/test matrix + a self-hosted GPU job template); Dockerfile rebuilt for CUDA 12.8 + Blackwell; fixed the `MinkowskiEngineBackend` in-place build and removed the forced `rm -rf build`; silenced deprecated `std::iterator` / `thrust::unary_function`; pytest wired up for `tests/python/`. Prebuilt wheels are planned.
+
 ---
 
 The Minkowski Engine is an auto-differentiation library for sparse tensors. It supports all standard neural network layers such as convolution, pooling, unpooling, and broadcasting operations for sparse tensors. For more information, please visit [the documentation page](http://nvidia.github.io/MinkowskiEngine/overview.html).
 
 ## News
 
+- 2026-07-16 v0.5.5 maintenance: packaging overhaul (`pyproject.toml`, version bump, `MinkowskiEngineBackend` namespace, in-place build fix), CI workflow, CUDA 12.8 Dockerfile, source deprecation fixes (`std::iterator` / `thrust::unary_function`), pytest wiring.
 - 2026-07-15 `cuda12-compat` merged into `master`; NumPy 2.0 and CUDA 12.8 / Blackwell fixes unified on the default branch.
 - 2025-12-19 NumPy 2.0 build compatibility — replaced the removed `numpy.distutils` BLAS detection with `ctypes` / `pkg-config` auto-detection.
 - 2025-12-17 CUDA 12.8+ / Blackwell (RTX 50-series) compatibility.
