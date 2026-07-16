@@ -134,15 +134,16 @@ class MinkowskiSPMMFunction(Function):
     ):
         ctx.misc_args = size, cuda_spmm_alg
         ctx.save_for_backward(rows, cols, vals)
-        result = spmm(
-            rows,
-            cols,
-            vals,
-            size,
-            mat,
-            is_sorted=False,
-            cuda_spmm_alg=cuda_spmm_alg,
-        )
+        with torch.profiler.record_function("ME::SPMM.forward"):
+            result = spmm(
+                rows,
+                cols,
+                vals,
+                size,
+                mat,
+                is_sorted=False,
+                cuda_spmm_alg=cuda_spmm_alg,
+            )
         return result
 
     @staticmethod
@@ -150,15 +151,16 @@ class MinkowskiSPMMFunction(Function):
         size, cuda_spmm_alg = ctx.misc_args
         rows, cols, vals = ctx.saved_tensors
         new_size = torch.Size([size[1], size[0]])
-        grad = spmm(
-            cols,
-            rows,
-            vals,
-            new_size,
-            grad,
-            is_sorted=False,
-            cuda_spmm_alg=cuda_spmm_alg,
-        )
+        with torch.profiler.record_function("ME::SPMM.backward"):
+            grad = spmm(
+                cols,
+                rows,
+                vals,
+                new_size,
+                grad,
+                is_sorted=False,
+                cuda_spmm_alg=cuda_spmm_alg,
+            )
         return (
             None,
             None,
@@ -180,13 +182,14 @@ class MinkowskiSPMMAverageFunction(Function):
         cuda_spmm_alg: int = 1,
     ):
         ctx.misc_args = size, cuda_spmm_alg
-        result, COO, vals = spmm_average(
-            rows,
-            cols,
-            size,
-            mat,
-            cuda_spmm_alg=cuda_spmm_alg,
-        )
+        with torch.profiler.record_function("ME::SPMMAverage.forward"):
+            result, COO, vals = spmm_average(
+                rows,
+                cols,
+                size,
+                mat,
+                cuda_spmm_alg=cuda_spmm_alg,
+            )
         ctx.save_for_backward(COO, vals)
         return result
 
@@ -195,15 +198,16 @@ class MinkowskiSPMMAverageFunction(Function):
         size, cuda_spmm_alg = ctx.misc_args
         COO, vals = ctx.saved_tensors
         new_size = torch.Size([size[1], size[0]])
-        grad = spmm(
-            COO[1],
-            COO[0],
-            vals,
-            new_size,
-            grad,
-            is_sorted=False,
-            cuda_spmm_alg=cuda_spmm_alg,
-        )
+        with torch.profiler.record_function("ME::SPMMAverage.backward"):
+            grad = spmm(
+                COO[1],
+                COO[0],
+                vals,
+                new_size,
+                grad,
+                is_sorted=False,
+                cuda_spmm_alg=cuda_spmm_alg,
+            )
         return (
             None,
             None,

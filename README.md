@@ -356,6 +356,9 @@ For issues not listed on the API and feature requests, feel free to submit
 an issue on [this fork's issue
 page](https://github.com/alpsaur/MinkowskiEngine/issues).
 
+To profile where time goes inside ME ops and coordinate-map construction, see
+[Profiling MinkowskiEngine](docs/profiling.md).
+
 
 ## Known Issues
 

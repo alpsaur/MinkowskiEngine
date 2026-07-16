@@ -66,14 +66,15 @@ class MinkowskiBroadcastFunction(Function):
         )
 
         fw_fn = get_minkowski_function("BroadcastForward", input_features)
-        return fw_fn(
-            input_features,
-            input_features_global,
-            operation_type,
-            in_coords_key,
-            glob_coords_key,
-            coords_manager._manager,
-        )
+        with torch.profiler.record_function("ME::Broadcast.forward"):
+            return fw_fn(
+                input_features,
+                input_features_global,
+                operation_type,
+                in_coords_key,
+                glob_coords_key,
+                coords_manager._manager,
+            )
 
     @staticmethod
     def backward(ctx, grad_out_feat):
@@ -90,15 +91,16 @@ class MinkowskiBroadcastFunction(Function):
         ) = ctx.saved_vars
 
         bw_fn = get_minkowski_function("BroadcastBackward", grad_out_feat)
-        grad_in_feat, grad_in_feat_glob = bw_fn(
-            input_features,
-            input_features_global,
-            grad_out_feat,
-            operation_type,
-            in_coords_key,
-            glob_coords_key,
-            coords_manager._manager,
-        )
+        with torch.profiler.record_function("ME::Broadcast.backward"):
+            grad_in_feat, grad_in_feat_glob = bw_fn(
+                input_features,
+                input_features_global,
+                grad_out_feat,
+                operation_type,
+                in_coords_key,
+                glob_coords_key,
+                coords_manager._manager,
+            )
         return grad_in_feat, grad_in_feat_glob, None, None, None, None
 
 

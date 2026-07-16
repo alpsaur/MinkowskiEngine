@@ -61,12 +61,13 @@ class MinkowskiInterpolationFunction(Function):
         # in_map, out_map, weights = coordinate_manager.interpolation_map_weight(
         #     in_coordinate_map_key, tfield)
         fw_fn = get_minkowski_function("InterpolationForward", input_features)
-        out_feat, in_map, out_map, weights = fw_fn(
-            input_features,
-            tfield,
-            in_coordinate_map_key,
-            coordinate_manager._manager,
-        )
+        with torch.profiler.record_function("ME::Interpolation.forward"):
+            out_feat, in_map, out_map, weights = fw_fn(
+                input_features,
+                tfield,
+                in_coordinate_map_key,
+                coordinate_manager._manager,
+            )
         ctx.save_for_backward(in_map, out_map, weights)
         ctx.inputs = (
             in_coordinate_map_key,
@@ -86,14 +87,15 @@ class MinkowskiInterpolationFunction(Function):
         ) = ctx.inputs
         in_map, out_map, weights = ctx.saved_tensors
 
-        grad_in_feat = bw_fn(
-            grad_out_feat,
-            in_map,
-            out_map,
-            weights,
-            in_coordinate_map_key,
-            coordinate_manager._manager,
-        )
+        with torch.profiler.record_function("ME::Interpolation.backward"):
+            grad_in_feat = bw_fn(
+                grad_out_feat,
+                in_map,
+                out_map,
+                weights,
+                in_coordinate_map_key,
+                coordinate_manager._manager,
+            )
         return grad_in_feat, None, None, None
 
 

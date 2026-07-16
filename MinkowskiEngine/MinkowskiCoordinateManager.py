@@ -176,7 +176,8 @@ class CoordinateManager:
 
         """
         tensor_stride = convert_to_int_list(tensor_stride, self.D)
-        return self._manager.insert_and_map(coordinates, tensor_stride, string_id)
+        with torch.profiler.record_function("ME::CoordinateManager.insert_and_map"):
+            return self._manager.insert_and_map(coordinates, tensor_stride, string_id)
 
     def insert_field(
         self,
@@ -203,7 +204,8 @@ class CoordinateManager:
            >>> torch.all(coordinates == coordinates[unique_map][inverse_map]) # True
 
         """
-        return self._manager.insert_field(coordinates, tensor_stride, string_id)
+        with torch.profiler.record_function("ME::CoordinateManager.insert_field"):
+            return self._manager.insert_field(coordinates, tensor_stride, string_id)
 
     def field_to_sparse_insert_and_map(
         self,
@@ -229,9 +231,12 @@ class CoordinateManager:
            >>> key, (unique_map, inverse_map) = manager.insert(coordinates, [1])
 
         """
-        return self._manager.field_to_sparse_insert_and_map(
-            field_map_key, sparse_tensor_stride, sparse_tensor_string_id
-        )
+        with torch.profiler.record_function(
+            "ME::CoordinateManager.field_to_sparse_insert_and_map"
+        ):
+            return self._manager.field_to_sparse_insert_and_map(
+                field_map_key, sparse_tensor_stride, sparse_tensor_string_id
+            )
 
     def exists_field_to_sparse(
         self, field_map_key: CoordinateMapKey, sparse_map_key: CoordinateMapKey
@@ -265,7 +270,8 @@ class CoordinateManager:
         :attr:`stride`: stride size.
         """
         stride = convert_to_int_list(stride, self.D)
-        return self._manager.stride(coordinate_map_key, stride, string_id)
+        with torch.profiler.record_function("ME::CoordinateManager.stride"):
+            return self._manager.stride(coordinate_map_key, stride, string_id)
 
     def origin(self) -> CoordinateMapKey:
         return self._manager.origin()
@@ -406,17 +412,18 @@ class CoordinateManager:
         if region_offset is None:
             region_offset = torch.IntTensor()
 
-        kernel_map = self._manager.kernel_map(
-            in_key,
-            out_key,
-            convert_to_int_list(kernel_size, self.D),  #
-            convert_to_int_list(stride, self.D),  #
-            convert_to_int_list(dilation, self.D),  #
-            region_type,
-            region_offset,
-            is_transpose,
-            is_pool,
-        )
+        with torch.profiler.record_function("ME::CoordinateManager.kernel_map"):
+            kernel_map = self._manager.kernel_map(
+                in_key,
+                out_key,
+                convert_to_int_list(kernel_size, self.D),  #
+                convert_to_int_list(stride, self.D),  #
+                convert_to_int_list(dilation, self.D),  #
+                region_type,
+                region_offset,
+                is_transpose,
+                is_pool,
+            )
 
         return kernel_map
 
@@ -437,7 +444,10 @@ class CoordinateManager:
         key: CoordinateMapKey,
         samples: torch.Tensor,
     ):
-        return self._manager.interpolation_map_weight(samples, key)
+        with torch.profiler.record_function(
+            "ME::CoordinateManager.interpolation_map_weight"
+        ):
+            return self._manager.interpolation_map_weight(samples, key)
 
     # def get_union_map(self, in_keys: List[CoordsKey], out_key: CoordsKey):
     #     r"""Generates a union of coordinate sets and returns the mapping from input sets to the new output coordinates.
