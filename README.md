@@ -16,16 +16,16 @@
 
 This fork adds compatibility for **CUDA Toolkit 12.8+** and **NVIDIA Blackwell architecture GPUs** (RTX 5090, 5080, 5070, etc.).
 
-### Quick Install (v0.5.6)
+### Quick Install (v0.5.7)
 
 **Prebuilt wheels** (fastest — no compilation; CUDA 12.8 / sm_120, built against **torch 2.9.x cu128**, Python 3.10–3.12):
 
 ```bash
 # pick the wheel matching your Python from the release page
-pip install https://github.com/alpsaur/MinkowskiEngine/releases/download/v0.5.6/minkowskiengine-0.5.6-cp312-cp312-linux_x86_64.whl
+pip install https://github.com/alpsaur/MinkowskiEngine/releases/download/v0.5.7/minkowskiengine-0.5.7-cp312-cp312-linux_x86_64.whl
 ```
 
-All wheels: [Releases → v0.5.6](https://github.com/alpsaur/MinkowskiEngine/releases/tag/v0.5.6). The wheel dynamically links your torch install — it needs a **torch 2.9.x + cu128** runtime; for other torch lines, build from source instead.
+All wheels: [Releases](https://github.com/alpsaur/MinkowskiEngine/releases/latest). The wheel dynamically links your torch install — it needs a **torch 2.9.x + cu128** runtime; for other torch lines, build from source instead.
 
 **From source** (any torch >= 2.7 cu128; ~10–20 min compile):
 
@@ -41,6 +41,10 @@ docker build -t minkowski_engine docker
 ```
 
 The build no longer wipes `build/` on every run, `python setup.py build_ext --inplace` works out of the box (a `MinkowskiEngineBackend/` namespace stub is included), and a minimal `pyproject.toml` is provided for PEP 517 installs. `FORCE_CUDA=1` (env var) forces a CUDA build on machines without a visible GPU.
+
+### New in v0.5.7
+
+**Fused + vectorized gather/scatter.** The copy-GEMM convolution path used to launch tiny gather/scatter kernels once per kernel offset (27x per layer for a 3^3 kernel) — profiling a real sparse U-Net showed these copies eating **56% of total GPU time** across ~358k launches per 50 steps. They are now a single vectorized gather and a single vectorized scatter-accumulate per direction (16/8/4-byte chunks per thread), and the backward input-gradient GEMM is reoriented so its scatter is coalesced. Measured on the same workload: copy-kernel GPU time **5.9s → 1.7s**, kernel launches **358k → 14k**, total GPU time per step **−38%**. Enabled by default; `ME_FUSED_COPY=0` restores the legacy path, `ME_FUSED_COPY_MAX_MB` caps staging memory (default 2048).
 
 ### New in v0.5.6
 
@@ -79,6 +83,7 @@ The Minkowski Engine is an auto-differentiation library for sparse tensors. It s
 
 ## News
 
+- 2026-07 **v0.5.7 — fused gather/scatter: 38% less GPU time per training step.** Profiling showed the per-kernel-offset copy kernels were the engine's biggest cost (56% of GPU time); they are now fused and vectorized. On by default with an opt-out (`ME_FUSED_COPY=0`).
 - 2026-07 **v0.5.6 released — [prebuilt wheels](https://github.com/alpsaur/MinkowskiEngine/releases/tag/v0.5.6), half precision, faster training.** One-line install for Blackwell GPUs (no more compiling from source). fp16/bf16 now work across all ops with tensor-core GEMMs and `torch.autocast` — in our training runs this cut peak GPU memory by ~20%. An opt-in `ME_LAZY_SYNC=1` flag removes redundant GPU synchronizations for ~7–11% faster training steps.
 - 2026-07 **v0.5.5 — the fork is now a maintained project**: CI (build + tests on every change), working `pip install` / Docker / [docs](https://alpsaur.github.io/MinkowskiEngine/), a repaired test suite, and packaging/build-system fixes throughout.
 - 2026-07 All CUDA 12.8 / Blackwell and NumPy 2.0 fixes unified on the default `master` branch — just install from `master`.
