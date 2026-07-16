@@ -52,7 +52,11 @@ jobs:
           # the container's sh PATH has `python` (via setup-python) but no
           # `pip` shim — always go through `python -m pip` here.
           python -m pip install --upgrade pip
-          python -m pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu128
+          # Pin the torch line the wheel is built against. Unpinned, this pulled
+          # torch 2.13, whose libtorch ABI broke imports on torch 2.9 installs
+          # (undefined symbol: c10::TensorImpl::incref_pyobject). 2.9.x matches
+          # the README-recommended runtime; bump deliberately, with a re-tag.
+          python -m pip install --no-cache-dir "torch~=2.9.0" --index-url https://download.pytorch.org/whl/cu128
           python -m pip install --no-cache-dir wheel setuptools ninja
 
       - name: Build wheel
@@ -63,17 +67,20 @@ jobs:
           MAX_COMPILATION_THREADS: "8"
         run: |
           # --no-build-isolation: build in this env so setup.py sees the installed torch.
-          python -m pip wheel . --no-build-isolation -w wheelhouse/
+          # --no-deps: only OUR wheel — without it, pip also drops torch + its
+          # entire dependency tree (40+ wheels incl. torch 2.13) into wheelhouse/,
+          # and the release step attached all of them. Users install torch themselves.
+          python -m pip wheel . --no-build-isolation --no-deps -w wheelhouse/
           ls -la wheelhouse/
 
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v4
         with:
           name: wheel-py${{ matrix.python }}
-          path: wheelhouse/*.whl
+          path: wheelhouse/minkowskiengine-*.whl
 
       - name: Attach wheel to Release (tag builds only)
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: wheelhouse/*.whl
+          files: wheelhouse/minkowskiengine-*.whl
