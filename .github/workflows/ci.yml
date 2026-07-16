@@ -38,11 +38,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential python3-dev libopenblas-dev ninja-build
-      - name: Install PyTorch (CPU) + pytest
+      - name: Install PyTorch (CPU) + test deps
         run: |
           python -m pip install --upgrade pip
           pip install "torch~=${{ matrix.torch }}" --index-url https://download.pytorch.org/whl/cpu
-          pip install pytest
+          # numpy is a runtime requirement (requirements.txt: numpy>=1.21).
+          # Install it separately so torch stays on the CPU wheel index above
+          # rather than being pulled from PyPI as a CUDA build.
+          pip install "numpy>=1.21" pytest
       # GitHub-hosted ubuntu runners have NO NVIDIA GPU and NO nvcc, so this
       # validates the CPU-only build + packaging + import + CPU tests ONLY.
       - name: Build CPU-only extension (in-place)
@@ -52,7 +55,10 @@ jobs:
           mkdir -p MinkowskiEngineBackend
           python setup.py build_ext --inplace --cpu_only
       - name: Run CPU tests
-        run: pytest tests/ -q
+        # Bare `pytest` honors pytest.ini (testpaths = tests/python), which
+        # deliberately excludes tests/cpp (C++ harness that errors without a
+        # CXX env var). Do not pass an explicit path here.
+        run: pytest -q
 
   gpu-test:
     name: GPU build & smoke (self-hosted, CUDA 12.8 / sm_120)

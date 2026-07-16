@@ -38,11 +38,11 @@ def batched_coordinates(coords, dtype=torch.int32, device=None):
 
 
 def load_file(file_name):
-    try:
-        import open3d as o3d
-    except ImportError:
-        raise ImportError("Please install open3d with `pip install open3d`.")
+    # open3d is a heavy optional dep (not in requirements.txt, not in CI).
+    # Skip the calling test rather than erroring when it is unavailable.
+    import pytest
 
+    o3d = pytest.importorskip("open3d")
     pcd = o3d.io.read_point_cloud(file_name)
     coords = np.array(pcd.points)
     colors = np.array(pcd.colors)
