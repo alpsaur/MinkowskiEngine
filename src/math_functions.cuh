@@ -316,7 +316,7 @@ __global__ void fused_scatter_add_kernel(Dtype *__restrict__ dst,
        idx < total_chunks; idx += int64_t(gridDim.x) * blockDim.x) {
     int64_t const row = idx / chunks_per_row;
     uint32_t const c = idx - row * chunks_per_row;
-    Dtype vals[VEC];
+    alignas(VEC * sizeof(Dtype)) Dtype vals[VEC];
     if constexpr (VEC == 1) {
       vals[0] = src[idx];
     } else {
