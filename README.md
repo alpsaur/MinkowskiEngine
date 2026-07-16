@@ -122,7 +122,7 @@ We visualized a sparse tensor network operation on a sparse tensor, convolution,
 - Mixed precision: fp16 / bf16 with `torch.autocast`, tensor-core GEMMs (v0.5.6+)
 - Dynamic computation graph
 - Custom kernel shapes
-- Multi-GPU training
+- Multi-GPU training (upstream feature; not yet validated on this fork)
 - Multi-threaded kernel map
 - Multi-threaded compilation
 - Highly-optimized GPU kernels
@@ -355,6 +355,11 @@ general concepts and the original API.
 For issues not listed on the API and feature requests, feel free to submit
 an issue on [this fork's issue
 page](https://github.com/alpsaur/MinkowskiEngine/issues).
+
+
+## Performance
+
+For the full set of runtime and build knobs — TF32, mixed precision (fp16/bf16 via `torch.autocast`), the `ME_LAZY_SYNC=1` sync-elimination flag, `OMP_NUM_THREADS` tuning, and `torch.cuda.empty_cache()` for varying point counts — see the [Performance Guide](https://alpsaur.github.io/MinkowskiEngine/performance.html) (`docs/performance.md`). The headline items: enable TF32 on Ampere+ for ~15% faster steps, run bf16 autocast for ~20% lower peak memory, and set `ME_LAZY_SYNC=1` for another ~7–11% speedup at small batch.
 
 
 ## Known Issues

@@ -7,7 +7,7 @@ try:
     _ME_VERSION = ME.__version__
 except Exception:
     ME = None
-    _ME_VERSION = '0.5.5'
+    _ME_VERSION = '0.5.6'
 
 # -*- coding: utf-8 -*-
 #

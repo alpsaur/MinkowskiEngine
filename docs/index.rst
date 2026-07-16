@@ -57,6 +57,7 @@ Table of Contents
 
    issues
    guides
+   performance
    migration_05
    benchmark
 
