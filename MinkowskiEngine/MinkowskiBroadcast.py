@@ -34,6 +34,7 @@ from MinkowskiCoordinateManager import CoordinateManager
 from MinkowskiCommon import (
     MinkowskiModuleBase,
     get_minkowski_function,
+    maybe_autocast,
 )
 
 
@@ -49,6 +50,11 @@ class MinkowskiBroadcastFunction(Function):
         coords_manager: CoordinateManager,
     ):
         assert isinstance(operation_type, BroadcastMode)
+
+        # AMP: backend ops have no autocast dispatch keys, cast explicitly.
+        input_features, input_features_global = maybe_autocast(
+            input_features, input_features_global
+        )
 
         ctx.saved_vars = (
             input_features,

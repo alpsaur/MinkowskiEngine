@@ -45,17 +45,19 @@ namespace minkowski {
 
 #define BLOCK_SIZE 128
 
-template <typename Itype, typename Dtype>
+// Rtype is the reduction (row-count) type: fp32 for 16-bit feature types so
+// counts do not saturate, the feature type itself otherwise.
+template <typename Itype, typename Dtype, typename Rtype>
 __global__ void inverse_val(const int n, Dtype *__restrict__ d_sorted_val,
                             const Itype *__restrict__ sorted_row,
-                            const Dtype *__restrict__ reduced_val) {
+                            const Rtype *__restrict__ reduced_val) {
   auto const tx = threadIdx.x;
   auto const bx = blockIdx.x;
   auto const x = blockDim.x * bx + tx;
 
   if (x < n) {
     Itype row = sorted_row[x];
-    d_sorted_val[x] = 1.0 / __ldg(&reduced_val[row]);
+    d_sorted_val[x] = static_cast<Dtype>(1.0 / __ldg(&reduced_val[row]));
   }
 }
 
@@ -68,8 +70,15 @@ cudaDataType getTensorCudaDataType(torch::Tensor const &self) {
   case torch::ScalarType::Double:
     cuda_data_type = CUDA_R_64F;
     break;
+  case torch::ScalarType::Half:
+    cuda_data_type = CUDA_R_16F;
+    break;
+  case torch::ScalarType::BFloat16:
+    cuda_data_type = CUDA_R_16BF;
+    break;
   default:
-    TORCH_CHECK(false, "Tensor types must be either float32 or float64");
+    TORCH_CHECK(false,
+                "Tensor types must be float32, float64, float16, or bfloat16");
     break;
   }
   return cuda_data_type;
@@ -205,9 +214,16 @@ torch::Tensor coo_spmm(torch::Tensor const &rows, torch::Tensor const &cols,
 
   // Iterate through each set of 2D matrices within the 3D
   // tensor inputs, performing a matrix multiply with each
-  AT_DISPATCH_FLOATING_TYPES(vals.scalar_type(), "coo_spmm", [&] {
-    scalar_t alpha_val = alpha.to<scalar_t>();
-    scalar_t beta_val = beta.to<scalar_t>();
+  AT_DISPATCH_FLOATING_TYPES_AND2(
+      at::ScalarType::Half, at::ScalarType::BFloat16, //
+      vals.scalar_type(), "coo_spmm", [&] {
+    // cusparseSpMM computes in fp32 for 16-bit inputs; alpha/beta must match
+    // the compute type.
+    using compute_t = detail::accum_type_t<scalar_t>;
+    constexpr cudaDataType compute_type =
+        detail::cusparse_compute_type_of<scalar_t>();
+    compute_t alpha_val = alpha.to<compute_t>();
+    compute_t beta_val = beta.to<compute_t>();
 
     scalar_t *values_ptr = reinterpret_cast<scalar_t *>(vals.data_ptr());
     scalar_t *mat2_ptr = reinterpret_cast<scalar_t *>(mat2_contig.data_ptr());
@@ -286,7 +302,7 @@ torch::Tensor coo_spmm(torch::Tensor const &rows, torch::Tensor const &cols,
     CUSPARSE_CHECK(cusparseSpMM_bufferSize(
         cusparse_handle, CUSPARSE_OPERATION_NON_TRANSPOSE,
         CUSPARSE_OPERATION_TRANSPOSE, (void *)&alpha_val, sparse_descr,
-        dense_descr, (void *)&beta_val, result_descr, cuda_data_type, mm_alg,
+        dense_descr, (void *)&beta_val, result_descr, compute_type, mm_alg,
         &required_workspace_buffer_size));
     LOG_DEBUG("Buffer size:", required_workspace_buffer_size);
 
@@ -304,7 +320,7 @@ torch::Tensor coo_spmm(torch::Tensor const &rows, torch::Tensor const &cols,
                                 (void *)&alpha_val,               //
                                 sparse_descr, dense_descr,        //
                                 (void *)&beta_val, result_descr,  //
-                                cuda_data_type, mm_alg, workspace_buffer));
+                                compute_type, mm_alg, workspace_buffer));
 
 #ifdef DEBUG
     LOG_DEBUG("SPMM", cudaDeviceSynchronize());
@@ -466,9 +482,15 @@ coo_spmm_average(torch::Tensor const &rows, torch::Tensor const &cols,
 
   // Iterate through each set of 2D matrices within the 3D
   // tensor inputs, performing a matrix multiply with each
-  AT_DISPATCH_FLOATING_TYPES(mat2.scalar_type(), "coo_spmm", [&] {
-    scalar_t alpha_val = alpha.to<scalar_t>();
-    scalar_t beta_val = beta.to<scalar_t>();
+  AT_DISPATCH_FLOATING_TYPES_AND2(
+      at::ScalarType::Half, at::ScalarType::BFloat16, //
+      mat2.scalar_type(), "coo_spmm", [&] {
+    // fp32 accumulation / compute for 16-bit feature types.
+    using compute_t = detail::accum_type_t<scalar_t>;
+    constexpr cudaDataType compute_type =
+        detail::cusparse_compute_type_of<scalar_t>();
+    compute_t alpha_val = alpha.to<compute_t>();
+    compute_t beta_val = beta.to<compute_t>();
 
     scalar_t *mat2_ptr = reinterpret_cast<scalar_t *>(mat2_contig.data_ptr());
     scalar_t *result_ptr = reinterpret_cast<scalar_t *>(result.data_ptr());
@@ -496,20 +518,22 @@ coo_spmm_average(torch::Tensor const &rows, torch::Tensor const &cols,
     th_int_type *unique_row_ptr =
         (th_int_type *)c10::cuda::CUDACachingAllocator::raw_alloc(
             nnz * sizeof(th_int_type));
-    scalar_t *reduced_val_ptr =
-        (scalar_t *)c10::cuda::CUDACachingAllocator::raw_alloc(
-            nnz * sizeof(scalar_t));
-    torch::Tensor ones = at::ones({nnz}, mat2.options());
+    compute_t *reduced_val_ptr =
+        (compute_t *)c10::cuda::CUDACachingAllocator::raw_alloc(
+            nnz * sizeof(compute_t));
+    torch::Tensor ones = at::ones(
+        {nnz},
+        mat2.options().dtype(c10::CppTypeToScalarType<compute_t>::value));
     int num_unique_keys;
     try {
       // reduce by key
       auto end = thrust::reduce_by_key(
-          thrust::device,                                // policy
-          sorted_row_ptr,                                // key begin
-          sorted_row_ptr + nnz,                          // key end
-          reinterpret_cast<scalar_t *>(ones.data_ptr()), // value begin
-          unique_row_ptr,                                // key out begin
-          reduced_val_ptr                                // value out begin
+          thrust::device,                                 // policy
+          sorted_row_ptr,                                 // key begin
+          sorted_row_ptr + nnz,                           // key end
+          reinterpret_cast<compute_t *>(ones.data_ptr()), // value begin
+          unique_row_ptr,                                 // key out begin
+          reduced_val_ptr                                 // value out begin
       );
       num_unique_keys = end.first - unique_row_ptr;
       LOG_DEBUG("Num unique keys:", num_unique_keys);
@@ -517,7 +541,7 @@ coo_spmm_average(torch::Tensor const &rows, torch::Tensor const &cols,
     THRUST_CATCH;
 
     // Copy the results to the correct output
-    inverse_val<th_int_type, scalar_t>
+    inverse_val<th_int_type, scalar_t, compute_t>
         <<<GET_BLOCKS(nnz, BLOCK_SIZE), BLOCK_SIZE>>>(
             nnz, reinterpret_cast<scalar_t *>(sorted_val.data_ptr()),
             sorted_row_ptr, reduced_val_ptr);
@@ -556,7 +580,7 @@ coo_spmm_average(torch::Tensor const &rows, torch::Tensor const &cols,
     CUSPARSE_CHECK(cusparseSpMM_bufferSize(
         cusparse_handle, CUSPARSE_OPERATION_NON_TRANSPOSE,
         CUSPARSE_OPERATION_TRANSPOSE, (void *)&alpha_val, sparse_descr,
-        dense_descr, (void *)&beta_val, result_descr, cuda_data_type, mm_alg,
+        dense_descr, (void *)&beta_val, result_descr, compute_type, mm_alg,
         &required_workspace_buffer_size));
     LOG_DEBUG("Buffer size:", required_workspace_buffer_size);
 
@@ -575,7 +599,7 @@ coo_spmm_average(torch::Tensor const &rows, torch::Tensor const &cols,
                                 (void *)&alpha_val,               //
                                 sparse_descr, dense_descr,        //
                                 (void *)&beta_val, result_descr,  //
-                                cuda_data_type, mm_alg, workspace_buffer));
+                                compute_type, mm_alg, workspace_buffer));
     CUSPARSE_CHECK(cusparseDestroySpMat(sparse_descr));
     CUSPARSE_CHECK(cusparseDestroyDnMat(dense_descr));
     CUSPARSE_CHECK(cusparseDestroyDnMat(result_descr));

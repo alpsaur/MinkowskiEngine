@@ -103,7 +103,7 @@ std::pair<at::Tensor, at::Tensor> LocalPoolingTransposeForwardCPU(
 
   at::Tensor num_nonzero =
       torch::empty({0}, in_feat.options().requires_grad(false));
-  AT_DISPATCH_FLOATING_TYPES(
+  AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
       in_feat.scalar_type(), "local_pooling_forward_cpu", [&] {
         NonzeroAvgPoolingForwardKernelCPU<scalar_t, coordinate_type>(
             in_feat.template data_ptr<scalar_t>(),
@@ -156,7 +156,7 @@ at::Tensor LocalPoolingTransposeBackwardCPU(
   at::Tensor grad_in_feat =
       torch::zeros({in_feat.size(0), in_feat.size(1)}, in_feat.options());
 
-  AT_DISPATCH_FLOATING_TYPES(
+  AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
       in_feat.scalar_type(), "local_pooling_backward_cpu", [&] {
         NonzeroAvgPoolingBackwardKernelCPU<scalar_t, default_types::index_type>(
             grad_in_feat.template data_ptr<scalar_t>(), in_feat.size(0),

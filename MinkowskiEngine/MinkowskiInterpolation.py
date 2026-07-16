@@ -45,6 +45,18 @@ class MinkowskiInterpolationFunction(Function):
         in_coordinate_map_key: CoordinateMapKey,
         coordinate_manager: CoordinateManager = None,
     ):
+        # AMP: the backend requires features and the coordinate field to share
+        # a dtype, and interpolation weights are computed from the raw
+        # coordinates — promote 16-bit features to the fp32 coordinate field
+        # (mirrors PyTorch's fp32 autocast policy for grid_sampler-like ops)
+        # rather than degrading coordinates to 16 bits.
+        if (
+            torch.is_autocast_enabled("cuda")
+            and input_features.is_cuda
+            and input_features.dtype in (torch.float16, torch.bfloat16)
+            and tfield.dtype == torch.float32
+        ):
+            input_features = input_features.to(torch.float32)
         input_features = input_features.contiguous()
         # in_map, out_map, weights = coordinate_manager.interpolation_map_weight(
         #     in_coordinate_map_key, tfield)

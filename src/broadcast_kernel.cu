@@ -44,7 +44,7 @@ __device__ void atomic_addition_n(Dtype *__restrict__ dst,
                                   const Dtype *__restrict__ src,
                                   const int num_elements) {
   for (int i = 0; i < num_elements; ++i)
-    atomicAdd(dst + i, src[i]);
+    gpuAtomicAdd(dst + i, src[i]);
 }
 
 /* Must be applied to collision free destinations */
@@ -164,6 +164,25 @@ BroadcastForwardKernelGPU<double, uint32_t, detail::c10_allocator<char>>(
     gpu_kernel_map<uint32_t, detail::c10_allocator<char>> const &kernel_map,
     cusparseHandle_t cuhandle, cudaStream_t stream);
 
+// 16-bit feature types (fp16 / bf16)
+#define MINK_INSTANTIATE_BROADCAST_FORWARD_GPU(Dtype, Alloc)                   \
+  template void BroadcastForwardKernelGPU<Dtype, uint32_t, Alloc>(            \
+      const Dtype *d_in_feat, int in_nrows, const Dtype *d_in_feat_global,    \
+      int in_nrows_global, Dtype *d_out_feat, int nchannel,                   \
+      BroadcastMode::Type const op,                                           \
+      gpu_kernel_map<uint32_t, Alloc> const &kernel_map,                      \
+      cusparseHandle_t cuhandle, cudaStream_t stream);
+
+MINK_INSTANTIATE_BROADCAST_FORWARD_GPU(c10::Half,
+                                       detail::default_allocator<char>)
+MINK_INSTANTIATE_BROADCAST_FORWARD_GPU(c10::Half, detail::c10_allocator<char>)
+MINK_INSTANTIATE_BROADCAST_FORWARD_GPU(c10::BFloat16,
+                                       detail::default_allocator<char>)
+MINK_INSTANTIATE_BROADCAST_FORWARD_GPU(c10::BFloat16,
+                                       detail::c10_allocator<char>)
+
+#undef MINK_INSTANTIATE_BROADCAST_FORWARD_GPU
+
 template <typename Dtype, typename Itype, typename ByteAllocator>
 void BroadcastBackwardKernelGPU(
     const Dtype *d_in_feat, Dtype *d_grad_in_feat, int in_nrows,
@@ -175,8 +194,11 @@ void BroadcastBackwardKernelGPU(
   Itype *d_scr, *d_in_map, *d_out_map; //, *d_csr_row;
   Dtype *d_dtype, *d_coo_val, *d_tmp_grad_in_feat_global, *d_tmp_grad_in_feat;
   // cusparseMatDescr_t descr = 0;
-  const Dtype alpha = 1;
-  const Dtype beta = 0;
+  // alpha/beta must match the cusparseSpMM compute type (fp32 for 16-bit
+  // feature types).
+  using accum_t = detail::accum_type_t<Dtype>;
+  const accum_t alpha = 1;
+  const accum_t beta = 0;
   int nnz = in_nrows;
 
   // if (in_maps.size() != 1) {
@@ -266,8 +288,9 @@ void BroadcastBackwardKernelGPU(
   //              +---+
   //             nchannel
   size_t dim_i = in_nrows_global, dim_j = in_nrows, dim_k = nchannel;
-  constexpr bool is_float32 = std::is_same<Dtype, float>::value;
-  cudaDataType cuda_data_type = is_float32 ? CUDA_R_32F : CUDA_R_64F;
+  constexpr cudaDataType cuda_data_type = detail::cuda_data_type_of<Dtype>();
+  constexpr cudaDataType compute_type =
+      detail::cusparse_compute_type_of<Dtype>();
   cusparseSpMatDescr_t sparse_descr;
   cusparseDnMatDescr_t dense_descr;
   cusparseDnMatDescr_t result_descr;
@@ -309,7 +332,7 @@ void BroadcastBackwardKernelGPU(
                                 (void *)&alpha,                   //
                                 sparse_descr, dense_descr,        //
                                 (void *)&beta, result_descr,      //
-                                cuda_data_type, mm_alg, 0));
+                                compute_type, mm_alg, 0));
 
     // For grad_in_feat_glob, add all grad_out_feat
     /*
@@ -364,7 +387,7 @@ void BroadcastBackwardKernelGPU(
                                 (void *)&alpha,                   //
                                 sparse_descr, dense_descr,        //
                                 (void *)&beta, result_descr,      //
-                                cuda_data_type, mm_alg, 0));
+                                compute_type, mm_alg, 0));
 
     /*CUSPARSE_CHECK(
         cusparse_csrmm<Dtype>(cushandle,
@@ -485,6 +508,26 @@ BroadcastBackwardKernelGPU<double, uint32_t, detail::c10_allocator<char>>(
     BroadcastMode::Type const op,
     gpu_kernel_map<uint32_t, detail::c10_allocator<char>> const &kernel_map,
     cusparseHandle_t cushandle, cudaStream_t stream);
+
+// 16-bit feature types (fp16 / bf16)
+#define MINK_INSTANTIATE_BROADCAST_BACKWARD_GPU(Dtype, Alloc)                  \
+  template void BroadcastBackwardKernelGPU<Dtype, uint32_t, Alloc>(           \
+      const Dtype *d_in_feat, Dtype *d_grad_in_feat, int in_nrows,            \
+      const Dtype *d_in_feat_global, Dtype *d_grad_in_feat_global,            \
+      int in_nrows_global, const Dtype *d_grad_out_feat, int nchannel,        \
+      BroadcastMode::Type const op,                                           \
+      gpu_kernel_map<uint32_t, Alloc> const &kernel_map,                      \
+      cusparseHandle_t cushandle, cudaStream_t stream);
+
+MINK_INSTANTIATE_BROADCAST_BACKWARD_GPU(c10::Half,
+                                        detail::default_allocator<char>)
+MINK_INSTANTIATE_BROADCAST_BACKWARD_GPU(c10::Half, detail::c10_allocator<char>)
+MINK_INSTANTIATE_BROADCAST_BACKWARD_GPU(c10::BFloat16,
+                                        detail::default_allocator<char>)
+MINK_INSTANTIATE_BROADCAST_BACKWARD_GPU(c10::BFloat16,
+                                        detail::c10_allocator<char>)
+
+#undef MINK_INSTANTIATE_BROADCAST_BACKWARD_GPU
 
 } // namespace minkowski
 

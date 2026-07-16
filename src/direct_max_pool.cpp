@@ -97,7 +97,7 @@ max_pool_fw(torch::Tensor const &in_map,  //
     MINK_DISPATCH_INTEGER_TYPES(
         in_map.scalar_type(), integer_t, "max_pool_forward_gpu", [&] {
           LOG_DEBUG("Integer size", sizeof(integer_t));
-          AT_DISPATCH_FLOATING_TYPES(
+          AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
               in_feat.scalar_type(), "max_pool_forward_gpu", [&] {
                 max_pool_forward_pointer_kernel_gpu<scalar_t, integer_t,
                                                     integer_t>(
@@ -112,7 +112,7 @@ max_pool_fw(torch::Tensor const &in_map,  //
     MINK_DISPATCH_INTEGER_TYPES(
         in_map.scalar_type(), integer_t, "max_pool_forward_cpu", [&] {
           LOG_DEBUG("Integer size", sizeof(integer_t));
-          AT_DISPATCH_FLOATING_TYPES(
+          AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
               in_feat.scalar_type(), "max_pool_forward_cpu", [&] {
                 // Dtype, MaskItype, MapType
                 max_pooling_forward_pointer_kernel_cpu<scalar_t, integer_t,
@@ -143,7 +143,7 @@ torch::Tensor max_pool_bw(torch::Tensor const &grad_out_feat, //
            "all inputs must be on the same device");
     MINK_DISPATCH_INTEGER_TYPES(
         mask_index.scalar_type(), integer_t, "max_pool_backward_gpu", [&] {
-          AT_DISPATCH_FLOATING_TYPES(
+          AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
               grad_out_feat.scalar_type(), "max_pool_backward_gpu", [&] {
                 MaxPoolingBackwardKernelGPU<scalar_t, integer_t>(
                     grad_in_feat.data_ptr<scalar_t>(), in_nrows,
@@ -155,7 +155,7 @@ torch::Tensor max_pool_bw(torch::Tensor const &grad_out_feat, //
   } else {
     MINK_DISPATCH_INTEGER_TYPES(
         mask_index.scalar_type(), integer_t, "max_pool_backward_cpu", [&] {
-          AT_DISPATCH_FLOATING_TYPES(
+          AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
               grad_out_feat.scalar_type(), "max_pool_backward_cpu", [&] {
                 MaxPoolingBackwardKernelCPU<scalar_t, integer_t>(
                     grad_in_feat.data_ptr<scalar_t>(), in_nrows,   //

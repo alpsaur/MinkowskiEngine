@@ -113,7 +113,7 @@ at::Tensor ConvolutionTransposeForwardCPU(
   LOG_DEBUG("In feat:", in_feat.size(0), "x", in_feat.size(1), "-> out feat",
             out_feat.size(0), "x", out_feat.size(1));
 
-  AT_DISPATCH_FLOATING_TYPES(
+  AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
       in_feat.scalar_type(), "convolution_transpose_forward_cpu", [&] {
         ConvolutionForwardKernelCPU<scalar_t, default_types::index_type>(
             in_feat.template data_ptr<scalar_t>(), in_feat.size(1),
@@ -175,7 +175,7 @@ std::pair<at::Tensor, at::Tensor> ConvolutionTransposeBackwardCPU(
   at::Tensor grad_kernel = torch::zeros(
       {kernel.size(0), kernel.size(1), kernel.size(2)}, kernel.options());
 
-  AT_DISPATCH_FLOATING_TYPES(
+  AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
       in_feat.scalar_type(), "convolution_transpose_backward_cpu", [&] {
         ConvolutionBackwardKernelCPU<scalar_t, default_types::index_type>(
             in_feat.template data_ptr<scalar_t>(),                       //

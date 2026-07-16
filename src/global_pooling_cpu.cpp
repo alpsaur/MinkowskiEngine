@@ -157,7 +157,7 @@ GlobalPoolingForwardCPU(at::Tensor const &in_feat,
       case PoolingMode::GLOBAL_AVG_POOLING_KERNEL: {
         if (is_field) {
           const auto &in_outs = p_map_manager->origin_field_map(p_in_map_key);
-          AT_DISPATCH_FLOATING_TYPES(
+          AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
               in_feat.scalar_type(), "global_pooling_forward_cpu", [&] {
                 NonzeroAvgPoolingForwardKernelCPU<scalar_t, int>(
                     in_feat.template data_ptr<scalar_t>(),
@@ -167,7 +167,7 @@ GlobalPoolingForwardCPU(at::Tensor const &in_feat,
               });
         } else {
           const auto &in_outs = p_map_manager->origin_map(p_in_map_key);
-          AT_DISPATCH_FLOATING_TYPES(
+          AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
               in_feat.scalar_type(), "global_pooling_forward_cpu", [&] {
                 NonzeroAvgPoolingForwardKernelCPU<scalar_t, int>(
                     in_feat.template data_ptr<scalar_t>(),
@@ -197,7 +197,7 @@ GlobalPoolingForwardCPU(at::Tensor const &in_feat,
       case PoolingMode::GLOBAL_MAX_POOLING_PYTORCH_INDEX: {
         if (is_field) {
           const auto &in_outs = p_map_manager->origin_field_map(p_in_map_key);
-          AT_DISPATCH_FLOATING_TYPES(
+          AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
               in_feat.scalar_type(), "global_pooling_forward_cpu", [&] {
                 MaxPoolingForwardKernelCPU<scalar_t, int32_t,
                                            default_types::index_type>(
@@ -208,7 +208,7 @@ GlobalPoolingForwardCPU(at::Tensor const &in_feat,
               });
         } else {
           const auto &in_outs = p_map_manager->origin_map(p_in_map_key);
-          AT_DISPATCH_FLOATING_TYPES(
+          AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
               in_feat.scalar_type(), "global_pooling_forward_cpu", [&] {
                 MaxPoolingForwardKernelCPU<scalar_t, int32_t,
                                            default_types::index_type>(
@@ -300,7 +300,7 @@ GlobalPoolingBackwardCPU(at::Tensor const &in_feat, at::Tensor &grad_out_feat,
       if (is_field) {
         const auto &in_outs = p_map_manager->origin_field_map(p_in_map_key);
         grad_in_feat.zero_();
-        AT_DISPATCH_FLOATING_TYPES(
+        AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
             in_feat.scalar_type(), "global_pooling_backward_cpu", [&] {
               NonzeroAvgPoolingBackwardKernelCPU<scalar_t, int>(
                   grad_in_feat.template data_ptr<scalar_t>(), in_feat.size(0),
@@ -312,7 +312,7 @@ GlobalPoolingBackwardCPU(at::Tensor const &in_feat, at::Tensor &grad_out_feat,
       } else {
         const auto &in_outs = p_map_manager->origin_map(p_in_map_key);
         grad_in_feat.zero_();
-        AT_DISPATCH_FLOATING_TYPES(
+        AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
             in_feat.scalar_type(), "global_pooling_backward_cpu", [&] {
               NonzeroAvgPoolingBackwardKernelCPU<scalar_t, int>(
                   grad_in_feat.template data_ptr<scalar_t>(), in_feat.size(0),
@@ -324,7 +324,7 @@ GlobalPoolingBackwardCPU(at::Tensor const &in_feat, at::Tensor &grad_out_feat,
     }
   } else {
     grad_in_feat.zero_();
-    AT_DISPATCH_FLOATING_TYPES(
+    AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
         in_feat.scalar_type(), "global_pooling_backward_cpu", [&] {
           MaxPoolingBackwardKernelCPU<scalar_t, int32_t>(
               grad_in_feat.template data_ptr<scalar_t>(), in_feat.size(0),

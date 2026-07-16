@@ -78,13 +78,17 @@ __global__ void col2row_major_with_div(const int n, const int nrows,
   }
 }
 
-template <typename Itype, typename Dtype>
+// Rtype is the reduction (accumulation) type: fp32 for 16-bit features so
+// that nonzero counts do not saturate (fp16 cannot represent integers > 2048
+// exactly), the feature type itself otherwise.
+template <typename Itype, typename Dtype, typename Rtype>
 __global__ void
 unique_row2num_nonzero(const int n, Dtype *__restrict__ d_num_nonzero,
                        const Itype *__restrict__ unique_row_ptr,
-                       const Dtype *__restrict__ reduced_val_ptr) {
+                       const Rtype *__restrict__ reduced_val_ptr) {
   CUDA_KERNEL_LOOP(index, n) {
-    d_num_nonzero[unique_row_ptr[index]] = reduced_val_ptr[index];
+    d_num_nonzero[unique_row_ptr[index]] =
+        static_cast<Dtype>(reduced_val_ptr[index]);
   }
 }
 
@@ -93,7 +97,7 @@ __global__ void set_gradient(const int n, const Dtype *d_grad_out,
                              Dtype *d_grad_in, const Itype *out_index,
                              int nchannel) {
   CUDA_KERNEL_LOOP(index, n) {
-    atomicAdd(&d_grad_in[out_index[index]], d_grad_out[index]);
+    gpuAtomicAdd(&d_grad_in[out_index[index]], d_grad_out[index]);
   }
 }
 
@@ -104,8 +108,8 @@ set_gradient_nonzero(const int n, const Dtype *d_grad_out, Dtype *d_grad_in,
   CUDA_KERNEL_LOOP(index, n) {
     int nrow = index / nchannel;
     int ch = index % nchannel;
-    atomicAdd(&d_grad_in[in_map[nrow] * nchannel + ch],
-              d_grad_out[out_map[nrow] * nchannel + ch]);
+    gpuAtomicAdd(&d_grad_in[in_map[nrow] * nchannel + ch],
+                 d_grad_out[out_map[nrow] * nchannel + ch]);
   }
 }
 
@@ -119,8 +123,9 @@ set_gradient_nonzero_avg(const int n, const Dtype *d_grad_out, Dtype *d_grad_in,
     int ch = index % nchannel;
     int curr_num_nonzero = d_num_nonzero[out_map[nrow]];
     if (curr_num_nonzero >= 1)
-      atomicAdd(&d_grad_in[in_map[nrow] * nchannel + ch],
-                d_grad_out[out_map[nrow] * nchannel + ch] / curr_num_nonzero);
+      gpuAtomicAdd(&d_grad_in[in_map[nrow] * nchannel + ch],
+                   d_grad_out[out_map[nrow] * nchannel + ch] /
+                       static_cast<Dtype>(curr_num_nonzero));
   }
 }
 
@@ -136,16 +141,22 @@ void NonzeroAvgPoolingForwardKernelGPU(
     bool const use_avg,                                     //
     ByteAllocator &allocator,                               //
     cusparseHandle_t cushandle, cudaStream_t stream) {
-  const Dtype alpha = 1;
-  const Dtype beta = 0;
+  // Accumulation type: fp32 for 16-bit features (nonzero counts saturate in
+  // fp16/bf16), the feature type otherwise. alpha/beta must match the
+  // cusparseSpMM compute type.
+  using accum_t = detail::accum_type_t<Dtype>;
+  const accum_t alpha = 1;
+  const accum_t beta = 0;
   static_assert(sizeof(Itype) == sizeof(int),
                 "cusparse requires int type index");
-  Dtype *d_ones, *d_coo_val, *d_tmp_out_feat;
+  Dtype *d_coo_val, *d_tmp_out_feat;
+  accum_t *d_ones;
 
   constexpr bool is_int32 = sizeof(Itype) == sizeof(int32_t);
   constexpr bool is_int64 = sizeof(Itype) == sizeof(int64_t);
-  constexpr bool is_float32 = std::is_same<Dtype, float>::value;
-  cudaDataType cuda_data_type = is_float32 ? CUDA_R_32F : CUDA_R_64F;
+  constexpr cudaDataType cuda_data_type = detail::cuda_data_type_of<Dtype>();
+  constexpr cudaDataType compute_type =
+      detail::cusparse_compute_type_of<Dtype>();
 
   cusparseSpMMAlg_t mm_alg;
 #if defined(CUDART_VERSION) && (CUDART_VERSION < 10010)
@@ -174,9 +185,9 @@ void NonzeroAvgPoolingForwardKernelGPU(
   fill<Dtype><<<GET_BLOCKS(sparse_nnzs, CUDA_NUM_THREADS), CUDA_NUM_THREADS, 0,
                 stream>>>(sparse_nnzs, d_coo_val, (Dtype)1.);
   if (use_avg) {
-    d_ones = (Dtype *)allocator.allocate(sparse_nnzs * sizeof(Dtype));
-    fill<Dtype><<<GET_BLOCKS(sparse_nnzs, CUDA_NUM_THREADS), CUDA_NUM_THREADS,
-                  0, stream>>>(sparse_nnzs, d_ones, (Dtype)1.);
+    d_ones = (accum_t *)allocator.allocate(sparse_nnzs * sizeof(accum_t));
+    fill<accum_t><<<GET_BLOCKS(sparse_nnzs, CUDA_NUM_THREADS), CUDA_NUM_THREADS,
+                    0, stream>>>(sparse_nnzs, d_ones, (accum_t)1.);
   }
 
 #ifdef DEBUG
@@ -254,7 +265,7 @@ void NonzeroAvgPoolingForwardKernelGPU(
   CUSPARSE_CHECK(cusparseSpMM_bufferSize(
       cushandle, CUSPARSE_OPERATION_NON_TRANSPOSE, CUSPARSE_OPERATION_TRANSPOSE,
       (void *)&alpha, sparse_descr, dense_descr, (void *)&beta, result_descr,
-      cuda_data_type, mm_alg, &buffer_size));
+      compute_type, mm_alg, &buffer_size));
 
   // buffer size 0 for CUSPARSE_SPMM_COO_ALG1, CUSPARSE_SPMM_COO_ALG3,
   // CUSPARSE_SPMM_COO_ALG4, and CUSPARSE_SPMM_CSR_ALG1
@@ -267,7 +278,7 @@ void NonzeroAvgPoolingForwardKernelGPU(
                               (void *)&alpha,                   //
                               sparse_descr, dense_descr,        //
                               (void *)&beta, result_descr,      //
-                              cuda_data_type, mm_alg, &buffer_size));
+                              compute_type, mm_alg, &buffer_size));
 #ifdef DEBUG
   CUDA_CHECK(cudaStreamSynchronize(0));
 #endif
@@ -276,8 +287,8 @@ void NonzeroAvgPoolingForwardKernelGPU(
   if (use_avg) {
     Itype *unique_row_ptr =
         (Itype *)allocator.allocate(sparse_nnzs * sizeof(Itype));
-    Dtype *reduced_val_ptr =
-        (Dtype *)allocator.allocate(sparse_nnzs * sizeof(Dtype));
+    accum_t *reduced_val_ptr =
+        (accum_t *)allocator.allocate(sparse_nnzs * sizeof(accum_t));
 
     // reduce by key
     int num_unique_keys;
@@ -301,16 +312,16 @@ void NonzeroAvgPoolingForwardKernelGPU(
     std::cout << "[" << PtrToString(p_unique_row, num_unique_keys) << "]\n";
     std::free(p_unique_row);
 
-    Dtype *p_reduced_val =
-        (Dtype *)std::malloc(num_unique_keys * sizeof(Dtype));
+    accum_t *p_reduced_val =
+        (accum_t *)std::malloc(num_unique_keys * sizeof(accum_t));
     CUDA_CHECK(cudaMemcpy(p_reduced_val, reduced_val_ptr,
-                          num_unique_keys * sizeof(Dtype),
+                          num_unique_keys * sizeof(accum_t),
                           cudaMemcpyDeviceToHost));
     std::cout << "[" << PtrToString(p_reduced_val, num_unique_keys) << "]\n";
     std::free(p_reduced_val);
 #endif
     // Copy the results to the correct output
-    unique_row2num_nonzero<Itype, Dtype>
+    unique_row2num_nonzero<Itype, Dtype, accum_t>
         <<<GET_BLOCKS(num_unique_keys, CUDA_NUM_THREADS), CUDA_NUM_THREADS, 0,
            stream>>>(num_unique_keys, d_num_nonzero, unique_row_ptr,
                      reduced_val_ptr);
@@ -326,7 +337,8 @@ void NonzeroAvgPoolingForwardKernelGPU(
 
     // Delete tmp spaces
     allocator.deallocate((char *)unique_row_ptr, sparse_nnzs * sizeof(Itype));
-    allocator.deallocate((char *)reduced_val_ptr, sparse_nnzs * sizeof(Dtype));
+    allocator.deallocate((char *)reduced_val_ptr,
+                         sparse_nnzs * sizeof(accum_t));
   } else {
     col2row_major<Dtype><<<GET_BLOCKS(out_nrows * nchannel, CUDA_NUM_THREADS),
                            CUDA_NUM_THREADS, 0, stream>>>(
@@ -341,7 +353,7 @@ void NonzeroAvgPoolingForwardKernelGPU(
   allocator.deallocate((char *)d_tmp_out_feat,
                        nchannel * out_nrows * sizeof(Dtype));
   if (use_avg)
-    allocator.deallocate((char *)d_ones, in_nrows * sizeof(Dtype));
+    allocator.deallocate((char *)d_ones, in_nrows * sizeof(accum_t));
 
   allocator.deallocate((char *)sorted_row_ptr,
                        2 * (sparse_nnzs + 1) * sizeof(Itype));
@@ -405,6 +417,25 @@ template void NonzeroAvgPoolingForwardKernelGPU<double, uint32_t,
     bool const use_avg,
     detail::c10_allocator<char> &allocator, //
     cusparseHandle_t cushandle, cudaStream_t stream);
+
+// 16-bit feature types (fp16 / bf16)
+#define MINK_INSTANTIATE_AVG_POOL_FORWARD_GPU(Dtype, Alloc)                    \
+  template void NonzeroAvgPoolingForwardKernelGPU<Dtype, uint32_t, Alloc>(    \
+      Dtype const *d_in_feat, default_types::size_type const in_nrows,        \
+      Dtype *d_out_feat, default_types::size_type const out_nrows,            \
+      Dtype *d_num_nonzero, default_types::size_type const nchannel,          \
+      gpu_kernel_map<uint32_t, Alloc> const &kernel_map, bool const use_avg,  \
+      Alloc &allocator, cusparseHandle_t cushandle, cudaStream_t stream);
+
+MINK_INSTANTIATE_AVG_POOL_FORWARD_GPU(c10::Half,
+                                      detail::default_allocator<char>)
+MINK_INSTANTIATE_AVG_POOL_FORWARD_GPU(c10::Half, detail::c10_allocator<char>)
+MINK_INSTANTIATE_AVG_POOL_FORWARD_GPU(c10::BFloat16,
+                                      detail::default_allocator<char>)
+MINK_INSTANTIATE_AVG_POOL_FORWARD_GPU(c10::BFloat16,
+                                      detail::c10_allocator<char>)
+
+#undef MINK_INSTANTIATE_AVG_POOL_FORWARD_GPU
 
 // Backward
 template <typename Dtype, typename Itype, typename ByteAllocator>
@@ -486,6 +517,25 @@ template void NonzeroAvgPoolingBackwardKernelGPU<double, uint32_t,
     default_types::size_type const nchannel,  //
     gpu_kernel_map<uint32_t, detail::c10_allocator<char>> const &kernel_map,
     bool const use_avg, cudaStream_t stream);
+
+// 16-bit feature types (fp16 / bf16)
+#define MINK_INSTANTIATE_AVG_POOL_BACKWARD_GPU(Dtype, Alloc)                   \
+  template void NonzeroAvgPoolingBackwardKernelGPU<Dtype, uint32_t, Alloc>(   \
+      Dtype *d_grad_in_feat, default_types::size_type const in_nrows,         \
+      Dtype const *d_grad_out_feat, default_types::size_type const out_nrows, \
+      Dtype const *d_num_nonzero, default_types::size_type const nchannel,    \
+      gpu_kernel_map<uint32_t, Alloc> const &kernel_map, bool const use_avg,  \
+      cudaStream_t stream);
+
+MINK_INSTANTIATE_AVG_POOL_BACKWARD_GPU(c10::Half,
+                                       detail::default_allocator<char>)
+MINK_INSTANTIATE_AVG_POOL_BACKWARD_GPU(c10::Half, detail::c10_allocator<char>)
+MINK_INSTANTIATE_AVG_POOL_BACKWARD_GPU(c10::BFloat16,
+                                       detail::default_allocator<char>)
+MINK_INSTANTIATE_AVG_POOL_BACKWARD_GPU(c10::BFloat16,
+                                       detail::c10_allocator<char>)
+
+#undef MINK_INSTANTIATE_AVG_POOL_BACKWARD_GPU
 
 } // end namespace minkowski
 

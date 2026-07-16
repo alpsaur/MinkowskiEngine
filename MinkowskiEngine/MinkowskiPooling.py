@@ -35,6 +35,7 @@ from MinkowskiKernelGenerator import KernelGenerator, save_ctx
 from MinkowskiCommon import (
     MinkowskiModuleBase,
     get_minkowski_function,
+    maybe_autocast,
 )
 import MinkowskiEngine as ME
 
@@ -55,6 +56,8 @@ class MinkowskiLocalPoolingFunction(Function):
                 in_coordinate_map_key.get_coordinate_size()
             )
 
+        # AMP: backend ops have no autocast dispatch keys, cast explicitly.
+        input_features = maybe_autocast(input_features)
         input_features = input_features.contiguous()
         ctx.input_features = input_features
         ctx = save_ctx(
@@ -454,6 +457,8 @@ class MinkowskiLocalPoolingTransposeFunction(Function):
                 in_coordinate_map_key.get_coordinate_size()
             )
 
+        # AMP: backend ops have no autocast dispatch keys, cast explicitly.
+        input_features = maybe_autocast(input_features)
         input_features = input_features.contiguous()
         ctx.input_features = input_features
         ctx = save_ctx(
@@ -594,6 +599,8 @@ class MinkowskiGlobalPoolingFunction(Function):
             out_coordinate_map_key = CoordinateMapKey(
                 in_coordinate_map_key.get_coordinate_size()
             )
+        # AMP: backend ops have no autocast dispatch keys, cast explicitly.
+        input_features = maybe_autocast(input_features)
         input_features = input_features.contiguous()
 
         ctx.input_features = input_features
@@ -759,6 +766,8 @@ class MinkowskiDirectMaxPoolingFunction(Function):
         out_nrows: int,
         is_sorted: bool = False,
     ):
+        # AMP: backend ops have no autocast dispatch keys, cast explicitly.
+        in_feat = maybe_autocast(in_feat)
         out_feat, max_mask = _C.direct_max_pool_fw(
             in_map, out_map, in_feat, out_nrows, is_sorted
         )

@@ -122,7 +122,7 @@ ConvolutionForwardCPU(at::Tensor const &in_feat,                         //
   LOG_DEBUG("Allocated", out_nrows, "x", kernel.size(2), "out_features.");
 
   if (out_nrows > 0)
-    AT_DISPATCH_FLOATING_TYPES(
+    AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
         in_feat.scalar_type(), "convolution_forward_cpu", [&] {
           ConvolutionForwardKernelCPU<scalar_t, coordinate_type>(
               in_feat.template data_ptr<scalar_t>(), in_feat.size(1),
@@ -188,7 +188,7 @@ ConvolutionBackwardCPU(at::Tensor const &in_feat,                         //
       {kernel.size(0), kernel.size(1), kernel.size(2)}, kernel.options());
 
   if (in_feat.size(0) > 0)
-    AT_DISPATCH_FLOATING_TYPES(
+    AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
         in_feat.scalar_type(), "convolution_backward_cpu", [&] {
           ConvolutionBackwardKernelCPU<scalar_t, coordinate_type>(
               in_feat.template data_ptr<scalar_t>(),

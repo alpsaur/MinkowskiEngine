@@ -69,7 +69,7 @@ InterpolationForwardCPU(at::Tensor const &in_feat,      //
   auto out_feat =
       torch::zeros({tfield.size(0), in_feat.size(1)}, tfield.options());
 
-  AT_DISPATCH_FLOATING_TYPES(
+  AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
       in_feat.scalar_type(), "interpolation_forward_cpu", [&] {
         LOG_DEBUG("InterpolationForwardKernelCPU");
         InterpolationForwardKernelCPU<scalar_t, scalar_t, int>(
@@ -110,7 +110,7 @@ InterpolationBackwardCPU(at::Tensor &grad_out_feat,      //
   auto grad_in_feat =
       torch::zeros({in_nrows, nchannel}, grad_out_feat.options());
 
-  AT_DISPATCH_FLOATING_TYPES(
+  AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
       grad_out_feat.scalar_type(), "interpolation_backward_cpu", [&] {
         LOG_DEBUG("InterpolationBackwardKernelCPU");
         InterpolationBackwardKernelCPU<scalar_t, scalar_t, int>(

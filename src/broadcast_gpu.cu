@@ -91,7 +91,7 @@ at::Tensor BroadcastForwardGPU(
   cusparseHandle_t handle = getCurrentCUDASparseHandle();
   cusparseSetStream(handle, stream);
 
-  AT_DISPATCH_FLOATING_TYPES(
+  AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
       in_feat.scalar_type(), "broadcast_forward_gpu", [&] {
         BroadcastForwardKernelGPU<scalar_t, uint32_t>(
             in_feat.template data_ptr<scalar_t>(), in_feat.size(0),
@@ -161,7 +161,7 @@ std::pair<at::Tensor, at::Tensor> BroadcastBackwardGPU(
   cusparseHandle_t handle = getCurrentCUDASparseHandle();
   cusparseSetStream(handle, stream);
 
-  AT_DISPATCH_FLOATING_TYPES(
+  AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
       in_feat.scalar_type(), "broadcast_backward_gpu", [&] {
         BroadcastBackwardKernelGPU<scalar_t, uint32_t>(
             in_feat.template data_ptr<scalar_t>(),

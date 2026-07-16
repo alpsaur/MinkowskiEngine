@@ -34,6 +34,7 @@ from MinkowskiSparseTensor import SparseTensor, _get_coordinate_map_key
 from MinkowskiCommon import (
     MinkowskiModuleBase,
     get_minkowski_function,
+    maybe_autocast,
 )
 from MinkowskiCoordinateManager import CoordinateManager
 from MinkowskiKernelGenerator import KernelGenerator
@@ -56,6 +57,10 @@ class MinkowskiConvolutionFunction(Function):
                 in_coordinate_map_key.get_coordinate_size()
             )
 
+        # AMP: backend ops have no autocast dispatch keys, cast explicitly.
+        input_features, kernel_weights = maybe_autocast(
+            input_features, kernel_weights
+        )
         input_features = input_features.contiguous()
 
         ctx.input_features = input_features
@@ -137,6 +142,10 @@ class MinkowskiConvolutionTransposeFunction(Function):
             out_coordinate_map_key = CoordinateMapKey(
                 in_coordinate_map_key.get_coordinate_size()
             )
+        # AMP: backend ops have no autocast dispatch keys, cast explicitly.
+        input_features, kernel_weights = maybe_autocast(
+            input_features, kernel_weights
+        )
         input_features = input_features.contiguous()
         ctx.input_features = input_features
         ctx.kernel_weights = kernel_weights

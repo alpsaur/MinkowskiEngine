@@ -72,7 +72,8 @@ void NonzeroAvgPoolingForwardKernelCPU(Dtype const *p_in_feat,
         p_curr_in = p_in_feat + in_maps[k][row] * nchannel;
         p_curr_out = p_out_feat + out_maps[k][row] * nchannel;
         p_curr_num_nonzero = p_num_nonzero + out_maps[k][row];
-        (*p_curr_num_nonzero)++;
+        // 16-bit types have no operator++; += is defined for all Dtypes.
+        *p_curr_num_nonzero += static_cast<Dtype>(1);
         cpu_add<Dtype>(nchannel, p_curr_in, p_curr_out, p_curr_out);
       }
     } else {

@@ -152,8 +152,10 @@ matmul(const Dtype *__restrict__ A, const int wA, const int hA, //
     // Load the matrices from device memory
     // to shared memory; each thread loads
     // one element of each matrix
-    As[ty][tx] = ((s + tx) < wA && y < hA) ? A[wA * in_row + s + tx] : 0;
-    Bs[ty][tx] = ((s + ty) < hB && x < wB) ? B[wB * (s + ty) + x] : 0;
+    As[ty][tx] = ((s + tx) < wA && y < hA) ? A[wA * in_row + s + tx]
+                                           : static_cast<Dtype>(0);
+    Bs[ty][tx] = ((s + ty) < hB && x < wB) ? B[wB * (s + ty) + x]
+                                           : static_cast<Dtype>(0);
 
     // Synchronize to make sure the matrices are loaded
     __syncthreads();
@@ -175,7 +177,7 @@ matmul(const Dtype *__restrict__ A, const int wA, const int hA, //
   // Write the block sub-matrix to device memory;
   // each thread writes one element
   if (y < hA && x < wB)
-    atomicAdd(&C[wB * out_row + x], Csub);
+    gpuAtomicAdd(&C[wB * out_row + x], Csub);
   // C[wB * out_row + x] += Csub;
 }
 
@@ -237,7 +239,8 @@ matmul2(const Dtype *__restrict__ A, const int wA, const int hA, //
   __shared__ Dtype DTs[BLOCK_SIZE][BLOCK_SIZE];
 
   // For Ds = D^T[...:..., ...:...], use the transposed grid dimension for A
-  DTs[ty][tx] = (x < wD && y < hD) ? D[wD * in_row + x] : 0;
+  DTs[ty][tx] =
+      (x < wD && y < hD) ? D[wD * in_row + x] : static_cast<Dtype>(0);
 
   // Loop over all the sub-matrices of A and B
   // required to compute the block sub-matrix
@@ -245,10 +248,12 @@ matmul2(const Dtype *__restrict__ A, const int wA, const int hA, //
     // Load the matrices from device memory
     // to shared memory; each thread loads
     // one element of each matrix
-    As[ty][tx] = ((s + tx) < wA && y < hA) ? A[wA * out_row + s + tx] : 0;
+    As[ty][tx] = ((s + tx) < wA && y < hA) ? A[wA * out_row + s + tx]
+                                           : static_cast<Dtype>(0);
 
     // Transposed kernel
-    BTs[ty][tx] = ((s + ty) < wB && x < hB) ? B[wB * x + s + ty] : 0;
+    BTs[ty][tx] = ((s + ty) < wB && x < hB) ? B[wB * x + s + ty]
+                                            : static_cast<Dtype>(0);
 
     // Synchronize to make sure the matrices are loaded
     __syncthreads();
@@ -277,13 +282,13 @@ matmul2(const Dtype *__restrict__ A, const int wA, const int hA, //
     // atomic addition. This can be replaced with a more sophisticaed
     // reduction algorithm.
     if ((bx * BLOCK_SIZE + ty) < wD && (s + tx) < wA)
-      atomicAdd(&E[wA * (bx * BLOCK_SIZE + ty) + (s + tx)], Esub);
+      gpuAtomicAdd(&E[wA * (bx * BLOCK_SIZE + ty) + (s + tx)], Esub);
   }
 
   // Write the block sub-matrix to device memory;
   // each thread writes one element
   if (y < hA && x < hB)
-    atomicAdd(&C[hB * in_row + x], Csub);
+    gpuAtomicAdd(&C[hB * in_row + x], Csub);
 }
 
 template <typename Dtype, typename Itype>
@@ -310,8 +315,8 @@ add_mapped_output_tr(const size_t n, const Dtype *__restrict__ in_feat,
   __syncthreads();
 
   if (x < n && y < out_nchannel) {
-    atomicAdd(&out_feat[map_index[tx] * out_nchannel + y],
-              in_feat[y * in_nchannel + x]);
+    gpuAtomicAdd(&out_feat[map_index[tx] * out_nchannel + y],
+                 in_feat[y * in_nchannel + x]);
   }
 }
 
@@ -333,7 +338,13 @@ void ConvolutionForwardKernelGPU(
 
   size_t n_active_in_volume, shared_mem_size = -1;
 
-  if (detail::check_direct_gemm_forward(algo_index, convolution_mode,
+  // 16-bit features always take the copy-GEMM path: the hand-written
+  // direct-GEMM tiles accumulate in the feature dtype, while cublasGemmEx
+  // accumulates in fp32 and uses tensor cores.
+  constexpr bool reduced_precision = detail::is_reduced_fp<Dtype>::value;
+
+  if (!reduced_precision &&
+      detail::check_direct_gemm_forward(algo_index, convolution_mode,
                                         in_nchannel, out_nchannel, in_nrows)) {
     // Define the shared memory size
     if ((in_nchannel > 16 && out_nchannel > 16 &&
@@ -549,6 +560,26 @@ ConvolutionForwardKernelGPU<double, uint32_t, detail::c10_allocator<char>>(
     ConvolutionMode::Type const convolution_mode, cublasHandle_t cuhandle,
     cudaStream_t stream);
 
+// 16-bit feature types (fp16 / bf16)
+#define MINK_INSTANTIATE_CONV_FORWARD_GPU(Dtype, Alloc)                        \
+  template void ConvolutionForwardKernelGPU<Dtype, uint32_t, Alloc>(          \
+      Dtype const *d_in_feat, default_types::size_type const in_nchannel,     \
+      Dtype *d_out_feat, default_types::size_type const out_nchannel,         \
+      Dtype *d_kernel, gpu_kernel_map<uint32_t, Alloc> const &kernel_map,     \
+      default_types::size_type const in_nrows,                                \
+      default_types::size_type const out_nrows, Alloc &allocator,             \
+      MinkowskiAlgorithm::Mode const algo_index,                              \
+      ConvolutionMode::Type const convolution_mode, cublasHandle_t cuhandle,  \
+      cudaStream_t stream);
+
+MINK_INSTANTIATE_CONV_FORWARD_GPU(c10::Half, detail::default_allocator<char>)
+MINK_INSTANTIATE_CONV_FORWARD_GPU(c10::Half, detail::c10_allocator<char>)
+MINK_INSTANTIATE_CONV_FORWARD_GPU(c10::BFloat16,
+                                  detail::default_allocator<char>)
+MINK_INSTANTIATE_CONV_FORWARD_GPU(c10::BFloat16, detail::c10_allocator<char>)
+
+#undef MINK_INSTANTIATE_CONV_FORWARD_GPU
+
 // Backward
 template <typename Dtype, typename Itype, typename ByteAllocator>
 void ConvolutionBackwardKernelGPU(
@@ -584,7 +615,11 @@ void ConvolutionBackwardKernelGPU(
   else
     shared_mem_size = 8;
 
-  if (!detail::check_direct_gemm_backward(
+  // See forward: 16-bit features are forced onto the copy-GEMM path.
+  constexpr bool reduced_precision = detail::is_reduced_fp<Dtype>::value;
+
+  if (reduced_precision ||
+      !detail::check_direct_gemm_backward(
           algo_index, convolution_mode, in_nchannel, out_nchannel, in_nrows)) {
     // find max size
     size_t max_active = kernel_map.max_size();
@@ -819,6 +854,28 @@ ConvolutionBackwardKernelGPU<double, uint32_t, detail::c10_allocator<char>>(
     MinkowskiAlgorithm::Mode const algo_index,                               //
     ConvolutionMode::Type const convolution_mode, cublasHandle_t cuhandle,
     cudaStream_t stream);
+
+// 16-bit feature types (fp16 / bf16)
+#define MINK_INSTANTIATE_CONV_BACKWARD_GPU(Dtype, Alloc)                       \
+  template void ConvolutionBackwardKernelGPU<Dtype, uint32_t, Alloc>(         \
+      Dtype const *d_in_feat, Dtype *d_grad_in_feat,                          \
+      default_types::size_type const in_nchannel,                             \
+      Dtype const *d_grad_out_feat,                                           \
+      default_types::size_type const out_nchannel, Dtype const *d_kernel,     \
+      Dtype *p_grad_kernel, gpu_kernel_map<uint32_t, Alloc> const &kernel_map,\
+      default_types::size_type const in_nrows,                                \
+      default_types::size_type const out_nrows, Alloc &allocator,             \
+      MinkowskiAlgorithm::Mode const algo_index,                              \
+      ConvolutionMode::Type const convolution_mode, cublasHandle_t cuhandle,  \
+      cudaStream_t stream);
+
+MINK_INSTANTIATE_CONV_BACKWARD_GPU(c10::Half, detail::default_allocator<char>)
+MINK_INSTANTIATE_CONV_BACKWARD_GPU(c10::Half, detail::c10_allocator<char>)
+MINK_INSTANTIATE_CONV_BACKWARD_GPU(c10::BFloat16,
+                                   detail::default_allocator<char>)
+MINK_INSTANTIATE_CONV_BACKWARD_GPU(c10::BFloat16, detail::c10_allocator<char>)
+
+#undef MINK_INSTANTIATE_CONV_BACKWARD_GPU
 
 } // namespace minkowski
 

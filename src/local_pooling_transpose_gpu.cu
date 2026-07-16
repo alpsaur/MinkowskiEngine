@@ -114,7 +114,7 @@ std::pair<at::Tensor, at::Tensor> LocalPoolingTransposeForwardGPU(
   cusparseHandle_t handle = getCurrentCUDASparseHandle();
   cusparseSetStream(handle, stream);
 
-  AT_DISPATCH_FLOATING_TYPES(
+  AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
       in_feat.scalar_type(), "local_pooling_forward_gpu", [&] {
         TemplatedAllocator<char> byte_allocator;
         NonzeroAvgPoolingForwardKernelGPU<scalar_t, default_types::index_type,
@@ -173,7 +173,7 @@ at::Tensor LocalPoolingTransposeBackwardGPU(
 
   cudaStream_t stream = at::cuda::getCurrentCUDAStream().stream();
 
-  AT_DISPATCH_FLOATING_TYPES(
+  AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
       in_feat.scalar_type(), "local_pooling_backward_gpu", [&] {
         NonzeroAvgPoolingBackwardKernelGPU<scalar_t, default_types::index_type,
                                            TemplatedAllocator<char>>(

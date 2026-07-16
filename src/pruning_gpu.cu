@@ -133,7 +133,7 @@ at::Tensor PruningForwardGPU(
   } else {
     out_feat.zero_();
     cudaStream_t stream = at::cuda::getCurrentCUDAStream().stream();
-    AT_DISPATCH_FLOATING_TYPES(
+    AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
         in_feat.scalar_type(), "pruning_forward_gpu", [&] {
           PruningForwardKernelGPU<scalar_t, default_types::index_type,
                                   TemplatedAllocator<char>>(
@@ -174,7 +174,7 @@ at::Tensor PruningBackwardGPU(
 
   if (grad_out_feat.size(0) > 0) {
     cudaStream_t stream = at::cuda::getCurrentCUDAStream().stream();
-    AT_DISPATCH_FLOATING_TYPES(
+    AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
         grad_out_feat.scalar_type(), "pruning_backward_gpu", [&] {
           PruningBackwardKernelGPU<scalar_t, default_types::index_type,
                                    TemplatedAllocator<char>>(

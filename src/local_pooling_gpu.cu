@@ -98,7 +98,7 @@ std::pair<at::Tensor, at::Tensor> LocalPoolingForwardGPU(
     max_index.resize_({out_nrows, in_feat.size(1)});
     max_index.zero_();
     TemplatedAllocator<char> byte_allocator;
-    AT_DISPATCH_FLOATING_TYPES(
+    AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
         in_feat.scalar_type(), "local_pooling_forward_gpu", [&] {
           MaxPoolingForwardKernelGPU<scalar_t, default_types::index_type,
                                      TemplatedAllocator<char>>(
@@ -120,7 +120,7 @@ std::pair<at::Tensor, at::Tensor> LocalPoolingForwardGPU(
     cusparseHandle_t handle = getCurrentCUDASparseHandle();
     cusparseSetStream(handle, stream);
 
-    AT_DISPATCH_FLOATING_TYPES(
+    AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
         in_feat.scalar_type(), "local_pooling_forward_gpu", [&] {
           TemplatedAllocator<char> byte_allocator;
           NonzeroAvgPoolingForwardKernelGPU<scalar_t, default_types::index_type,
@@ -182,7 +182,7 @@ at::Tensor LocalPoolingBackwardGPU(
   cudaStream_t stream = at::cuda::getCurrentCUDAStream().stream();
 
   if (pooling_mode == PoolingMode::LOCAL_MAX_POOLING) {
-    AT_DISPATCH_FLOATING_TYPES(
+    AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
         in_feat.scalar_type(), "local_pooling_backward_gpu", [&] {
           MaxPoolingBackwardKernelGPU<scalar_t>(
               grad_in_feat.template data_ptr<scalar_t>(), in_feat.size(0),
@@ -191,7 +191,7 @@ at::Tensor LocalPoolingBackwardGPU(
               in_feat.size(1));
         });
   } else {
-    AT_DISPATCH_FLOATING_TYPES(
+    AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
         in_feat.scalar_type(), "local_pooling_backward_gpu", [&] {
           NonzeroAvgPoolingBackwardKernelGPU<
               scalar_t, default_types::index_type, TemplatedAllocator<char>>(

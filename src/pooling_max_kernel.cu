@@ -38,17 +38,20 @@
 
 #include "allocators.cuh"
 #include "gpu.cuh"
+#include "math_functions.cuh"
 #include "pooling_max_kernel.cuh"
 #include "utils.hpp"
 
+// unused_key is compared in the index type: converting it to a 16-bit float
+// Dtype would overflow to inf and break the guard.
 template <typename Dtype, typename MaskItype>
 __global__ void set_gradient(const size_t n, const Dtype *d_grad_out,
                              Dtype *d_grad_in, const MaskItype *in_index,
-                             const Dtype unused_key) {
+                             const MaskItype unused_key) {
   CUDA_KERNEL_LOOP(index, n) {
     auto const queried_index = in_index[index];
     if (queried_index != unused_key)
-      atomicAdd(&d_grad_in[in_index[index]], d_grad_out[index]);
+      gpuAtomicAdd(&d_grad_in[in_index[index]], d_grad_out[index]);
   }
 }
 
@@ -416,6 +419,49 @@ template void MaxPoolingBackwardKernelGPU<double, int64_t>(
     double *d_grad_in_feat, size_t const in_nrows,
     const double *d_grad_out_feat, size_t const out_nrows,
     const int64_t *d_max_index, size_t const nchannel);
+
+// 16-bit feature types (fp16 / bf16)
+#define MINK_INSTANTIATE_MAX_POOL_GPU(Dtype)                                   \
+  template void                                                                \
+  MaxPoolingForwardKernelGPU<Dtype, uint32_t,                                  \
+                             detail::default_allocator<char>>(                 \
+      const Dtype *d_in_feat, Dtype *d_out_feat, size_t const out_nrows,      \
+      int32_t *d_max_index, size_t const nchannel,                            \
+      gpu_kernel_map<uint32_t, detail::default_allocator<char>> const         \
+          &kernel_map,                                                        \
+      detail::default_allocator<char> &allocator, cudaStream_t stream);       \
+  template void                                                                \
+  MaxPoolingForwardKernelGPU<Dtype, uint32_t, detail::c10_allocator<char>>(   \
+      const Dtype *d_in_feat, Dtype *d_out_feat, size_t const out_nrows,      \
+      int32_t *d_max_index, size_t const nchannel,                            \
+      gpu_kernel_map<uint32_t, detail::c10_allocator<char>> const             \
+          &kernel_map,                                                        \
+      detail::c10_allocator<char> &allocator, cudaStream_t stream);           \
+  template void max_pool_forward_pointer_kernel_gpu<Dtype, int32_t, uint32_t>(\
+      uint32_t *d_in_map, uint32_t *d_out_map, size_t const nmap,             \
+      Dtype const *d_in_feat, Dtype *d_out_feat, size_t const out_nrows,      \
+      size_t const nchannel, int32_t *d_max_index, bool const is_sorted);     \
+  template void max_pool_forward_pointer_kernel_gpu<Dtype, int32_t, int32_t>( \
+      int32_t *d_in_map, int32_t *d_out_map, size_t const nmap,               \
+      Dtype const *d_in_feat, Dtype *d_out_feat, size_t const out_nrows,      \
+      size_t const nchannel, int32_t *d_max_index, bool const is_sorted);     \
+  template void max_pool_forward_pointer_kernel_gpu<Dtype, int64_t, int64_t>( \
+      int64_t *d_in_map, int64_t *d_out_map, size_t const nmap,               \
+      Dtype const *d_in_feat, Dtype *d_out_feat, size_t const out_nrows,      \
+      size_t const nchannel, int64_t *d_max_index, bool const is_sorted);     \
+  template void MaxPoolingBackwardKernelGPU<Dtype, int32_t>(                  \
+      Dtype *d_grad_in_feat, size_t const in_nrows,                           \
+      const Dtype *d_grad_out_feat, size_t const out_nrows,                   \
+      const int32_t *d_max_index, size_t const nchannel);                     \
+  template void MaxPoolingBackwardKernelGPU<Dtype, int64_t>(                  \
+      Dtype *d_grad_in_feat, size_t const in_nrows,                           \
+      const Dtype *d_grad_out_feat, size_t const out_nrows,                   \
+      const int64_t *d_max_index, size_t const nchannel);
+
+MINK_INSTANTIATE_MAX_POOL_GPU(c10::Half)
+MINK_INSTANTIATE_MAX_POOL_GPU(c10::BFloat16)
+
+#undef MINK_INSTANTIATE_MAX_POOL_GPU
 
 } // end namespace minkowski
 
