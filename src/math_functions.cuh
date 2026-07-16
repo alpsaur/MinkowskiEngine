@@ -35,6 +35,12 @@
 #include <c10/util/BFloat16.h>
 #include <c10/util/Half.h>
 
+#include <cuda_bf16.h>
+#include <cuda_fp16.h>
+
+#include <algorithm>
+#include <cstdint>
+#include <limits>
 #include <type_traits>
 
 namespace minkowski {
@@ -185,6 +191,221 @@ void shared_accumulate_kernel_map(Dtype *dst, const Dtype *const src,
         <<<GET_BLOCKS(nthreads, MAX_THREADS), MAX_THREADS,
            GET_BLOCKS(length, MAX_THREADS) * sizeof(unsigned int), stream>>>(
             dst, src, map, nthreads, length);
+}
+
+/*******************************************************************************
+ * Fused (batched over kernel offsets) vectorized gather / scatter-accumulate
+ * for the copy-GEMM convolution path.
+ *
+ * The kernel map stores the per-offset in/out index arrays contiguously,
+ * sorted by offset (see gpu_kernel_map::decompose), so one launch over the
+ * concatenated map replaces one launch per offset. Rows are contiguous in the
+ * feature dimension; when the row byte-width and the base pointers allow it,
+ * elements move in 16/8/4-byte chunks (8 halfs = one uint4) instead of one
+ * scalar per thread.
+ ******************************************************************************/
+
+constexpr uint32_t FUSED_COPY_THREADS = 256;
+
+template <int BYTES> struct aligned_chunk;
+template <> struct aligned_chunk<16> { using type = uint4; };
+template <> struct aligned_chunk<8> { using type = uint2; };
+template <> struct aligned_chunk<4> { using type = unsigned int; };
+
+// Largest chunk size (bytes) that divides the row width and keeps every row
+// of both operands chunk-aligned; 0 requests the scalar path.
+inline int fused_copy_chunk_bytes(size_t const row_bytes, void const *a,
+                                  void const *b) {
+  auto fits = [&](size_t n) {
+    return row_bytes % n == 0 && reinterpret_cast<uintptr_t>(a) % n == 0 &&
+           reinterpret_cast<uintptr_t>(b) % n == 0;
+  };
+  if (fits(16))
+    return 16;
+  if (fits(8))
+    return 8;
+  if (fits(4))
+    return 4;
+  return 0;
+}
+
+inline unsigned int fused_copy_grid(int64_t const total_chunks) {
+  int64_t const blocks =
+      (total_chunks + FUSED_COPY_THREADS - 1) / FUSED_COPY_THREADS;
+  return static_cast<unsigned int>(
+      std::min<int64_t>(blocks, std::numeric_limits<int>::max()));
+}
+
+// dst[r * cpr + c] = src[map[r] * cpr + c]; one ChunkT per thread. ChunkT is
+// either an opaque 4/8/16-byte chunk or Dtype itself (scalar fallback).
+template <typename ChunkT, typename Itype>
+__global__ void fused_gather_kernel(ChunkT *__restrict__ dst,
+                                    ChunkT const *__restrict__ src,
+                                    Itype const *__restrict__ map,
+                                    int64_t const total_chunks,
+                                    uint32_t const chunks_per_row) {
+  for (int64_t idx = blockIdx.x * int64_t(blockDim.x) + threadIdx.x;
+       idx < total_chunks; idx += int64_t(gridDim.x) * blockDim.x) {
+    int64_t const row = idx / chunks_per_row;
+    uint32_t const c = idx - row * chunks_per_row;
+    dst[idx] = src[int64_t(map[row]) * chunks_per_row + c];
+  }
+}
+
+// Atomic add of VEC consecutive elements. Rows from different kernel offsets
+// can collide on the same destination row, so plain stores are not enough.
+template <typename Dtype, int VEC> struct vec_atomic_add {
+  static __device__ __forceinline__ void apply(Dtype *dst,
+                                               Dtype const (&v)[VEC]) {
+#pragma unroll
+    for (int j = 0; j < VEC; ++j)
+      gpuAtomicAdd(dst + j, v[j]);
+  }
+};
+
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 600
+template <int VEC> struct vec_atomic_add<c10::Half, VEC> {
+  static __device__ __forceinline__ void apply(c10::Half *dst,
+                                               c10::Half const (&v)[VEC]) {
+    if constexpr (VEC % 2 == 0) {
+      // dst is 4-byte aligned here: the vector path is only taken when the
+      // row byte-width divides the chunk size, so every VEC-element slice
+      // starts on a chunk boundary.
+      __half2 *dst2 = reinterpret_cast<__half2 *>(dst);
+      __half const *vh = reinterpret_cast<__half const *>(v);
+#pragma unroll
+      for (int j = 0; j < VEC / 2; ++j)
+        atomicAdd(dst2 + j, __halves2half2(vh[2 * j], vh[2 * j + 1]));
+    } else {
+#pragma unroll
+      for (int j = 0; j < VEC; ++j)
+        gpuAtomicAdd(dst + j, v[j]);
+    }
+  }
+};
+#endif
+
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 800
+template <int VEC> struct vec_atomic_add<c10::BFloat16, VEC> {
+  static __device__ __forceinline__ void apply(c10::BFloat16 *dst,
+                                               c10::BFloat16 const (&v)[VEC]) {
+    if constexpr (VEC % 2 == 0) {
+      __nv_bfloat162 *dst2 = reinterpret_cast<__nv_bfloat162 *>(dst);
+      __nv_bfloat16 const *vb = reinterpret_cast<__nv_bfloat16 const *>(v);
+#pragma unroll
+      for (int j = 0; j < VEC / 2; ++j)
+        atomicAdd(dst2 + j, __halves2bfloat162(vb[2 * j], vb[2 * j + 1]));
+    } else {
+#pragma unroll
+      for (int j = 0; j < VEC; ++j)
+        gpuAtomicAdd(dst + j, v[j]);
+    }
+  }
+};
+#endif
+
+// dst[map[r], :] += src[r, :]; one VEC-element slice per thread, vector load
+// from src, atomic adds into dst.
+template <typename Dtype, int VEC, typename Itype>
+__global__ void fused_scatter_add_kernel(Dtype *__restrict__ dst,
+                                         Dtype const *__restrict__ src,
+                                         Itype const *__restrict__ map,
+                                         int64_t const total_chunks,
+                                         uint32_t const chunks_per_row) {
+  for (int64_t idx = blockIdx.x * int64_t(blockDim.x) + threadIdx.x;
+       idx < total_chunks; idx += int64_t(gridDim.x) * blockDim.x) {
+    int64_t const row = idx / chunks_per_row;
+    uint32_t const c = idx - row * chunks_per_row;
+    Dtype vals[VEC];
+    if constexpr (VEC == 1) {
+      vals[0] = src[idx];
+    } else {
+      using ChunkT = typename aligned_chunk<VEC * sizeof(Dtype)>::type;
+      *reinterpret_cast<ChunkT *>(vals) =
+          reinterpret_cast<ChunkT const *>(src)[idx];
+    }
+    vec_atomic_add<Dtype, VEC>::apply(
+        dst + (int64_t(map[row]) * chunks_per_row + c) * VEC, vals);
+  }
+}
+
+// Gather nrows rows of nchannel elements: dst[r, :] = src[map[r], :].
+template <typename Dtype, typename Itype>
+void fused_gather(Dtype *dst, Dtype const *src, Itype const *map,
+                  size_t const nrows, size_t const nchannel,
+                  cudaStream_t stream) {
+  if (nrows == 0)
+    return;
+  size_t const row_bytes = nchannel * sizeof(Dtype);
+  int const chunk_bytes = fused_copy_chunk_bytes(row_bytes, dst, src);
+
+  auto launch = [&](auto chunk_tag) {
+    using ChunkT = decltype(chunk_tag);
+    uint32_t const cpr = row_bytes / sizeof(ChunkT);
+    int64_t const total = int64_t(nrows) * cpr;
+    fused_gather_kernel<ChunkT, Itype>
+        <<<fused_copy_grid(total), FUSED_COPY_THREADS, 0, stream>>>(
+            reinterpret_cast<ChunkT *>(dst),
+            reinterpret_cast<ChunkT const *>(src), map, total, cpr);
+  };
+
+  switch (chunk_bytes) {
+  case 16:
+    launch(uint4{});
+    break;
+  case 8:
+    launch(uint2{});
+    break;
+  case 4:
+    launch(0u);
+    break;
+  default:
+    launch(Dtype{});
+    break;
+  }
+  CUDA_CHECK(cudaGetLastError());
+}
+
+// Scatter-accumulate nrows rows of nchannel elements:
+// dst[map[r], :] += src[r, :] (atomic; rows may collide across offsets).
+template <typename Dtype, typename Itype>
+void fused_scatter_add(Dtype *dst, Dtype const *src, Itype const *map,
+                       size_t const nrows, size_t const nchannel,
+                       cudaStream_t stream) {
+  if (nrows == 0)
+    return;
+  size_t const row_bytes = nchannel * sizeof(Dtype);
+  int const chunk_bytes = fused_copy_chunk_bytes(row_bytes, dst, src);
+  int const vec = chunk_bytes / int(sizeof(Dtype));
+
+  auto launch = [&](auto vec_tag) {
+    constexpr int VEC = decltype(vec_tag)::value;
+    // Chunks larger than 16 bytes are never selected; the guard only keeps
+    // invalid aligned_chunk instantiations out of the other dtypes.
+    if constexpr (VEC * sizeof(Dtype) <= 16) {
+      uint32_t const cpr = nchannel / VEC;
+      int64_t const total = int64_t(nrows) * cpr;
+      fused_scatter_add_kernel<Dtype, VEC, Itype>
+          <<<fused_copy_grid(total), FUSED_COPY_THREADS, 0, stream>>>(
+              dst, src, map, total, cpr);
+    }
+  };
+
+  switch (vec) {
+  case 8:
+    launch(std::integral_constant<int, 8>{});
+    break;
+  case 4:
+    launch(std::integral_constant<int, 4>{});
+    break;
+  case 2:
+    launch(std::integral_constant<int, 2>{});
+    break;
+  default:
+    launch(std::integral_constant<int, 1>{});
+    break;
+  }
+  CUDA_CHECK(cudaGetLastError());
 }
 
 } // end namespace detail

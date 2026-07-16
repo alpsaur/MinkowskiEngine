@@ -39,9 +39,78 @@
 #include <ATen/cuda/CUDAUtils.h>
 #include <torch/extension.h>
 
+#include <utility>
+#include <vector>
+
 namespace minkowski {
 
 namespace detail {
+
+/**
+ * Grouping plan for the fused copy-GEMM path. The per-offset kernel-map
+ * regions tile one contiguous array in key order (gpu_kernel_map::decompose),
+ * so a run of consecutive keys can be gathered / scattered with a single
+ * launch and staged in one concatenated buffer. Groups only split when the
+ * staging cap (ME_FUSED_COPY_MAX_MB) would be exceeded by fusing everything.
+ */
+template <typename Itype> struct fused_copy_plan {
+  bool usable{false};
+  size_t total_rows{0};
+  size_t max_group_rows{0};
+  // (key, rows) of every non-empty offset, in map-memory order
+  std::vector<std::pair<Itype, size_t>> keys;
+  // [first, last) ranges into `keys`
+  std::vector<std::pair<size_t, size_t>> groups;
+
+  size_t rows(std::pair<size_t, size_t> const &group) const {
+    size_t n = 0;
+    for (size_t i = group.first; i < group.second; ++i)
+      n += keys[i].second;
+    return n;
+  }
+};
+
+template <typename Itype, typename ByteAllocator>
+fused_copy_plan<Itype>
+make_fused_copy_plan(gpu_kernel_map<Itype, ByteAllocator> const &kernel_map,
+                     size_t const staging_bytes_per_row) {
+  fused_copy_plan<Itype> plan;
+  if (!fused_copy_enabled())
+    return plan;
+
+  // Verify the invariant the fused path relies on: region offsets are the
+  // running sum of the region sizes in key order. Fall back otherwise.
+  size_t expected_offset = 0;
+  for (auto it = kernel_map.key_cbegin(); it != kernel_map.key_cend(); ++it) {
+    if (it->second != expected_offset)
+      return plan;
+    size_t const rows = kernel_map.size(it->first);
+    expected_offset += rows;
+    if (rows != 0)
+      plan.keys.emplace_back(it->first, rows);
+  }
+  plan.total_rows = expected_offset;
+  if (plan.total_rows == 0)
+    return plan;
+
+  size_t const cap_rows = std::max<size_t>(
+      fused_copy_max_bytes() / std::max<size_t>(staging_bytes_per_row, 1),
+      kernel_map.max_size());
+  size_t begin = 0, rows = 0;
+  for (size_t i = 0; i < plan.keys.size(); ++i) {
+    if (rows != 0 && rows + plan.keys[i].second > cap_rows) {
+      plan.groups.emplace_back(begin, i);
+      plan.max_group_rows = std::max(plan.max_group_rows, rows);
+      begin = i;
+      rows = 0;
+    }
+    rows += plan.keys[i].second;
+  }
+  plan.groups.emplace_back(begin, plan.keys.size());
+  plan.max_group_rows = std::max(plan.max_group_rows, rows);
+  plan.usable = true;
+  return plan;
+}
 
 bool check_direct_gemm_forward(MinkowskiAlgorithm::Mode const algo_index, //
                                ConvolutionMode::Type const &convolution_mode,
@@ -444,7 +513,50 @@ void ConvolutionForwardKernelGPU(
 #endif
       CUDA_CHECK(cudaGetLastError());
     }
-  } else { // copy gemm
+  } else if (auto const plan = detail::make_fused_copy_plan(
+                 kernel_map, (in_nchannel + out_nchannel) * sizeof(Dtype));
+             plan.usable) {
+    // Fused copy-GEMM: one vectorized gather over the concatenated kernel
+    // map, one GEMM per offset on the staged rows, one vectorized
+    // scatter-accumulate — instead of {gather, GEMM, scatter} per offset.
+    // ME_FUSED_COPY=0 selects the legacy loop below.
+    size_t const in_bytes = plan.max_group_rows * in_nchannel * sizeof(Dtype);
+    size_t const out_bytes = plan.max_group_rows * out_nchannel * sizeof(Dtype);
+    Dtype *staged_in = reinterpret_cast<Dtype *>(allocator.allocate(in_bytes));
+    Dtype *staged_out =
+        reinterpret_cast<Dtype *>(allocator.allocate(out_bytes));
+
+    for (auto const &group : plan.groups) {
+      auto const first_key = plan.keys[group.first].first;
+      size_t const group_rows = plan.rows(group);
+
+      detail::fused_gather<Dtype, Itype>(staged_in, d_in_feat,
+                                         kernel_map.in_maps.begin(first_key),
+                                         group_rows, in_nchannel, stream);
+      size_t row = 0;
+      for (size_t i = group.first; i < group.second; ++i) {
+        auto const k = plan.keys[i].first;
+        size_t const rows_k = plan.keys[i].second;
+        gpu_gemm<Dtype>(cuhandle, CblasNoTrans, CblasNoTrans,
+                        rows_k,                                    // M
+                        out_nchannel,                              // N
+                        in_nchannel,                               // K
+                        1,                                         // alpha
+                        staged_in + row * in_nchannel,             // A
+                        &d_kernel[k * in_nchannel * out_nchannel], // B
+                        0,                                         // beta
+                        staged_out + row * out_nchannel            // C
+        );
+        row += rows_k;
+      }
+      detail::fused_scatter_add<Dtype, Itype>(
+          d_out_feat, staged_out, kernel_map.out_maps.begin(first_key),
+          group_rows, out_nchannel, stream);
+    }
+
+    allocator.deallocate((char *)staged_in, in_bytes);
+    allocator.deallocate((char *)staged_out, out_bytes);
+  } else { // copy gemm, one offset at a time
     Itype const max_numel = kernel_map.max_size();
     LOG_DEBUG("max_numel:", max_numel);
     Dtype *mapped_in_feat = reinterpret_cast<Dtype *>(
@@ -623,6 +735,88 @@ void ConvolutionBackwardKernelGPU(
   if (reduced_precision ||
       !detail::check_direct_gemm_backward(
           algo_index, convolution_mode, in_nchannel, out_nchannel, in_nrows)) {
+    auto const plan = detail::make_fused_copy_plan(
+        kernel_map, (in_nchannel + out_nchannel) * sizeof(Dtype));
+    if (plan.usable) {
+      // Fused copy-GEMM backward. Two vectorized gathers (grad_out and
+      // in_feat) and one vectorized scatter-accumulate per group replace the
+      // per-offset copies. The input-gradient GEMM is reoriented to produce
+      // row-major (rows x in_nchannel) so the coalesced scatter used by the
+      // forward replaces the transpose-scatter add_mapped_output_tr kernel.
+      size_t const in_bytes = plan.max_group_rows * in_nchannel * sizeof(Dtype);
+      size_t const out_bytes =
+          plan.max_group_rows * out_nchannel * sizeof(Dtype);
+      Dtype *staged_in =
+          reinterpret_cast<Dtype *>(allocator.allocate(in_bytes));
+      Dtype *staged_out =
+          reinterpret_cast<Dtype *>(allocator.allocate(out_bytes));
+
+      for (auto const &group : plan.groups) {
+        auto const first_key = plan.keys[group.first].first;
+        size_t const group_rows = plan.rows(group);
+        Itype const *d_in_map = kernel_map.in_maps.begin(first_key);
+        Itype const *d_out_map = kernel_map.out_maps.begin(first_key);
+
+        detail::fused_gather<Dtype, Itype>(staged_out, d_grad_out_feat,
+                                           d_out_map, group_rows, out_nchannel,
+                                           stream);
+        detail::fused_gather<Dtype, Itype>(staged_in, d_in_feat, d_in_map,
+                                           group_rows, in_nchannel, stream);
+
+        // Weight gradients first: per-offset GEMM and accumulation order
+        // match the legacy loop.
+        size_t row = 0;
+        for (size_t i = group.first; i < group.second; ++i) {
+          auto const k = plan.keys[i].first;
+          size_t const rows_k = plan.keys[i].second;
+          gpu_gemm<Dtype>(cuhandle, CblasTrans, CblasNoTrans,
+                          in_nchannel,                                   // M
+                          out_nchannel,                                  // N
+                          rows_k,                                        // K
+                          1,                                             // alpha
+                          staged_in + row * in_nchannel,                 // A
+                          staged_out + row * out_nchannel,               // B
+                          1,                                             // beta
+                          &d_grad_kernel[k * in_nchannel * out_nchannel] // C
+          );
+          row += rows_k;
+        }
+
+        // Input gradients: grad_in_k = grad_out_k * W_k^T, overwriting
+        // staged_in. The weight-gradient GEMMs above have already consumed
+        // the staged input features; stream order makes the reuse safe.
+        row = 0;
+        for (size_t i = group.first; i < group.second; ++i) {
+          auto const k = plan.keys[i].first;
+          size_t const rows_k = plan.keys[i].second;
+          gpu_gemm<Dtype>(cuhandle, CblasNoTrans, CblasTrans,
+                          rows_k,                                    // M
+                          in_nchannel,                               // N
+                          out_nchannel,                              // K
+                          1,                                         // alpha
+                          staged_out + row * out_nchannel,           // A
+                          &d_kernel[k * in_nchannel * out_nchannel], // B
+                          0,                                         // beta
+                          staged_in + row * in_nchannel              // C
+          );
+          row += rows_k;
+        }
+        detail::fused_scatter_add<Dtype, Itype>(d_grad_in_feat, staged_in,
+                                                d_in_map, group_rows,
+                                                in_nchannel, stream);
+      }
+
+      // protects staging reuse/deallocation; stream order suffices when the
+      // allocator is stream-ordered and lazy sync is on (same rule as the
+      // legacy loop)
+      if (!(detail::lazy_sync_enabled() &&
+            detail::is_stream_ordered_allocator<ByteAllocator>::value))
+        CUDA_CHECK(cudaStreamSynchronize(stream));
+      allocator.deallocate((char *)staged_in, in_bytes);
+      allocator.deallocate((char *)staged_out, out_bytes);
+      return;
+    }
+    // Legacy per-offset loop (ME_FUSED_COPY=0 or unexpected map layout).
     // find max size
     size_t max_active = kernel_map.max_size();
     size_t in_buffer_size = max_active * in_nchannel * sizeof(Dtype);
