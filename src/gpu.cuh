@@ -172,6 +172,27 @@ inline bool lazy_sync_enabled() {
   return enabled;
 }
 
+// Fused copy-GEMM gather/scatter (see convolution_kernel.cu). Default on;
+// ME_FUSED_COPY=0 selects the legacy per-offset loop. Read on every call —
+// not latched — so a single process can A/B both paths (the cost is one
+// getenv per convolution, noise next to the kernel launches it replaces).
+inline bool fused_copy_enabled() {
+  char const *env = std::getenv("ME_FUSED_COPY");
+  return env == nullptr || env[0] == '\0' ||
+         !(env[0] == '0' && env[1] == '\0');
+}
+
+// Cap on the concatenated staging buffers (input + output staging combined)
+// of the fused copy-GEMM path. When the full concatenation would exceed the
+// cap, kernel offsets are processed in consecutive groups that each fit.
+inline size_t fused_copy_max_bytes() {
+  char const *env = std::getenv("ME_FUSED_COPY_MAX_MB");
+  long mb = (env != nullptr && env[0] != '\0') ? std::atol(env) : 2048;
+  if (mb <= 0)
+    mb = 2048;
+  return static_cast<size_t>(mb) << 20;
+}
+
 } // namespace detail
 
 // Synchronizations that are safe to skip under ME_LAZY_SYNC=1: results are
