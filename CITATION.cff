@@ -1,0 +1,39 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite both the software and the CVPR'19 paper below."
+title: "MinkowskiEngine (CUDA 12.8/Blackwell maintained fork)"
+type: software
+authors:
+  - family-names: Choy
+    given-names: Christopher
+  - family-names: Gwak
+    given-names: JunYoung
+  - family-names: Savarese
+    given-names: Silvio
+repository-code: "https://github.com/alpsaur/MinkowskiEngine"
+url: "https://github.com/alpsaur/MinkowskiEngine"
+version: "0.5.6"
+date-released: "2026-07-15"
+license: MIT
+keywords:
+  - sparse-tensor
+  - sparse-convolution
+  - point-cloud
+  - CUDA-12.8
+  - Blackwell
+preferred-citation:
+  type: conference-paper
+  title: "4D Spatio-Temporal ConvNets: Minkowski Convolutional Neural Networks"
+  authors:
+    - family-names: Choy
+      given-names: Christopher
+    - family-names: Gwak
+      given-names: JunYoung
+    - family-names: Savarese
+      given-names: Silvio
+  conference:
+    name: "Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition"
+    year: 2019
+  year: 2019
+  pages: "3075-3084"
+  url: "https://arxiv.org/abs/1904.08755"
+  doi: "10.1109/CVPR.2019.00319"
