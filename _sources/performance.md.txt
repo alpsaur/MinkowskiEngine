@@ -74,6 +74,24 @@ do not combine with custom multi-stream code or manual `torch.cuda.synchronize()
 expectations without auditing your code.
 
 
+## Fused gather/scatter — v0.5.7+ (on by default)
+
+The copy-GEMM convolution path stages rows for the GEMM with gather/scatter
+kernels. Before v0.5.7 these launched once per kernel offset (27x per layer
+for a 3³ kernel) as tiny scalar-copy kernels; profiling a sparse U-Net showed
+them consuming **56% of total GPU time**. As of v0.5.7 they run as one
+vectorized gather and one vectorized scatter-accumulate per direction —
+measured: **−38% total GPU time per training step** on the same workload.
+
+No action needed — it is on by default. Two knobs exist:
+
+```bash
+ME_FUSED_COPY=0            # restore the legacy per-offset path (A/B or debugging)
+ME_FUSED_COPY_MAX_MB=2048  # cap on the fused staging buffer; larger convs fall
+                           # back to chunked fusion above the cap (default 2048)
+```
+
+
 ## OMP_NUM_THREADS on many-core machines
 
 MinkowskiEngine uses OpenMP to parallelize kernel-map generation. On machines

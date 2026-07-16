@@ -86,6 +86,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#tf32-on-ampere">TF32 on Ampere+</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#mixed-precision-fp16-bf16-v0-5-6">Mixed precision (fp16 / bf16) — v0.5.6+</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#me-lazy-sync-1-opt-in-sync-elimination-v0-5-6">ME_LAZY_SYNC=1 — opt-in sync elimination (v0.5.6+)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fused-gather-scatter-v0-5-7-on-by-default">Fused gather/scatter — v0.5.7+ (on by default)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#omp-num-threads-on-many-core-machines">OMP_NUM_THREADS on many-core machines</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#clearing-the-cuda-cache-for-varying-point-counts">Clearing the CUDA cache for varying point counts</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#build-parallelism-max-compilation-threads">Build parallelism: MAX_COMPILATION_THREADS</a></li>
@@ -181,6 +182,21 @@ size. This is <strong>off by default</strong> (identical behavior to previous re
 It assumes all ME work runs on a single CUDA stream (the PyTorch default) —
 do not combine with custom multi-stream code or manual <code class="docutils literal notranslate"><span class="pre">torch.cuda.synchronize()</span></code>
 expectations without auditing your code.</p>
+</section>
+<section id="fused-gather-scatter-v0-5-7-on-by-default">
+<h2>Fused gather/scatter — v0.5.7+ (on by default)<a class="headerlink" href="#fused-gather-scatter-v0-5-7-on-by-default" title="Link to this heading"></a></h2>
+<p>The copy-GEMM convolution path stages rows for the GEMM with gather/scatter
+kernels. Before v0.5.7 these launched once per kernel offset (27x per layer
+for a 3³ kernel) as tiny scalar-copy kernels; profiling a sparse U-Net showed
+them consuming <strong>56% of total GPU time</strong>. As of v0.5.7 they run as one
+vectorized gather and one vectorized scatter-accumulate per direction —
+measured: <strong>−38% total GPU time per training step</strong> on the same workload.</p>
+<p>No action needed — it is on by default. Two knobs exist:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">ME_FUSED_COPY</span><span class="o">=</span><span class="m">0</span><span class="w">            </span><span class="c1"># restore the legacy per-offset path (A/B or debugging)</span>
+<span class="nv">ME_FUSED_COPY_MAX_MB</span><span class="o">=</span><span class="m">2048</span><span class="w">  </span><span class="c1"># cap on the fused staging buffer; larger convs fall</span>
+<span class="w">                           </span><span class="c1"># back to chunked fusion above the cap (default 2048)</span>
+</pre></div>
+</div>
 </section>
 <section id="omp-num-threads-on-many-core-machines">
 <h2>OMP_NUM_THREADS on many-core machines<a class="headerlink" href="#omp-num-threads-on-many-core-machines" title="Link to this heading"></a></h2>
