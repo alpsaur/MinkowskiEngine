@@ -272,7 +272,11 @@ void MaxPoolingForwardKernelGPU(
     d_curr_in_map += curr_size;
     d_curr_out_map += curr_size;
   }
-  CUDA_CHECK(cudaStreamSynchronize(stream));
+  // orders the map copies above before the thrust calls in the pointer
+  // kernel below (same stream under default-stream usage)
+  if (!(detail::lazy_sync_enabled() &&
+        detail::is_stream_ordered_allocator<ByteAllocator>::value))
+    CUDA_CHECK(cudaStreamSynchronize(stream));
 
   //
   max_pool_forward_pointer_kernel_gpu<Dtype, int32_t, Itype>(

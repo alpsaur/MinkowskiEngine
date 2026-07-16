@@ -143,10 +143,13 @@ __shared_accumulate_kernel_map(Dtype *__restrict__ dst,
     gpuAtomicAdd(&dst[smap[smap_index] * length + length_index], src[i]);
 }
 
+// Launches on `stream` so the copies are stream-ordered with the cublas
+// calls that consume them (torch's blas handle runs on the current stream);
+// under default-stream usage stream == 0 and the launch is unchanged.
 template <typename Dtype, typename Itype>
 void shared_copy_kernel_map(Dtype *dst, const Dtype *const src,
                             const Itype *const map, const Itype nthreads,
-                            const Itype length) {
+                            const Itype length, cudaStream_t stream = 0) {
   constexpr Itype MAX_THREADS = 512;
   if (MAX_THREADS >= length) {
     LOG_DEBUG("Blocks:", GET_BLOCKS(nthreads, MAX_THREADS),
@@ -154,7 +157,7 @@ void shared_copy_kernel_map(Dtype *dst, const Dtype *const src,
               "Shared:", GET_BLOCKS(MAX_THREADS, length));
     __shared_copy_kernel_map<Dtype, Itype>
         <<<GET_BLOCKS(nthreads, MAX_THREADS), MAX_THREADS,
-           GET_BLOCKS(MAX_THREADS, length) * sizeof(unsigned int)>>>(
+           GET_BLOCKS(MAX_THREADS, length) * sizeof(unsigned int), stream>>>(
             dst, src, map, nthreads, length);
   } else {
     LOG_DEBUG("Blocks:", GET_BLOCKS(nthreads, MAX_THREADS),
@@ -162,7 +165,7 @@ void shared_copy_kernel_map(Dtype *dst, const Dtype *const src,
               "Shared:", GET_BLOCKS(length, MAX_THREADS));
     __shared_copy_kernel_map<Dtype, Itype>
         <<<GET_BLOCKS(nthreads, MAX_THREADS), MAX_THREADS,
-           GET_BLOCKS(length, MAX_THREADS) * sizeof(unsigned int)>>>(
+           GET_BLOCKS(length, MAX_THREADS) * sizeof(unsigned int), stream>>>(
             dst, src, map, nthreads, length);
   }
 }
@@ -170,17 +173,17 @@ void shared_copy_kernel_map(Dtype *dst, const Dtype *const src,
 template <typename Dtype, typename Itype>
 void shared_accumulate_kernel_map(Dtype *dst, const Dtype *const src,
                                   const Itype *const map, const Itype nthreads,
-                                  const Itype length) {
+                                  const Itype length, cudaStream_t stream = 0) {
   constexpr Itype MAX_THREADS = 512;
   if (MAX_THREADS >= length)
     __shared_accumulate_kernel_map<Dtype, Itype>
         <<<GET_BLOCKS(nthreads, MAX_THREADS), MAX_THREADS,
-           GET_BLOCKS(MAX_THREADS, length) * sizeof(unsigned int)>>>(
+           GET_BLOCKS(MAX_THREADS, length) * sizeof(unsigned int), stream>>>(
             dst, src, map, nthreads, length);
   else
     __shared_accumulate_kernel_map<Dtype, Itype>
         <<<GET_BLOCKS(nthreads, MAX_THREADS), MAX_THREADS,
-           GET_BLOCKS(length, MAX_THREADS) * sizeof(unsigned int)>>>(
+           GET_BLOCKS(length, MAX_THREADS) * sizeof(unsigned int), stream>>>(
             dst, src, map, nthreads, length);
 }
 

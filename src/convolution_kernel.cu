@@ -462,7 +462,7 @@ void ConvolutionForwardKernelGPU(
       detail::shared_copy_kernel_map<Dtype, Itype>(
           // mapped_in_feat,
           mapped_in_feat, d_in_feat, kernel_map.in_maps.begin(k),
-          n_active_in_volume * in_nchannel, in_nchannel);
+          n_active_in_volume * in_nchannel, in_nchannel, stream);
 
 #ifdef DEBUG
       /*
@@ -495,7 +495,7 @@ void ConvolutionForwardKernelGPU(
 
       detail::shared_accumulate_kernel_map<Dtype, Itype>(
           d_out_feat, mapped_out_feat, kernel_map.out_maps.begin(k),
-          n_active_in_volume * out_nchannel, out_nchannel);
+          n_active_in_volume * out_nchannel, out_nchannel, stream);
     }
 
     allocator.deallocate((char *)mapped_in_feat,
@@ -503,7 +503,9 @@ void ConvolutionForwardKernelGPU(
     allocator.deallocate((char *)mapped_out_feat,
                          max_numel * out_nchannel * sizeof(Dtype));
   }
-  CUDA_CHECK(cudaStreamSynchronize(stream));
+  if (!(detail::lazy_sync_enabled() &&
+        detail::is_stream_ordered_allocator<ByteAllocator>::value))
+    CUDA_CHECK(cudaStreamSynchronize(stream));
 }
 
 // default_allocator
@@ -647,7 +649,7 @@ void ConvolutionBackwardKernelGPU(
 #endif
       detail::shared_copy_kernel_map<Dtype, Itype>(
           d_output_buffer, d_grad_out_feat, d_out_map,
-          n_active_in_volume * out_nchannel, out_nchannel);
+          n_active_in_volume * out_nchannel, out_nchannel, stream);
 #ifdef DEBUG
       CUDA_CHECK(cudaStreamSynchronize(stream));
       LOG_DEBUG("copy input", t.toc());
@@ -692,13 +694,14 @@ void ConvolutionBackwardKernelGPU(
                          GET_BLOCKS(in_nchannel, threads.y));
       detail::shared_copy_kernel_map<Dtype, Itype>(
           d_input_buffer, d_in_feat, d_in_map, n_active_in_volume * in_nchannel,
-          in_nchannel);
+          in_nchannel, stream);
 #ifdef DEBUG
       LOG_DEBUG("copy in feat to buffer", t.toc());
       t.tic();
 #endif
-      // sync before the blas call
-      CUDA_CHECK(cudaStreamSynchronize(stream));
+      // sync before the blas call; with lazy sync the copy above is launched
+      // on the same stream as the blas call, so stream order suffices
+      MINK_SYNC_UNLESS_LAZY(stream);
       gpu_gemm<Dtype>(cuhandle, CblasTrans, CblasNoTrans,
                       in_nchannel,                                   // M
                       out_nchannel,                                  // N
@@ -709,7 +712,12 @@ void ConvolutionBackwardKernelGPU(
                       1,                                             // beta
                       &d_grad_kernel[k * in_nchannel * out_nchannel] // C
       );
-      CUDA_CHECK(cudaStreamSynchronize(0));
+      // protects d_input_buffer/d_output_buffer reuse in the next iteration
+      // and their deallocation below; stream order guarantees both when
+      // everything is on `stream` and the allocator is stream-ordered
+      if (!(detail::lazy_sync_enabled() &&
+            detail::is_stream_ordered_allocator<ByteAllocator>::value))
+        CUDA_CHECK(cudaStreamSynchronize(0));
 #ifdef DEBUG
       LOG_DEBUG("grad kernel gemm", t.toc());
       t.tic();
@@ -787,7 +795,7 @@ void ConvolutionBackwardKernelGPU(
       }
       CUDA_CHECK(cudaGetLastError());
     }
-    CUDA_CHECK(cudaStreamSynchronize(stream));
+    MINK_SYNC_UNLESS_LAZY(stream);
   }
 }
 

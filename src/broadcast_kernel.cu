@@ -129,7 +129,7 @@ void BroadcastForwardKernelGPU(
   }
 
   CUDA_CHECK(cudaGetLastError());
-  CUDA_CHECK(cudaDeviceSynchronize());
+  MINK_DEVICE_SYNC_UNLESS_LAZY();
 }
 
 template void
@@ -470,7 +470,7 @@ void BroadcastBackwardKernelGPU(
   CUSPARSE_CHECK(cusparseDestroyDnMat(result_descr));
 
   CUDA_CHECK(cudaGetLastError());
-  CUDA_CHECK(cudaDeviceSynchronize());
+  MINK_DEVICE_SYNC_UNLESS_LAZY();
 }
 
 template void
