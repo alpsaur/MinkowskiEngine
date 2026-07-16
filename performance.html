@@ -1,0 +1,267 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Performance Guide &mdash; MinkowskiEngine 0.5.6 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=722679d6"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Migration Guide from v0.4.x to v0.5.0" href="migration_05.html" />
+    <link rel="prev" title="Guidelines for Faster Networks" href="guides.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MinkowskiEngine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="sparse_tensor_network.html">Sparse Tensor Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="terminology.html">Definitions and Terminology</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/sparse_tensor_basic.html">Sparse Tensor Basics</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Demos</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="demo/training.html">Training Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="demo/modelnet40_classification.html">ModelNet40 Classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="demo/segmentation.html">Semantic Segmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="demo/sparse_tensor_reconstruction.html">3D Sparsity Pattern Reconstruction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="demo/interop.html">Working with Pytorch Layers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="demo/multigpu.html">Multi-GPU with Pytorch-Lightning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="demo/pointnet.html">PointNet</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="sparse_tensor.html">SparseTensor and TensorField</a></li>
+<li class="toctree-l1"><a class="reference internal" href="convolution.html">MinkowskiConvolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pooling.html">MinkowskiPooling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="broadcast.html">MinkowskiBroadcast</a></li>
+<li class="toctree-l1"><a class="reference internal" href="normalization.html">MinkowskiNormalization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nonlinearity.html">MinkowskiNonlinearities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pruning.html">MinkowskiPruning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interp.html">MinkowskiInterpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="union.html">MinkowskiUnion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coords.html">Coordinate Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utility Functions and Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="common.html">Miscellaneous Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="misc.html">Miscellanea</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Miscellanea</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="issues.html">Common Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guides.html">Guidelines for Faster Networks</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Performance Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#tf32-on-ampere">TF32 on Ampere+</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mixed-precision-fp16-bf16-v0-5-6">Mixed precision (fp16 / bf16) — v0.5.6+</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#me-lazy-sync-1-opt-in-sync-elimination-v0-5-6">ME_LAZY_SYNC=1 — opt-in sync elimination (v0.5.6+)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#omp-num-threads-on-many-core-machines">OMP_NUM_THREADS on many-core machines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#clearing-the-cuda-cache-for-varying-point-counts">Clearing the CUDA cache for varying point counts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#build-parallelism-max-compilation-threads">Build parallelism: MAX_COMPILATION_THREADS</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="migration_05.html">Migration Guide from v0.4.x to v0.5.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="benchmark.html">Benchmark</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MinkowskiEngine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Performance Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/performance.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+
+           <div itemprop="articleBody">
+             
+  <section id="performance-guide">
+<h1>Performance Guide<a class="headerlink" href="#performance-guide" title="Link to this heading"></a></h1>
+<p>This page collects practical knobs for getting the best throughput and memory
+footprint out of this fork on CUDA 12.8 / Blackwell (and Ampere/Ada) GPUs.
+All numbers below are illustrative measurements from a sparse U-Net training
+run; your mileage will vary with model width, batch size, and point counts.</p>
+<section id="tf32-on-ampere">
+<h2>TF32 on Ampere+<a class="headerlink" href="#tf32-on-ampere" title="Link to this heading"></a></h2>
+<p>On Ampere (sm_80+) and newer architectures, enable TF32 so the fp32 GEMMs in
+MinkowskiEngine engage the tensor cores:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">matmul</span><span class="o">.</span><span class="n">allow_tf32</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">cudnn</span><span class="o">.</span><span class="n">allow_tf32</span> <span class="o">=</span> <span class="kc">True</span>   <span class="c1"># harmless to set alongside</span>
+</pre></div>
+</div>
+<p>TF32 trades a few mantissa bits (19-bit accumulation) for tensor-core
+throughput. In our sparse U-Net runs this gave roughly a <strong>15% step-time
+reduction</strong> with no measurable accuracy impact. It is on by default for some
+PyTorch versions and off for others, so set it explicitly if you depend on it.</p>
+</section>
+<section id="mixed-precision-fp16-bf16-v0-5-6">
+<h2>Mixed precision (fp16 / bf16) — v0.5.6+<a class="headerlink" href="#mixed-precision-fp16-bf16-v0-5-6" title="Link to this heading"></a></h2>
+<p>All MinkowskiEngine ops (convolution, pooling, broadcast, interpolation,
+spmm) run in fp16 and bf16 as of v0.5.6, with GEMMs on tensor cores
+accumulating in fp32. Use standard <code class="docutils literal notranslate"><span class="pre">torch.autocast</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">autocast</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">):</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">sparse_input</span><span class="p">)</span>   <span class="c1"># ME layers cast + run in bf16 automatically</span>
+</pre></div>
+</div>
+<p>Typical effect: <strong>~20% peak GPU memory reduction</strong>; throughput gains grow
+with channel width and batch size. bf16 needs no scaler. For fp16, wrap your
+optimizer steps with <code class="docutils literal notranslate"><span class="pre">torch.cuda.amp.GradScaler</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">scaler</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">amp</span><span class="o">.</span><span class="n">GradScaler</span><span class="p">()</span>
+
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">autocast</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">):</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">sparse_input</span><span class="p">)</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+
+<span class="n">scaler</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="n">scaler</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">optimizer</span><span class="p">)</span>
+<span class="n">scaler</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>fp32/fp64 behavior is unchanged when autocast is not active.</p>
+</section>
+<section id="me-lazy-sync-1-opt-in-sync-elimination-v0-5-6">
+<h2>ME_LAZY_SYNC=1 — opt-in sync elimination (v0.5.6+)<a class="headerlink" href="#me-lazy-sync-1-opt-in-sync-elimination-v0-5-6" title="Link to this heading"></a></h2>
+<p>MinkowskiEngine inserts a CUDA stream synchronization after every operation
+by default. Convolution backward alone fires one sync <em>per kernel offset</em> —
+27 times per layer for a 3³ kernel. Most of these are redundant under the
+standard single-stream PyTorch training loop.</p>
+<p>Set the environment variable to remove them:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">ME_LAZY_SYNC</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>python<span class="w"> </span>train.py
+</pre></div>
+</div>
+<p>Measured <strong>~7–11% faster training steps</strong> on a sparse U-Net at small batch
+size. This is <strong>off by default</strong> (identical behavior to previous releases).
+It assumes all ME work runs on a single CUDA stream (the PyTorch default) —
+do not combine with custom multi-stream code or manual <code class="docutils literal notranslate"><span class="pre">torch.cuda.synchronize()</span></code>
+expectations without auditing your code.</p>
+</section>
+<section id="omp-num-threads-on-many-core-machines">
+<h2>OMP_NUM_THREADS on many-core machines<a class="headerlink" href="#omp-num-threads-on-many-core-machines" title="Link to this heading"></a></h2>
+<p>MinkowskiEngine uses OpenMP to parallelize kernel-map generation. On machines
+with a very large number of cores (e.g. 64+), high thread counts spend most
+of their time waiting on locks and throughput <em>drops</em>. Cap the thread count —
+in our experience anything at or below ~24 is safe:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">16</span>
+</pre></div>
+</div>
+<p>Sweep a few values to find the optimum for your CPU and workload.</p>
+</section>
+<section id="clearing-the-cuda-cache-for-varying-point-counts">
+<h2>Clearing the CUDA cache for varying point counts<a class="headerlink" href="#clearing-the-cuda-cache-for-varying-point-counts" title="Link to this heading"></a></h2>
+<p>When the number of points (non-zero elements) varies across iterations — the
+norm for point-cloud data — PyTorch’s caching allocator fragments and can
+hold far more memory than it needs. For long trainings, clear the cache at a
+regular interval:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">step</span> <span class="o">%</span> <span class="n">cache_clear_interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This is the same advice given in the upstream README; it is not a bug in
+MinkowskiEngine but a consequence of fixed-size assumptions in the PyTorch
+allocator.</p>
+</section>
+<section id="build-parallelism-max-compilation-threads">
+<h2>Build parallelism: MAX_COMPILATION_THREADS<a class="headerlink" href="#build-parallelism-max-compilation-threads" title="Link to this heading"></a></h2>
+<p>When building from source (rather than installing a prebuilt wheel), the
+number of parallel compile jobs can be capped to avoid running out of memory
+or file descriptors on smaller machines:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">MAX_COMPILATION_THREADS</span><span class="o">=</span><span class="m">24</span><span class="w">   </span><span class="c1"># default; lower for memory-constrained boxes</span>
+</pre></div>
+</div>
+<p>This only affects the <code class="docutils literal notranslate"><span class="pre">nvcc</span></code>/<code class="docutils literal notranslate"><span class="pre">c++</span></code> compile step, not runtime behavior.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+<a href="https://github.com/NVIDIA/MinkowskiEngine">
+    <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub">
+</a>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-43980256-3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-43980256-3');
+</script>
+
+
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="guides.html" class="btn btn-neutral float-left" title="Guidelines for Faster Networks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="migration_05.html" class="btn btn-neutral float-right" title="Migration Guide from v0.4.x to v0.5.0" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2026, Chris Choy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
