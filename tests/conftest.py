@@ -39,9 +39,15 @@ except ImportError:
         if _open3d_re.search(open(p, encoding="utf-8").read())
     ]
 
+import importlib  # noqa: E402
+
 import pytest  # noqa: E402
 import torch  # noqa: E402
-import torch.autograd.gradcheck as _torch_gradcheck  # noqa: E402
+
+# `import torch.autograd.gradcheck as x` binds the same-named *function*
+# (torch.autograd re-exports it, shadowing the submodule) — go through
+# importlib to get the actual module so its attribute can be patched.
+_torch_gradcheck = importlib.import_module("torch.autograd.gradcheck")
 
 # MinkowskiEngine/utils/gradcheck.py wraps torch.autograd.gradcheck and forwards
 # kwargs (check_sparse_nnz, nondet_tol, check_grad_dtypes) that torch>=2.0
