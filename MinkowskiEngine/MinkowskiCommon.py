@@ -23,6 +23,8 @@
 # Networks", CVPR'19 (https://arxiv.org/abs/1904.08755) if you use any part
 # of the code.
 from collections.abc import Sequence
+import functools
+
 import numpy as np
 from typing import Union
 
@@ -107,14 +109,20 @@ class MinkowskiModuleBase(Module):
     pass
 
 
-def get_minkowski_function(name, variable):
-    fn_name = name + get_postfix(variable)
+@functools.lru_cache(maxsize=None)
+def _resolve_minkowski_function(fn_name, is_cuda):
     if hasattr(MEB, fn_name):
         return getattr(MEB, fn_name)
-    else:
-        if variable.is_cuda:
-            raise ValueError(
-                f"Function {fn_name} not available. Please compile MinkowskiEngine with `torch.cuda.is_available()` is `True`."
-            )
-        else:
-            raise ValueError(f"Function {fn_name} not available.")
+    if is_cuda:
+        raise ValueError(
+            f"Function {fn_name} not available. Please compile MinkowskiEngine with `torch.cuda.is_available()` is `True`."
+        )
+    raise ValueError(f"Function {fn_name} not available.")
+
+
+def get_minkowski_function(name, variable):
+    fn_name = name + get_postfix(variable)
+    # getattr-by-string on MEB happens on every call; cache the resolved
+    # function by the resolved name so repeat dispatch is a dict lookup.
+    # lru_cache does not memoize exceptions, so the error path is unchanged.
+    return _resolve_minkowski_function(fn_name, variable.is_cuda)
