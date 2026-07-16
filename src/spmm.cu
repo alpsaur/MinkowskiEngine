@@ -348,7 +348,7 @@ torch::Tensor coo_spmm(torch::Tensor const &rows, torch::Tensor const &cols,
   // them in column-major order in memory
   result.transpose_(0, 1);
 
-  CUDA_CHECK(cudaDeviceSynchronize());
+  MINK_DEVICE_SYNC_UNLESS_LAZY();
 
   return result;
 }
@@ -613,7 +613,7 @@ coo_spmm_average(torch::Tensor const &rows, torch::Tensor const &cols,
   // them in column-major order in memory
   result.transpose_(0, 1);
 
-  CUDA_CHECK(cudaDeviceSynchronize());
+  MINK_DEVICE_SYNC_UNLESS_LAZY();
 
   return {result, sorted_row_col, sorted_val};
 }

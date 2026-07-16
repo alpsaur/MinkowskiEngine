@@ -30,6 +30,7 @@
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <type_traits>
 #include <vector>
 
 #include <ATen/ATen.h>
@@ -101,6 +102,16 @@ template <class T> struct c10_allocator {
     c10::cuda::CUDACachingAllocator::raw_delete((void *)p);
   }
 };
+
+// The c10 caching allocator is stream-ordered: a freed block is only reused
+// by later allocations on the same stream, so temporaries may be deallocated
+// without first synchronizing (ME_LAZY_SYNC=1 relies on this). The
+// default_allocator frees with cudaFree, which is not stream-ordered, so
+// end-of-op syncs guarding its temporaries are kept even under lazy sync.
+template <typename A>
+struct is_stream_ordered_allocator : std::false_type {};
+template <typename T>
+struct is_stream_ordered_allocator<c10_allocator<T>> : std::true_type {};
 
 template <typename T = char> class cached_allocator {
 public:

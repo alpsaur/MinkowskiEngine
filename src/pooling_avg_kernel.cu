@@ -357,7 +357,9 @@ void NonzeroAvgPoolingForwardKernelGPU(
 
   allocator.deallocate((char *)sorted_row_ptr,
                        2 * (sparse_nnzs + 1) * sizeof(Itype));
-  CUDA_CHECK(cudaStreamSynchronize(0));
+  if (!(detail::lazy_sync_enabled() &&
+        detail::is_stream_ordered_allocator<ByteAllocator>::value))
+    CUDA_CHECK(cudaStreamSynchronize(0));
 }
 
 // default_allocator
@@ -467,7 +469,7 @@ void NonzeroAvgPoolingBackwardKernelGPU(
             kernel_map.in_maps.cdata(), kernel_map.out_maps.cdata());
   }
 
-  CUDA_CHECK(cudaDeviceSynchronize());
+  MINK_DEVICE_SYNC_UNLESS_LAZY();
 }
 
 // default_allocator

@@ -32,6 +32,7 @@
 #include <cusparse.h>
 #include <driver_types.h> // cuda driver types
 
+#include <cstdlib>
 #include <exception>
 #include <iostream>
 #include <vector>
@@ -150,6 +151,43 @@ namespace minkowski {
     throw std::runtime_error(Formatter()                                       \
                              << "Thrust error: " << e.what() << " at "         \
                              << __FILE__ << ":" << __LINE__);                  \
+  }
+
+namespace detail {
+
+// Opt-in lazy synchronization. When ME_LAZY_SYNC is set (to anything but "0"),
+// end-of-op stream/device synchronizations that only exist as a conservative
+// barrier are skipped and ordering is left to CUDA stream semantics. This
+// assumes all ME work runs on a single stream (the PyTorch current stream,
+// which is the legacy default stream unless the user creates side streams) —
+// the same assumption the rest of the engine already makes. Synchronizations
+// whose results feed host-side logic (map sizes, thrust reductions) are never
+// skipped. Default (unset or "0"): behavior identical to previous releases.
+inline bool lazy_sync_enabled() {
+  static bool const enabled = []() {
+    char const *env = std::getenv("ME_LAZY_SYNC");
+    return env != nullptr && env[0] != '\0' &&
+           !(env[0] == '0' && env[1] == '\0');
+  }();
+  return enabled;
+}
+
+} // namespace detail
+
+// Synchronizations that are safe to skip under ME_LAZY_SYNC=1: results are
+// only consumed later on the same stream, and temporary buffers are either
+// stream-ordered (c10 caching allocator) or freed via cudaFree before this
+// point (unchanged by skipping).
+#define MINK_SYNC_UNLESS_LAZY(stream)                                          \
+  {                                                                            \
+    if (!minkowski::detail::lazy_sync_enabled())                               \
+      CUDA_CHECK(cudaStreamSynchronize(stream));                               \
+  }
+
+#define MINK_DEVICE_SYNC_UNLESS_LAZY()                                         \
+  {                                                                            \
+    if (!minkowski::detail::lazy_sync_enabled())                               \
+      CUDA_CHECK(cudaDeviceSynchronize());                                     \
   }
 
 // CUDA: library error reporting.
