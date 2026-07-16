@@ -14,3 +14,11 @@ if _REPO_ROOT not in sys.path:
 
 # common.py holds shared helpers/data, not test cases — skip collecting it.
 collect_ignore_glob = ["python/common.py"]
+
+# summary.py imports open3d, a heavy optional dependency that is not installed
+# in CI (and not in requirements.txt). Skip collecting it when open3d is
+# absent; when it is available (e.g. local runs) it collects normally.
+try:
+    import open3d  # noqa: F401
+except ImportError:
+    collect_ignore = ["python/summary.py"]
