@@ -164,6 +164,11 @@ def _argparse(pattern, argv, is_flag=True, is_list=False):
 # For cpu only build
 CPU_ONLY, argv = _argparse("--cpu_only", argv)
 FORCE_CUDA, argv = _argparse("--force_cuda", argv)
+# Also honor the FORCE_CUDA env var: `pip wheel/install .` offers no way to
+# pass --force_cuda through, and GPU-less CI builders (wheels workflow) rely
+# on the env var. Without this, torch.cuda.is_available()==False silently
+# produced CPU_ONLY wheels.
+FORCE_CUDA = FORCE_CUDA or os.environ.get("FORCE_CUDA", "").lower() in ("1", "true", "on")
 if not torch.cuda.is_available() and not FORCE_CUDA:
     warnings.warn(
         "torch.cuda.is_available() is False. MinkowskiEngine will compile with CPU_ONLY. Please use `--force_cuda` to compile with CUDA."
