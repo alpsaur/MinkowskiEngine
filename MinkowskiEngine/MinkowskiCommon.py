@@ -126,3 +126,27 @@ def get_minkowski_function(name, variable):
     # function by the resolved name so repeat dispatch is a dict lookup.
     # lru_cache does not memoize exceptions, so the error path is unchanged.
     return _resolve_minkowski_function(fn_name, variable.is_cuda)
+
+
+def maybe_autocast(*tensors):
+    """Cast fp32 CUDA tensors to the active autocast dtype.
+
+    The Minkowski backend ops are opaque pybind functions without autocast
+    dispatch keys, so ``torch.autocast`` cannot cast their inputs. Calling this
+    at the top of each autograd.Function forward makes the ops participate in
+    AMP: under an active CUDA autocast context, fp32 CUDA feature/weight
+    tensors are cast to ``torch.get_autocast_dtype("cuda")`` (the autograd
+    engine converts the resulting reduced-precision gradients back to the
+    input dtypes). Outside autocast, or for non-fp32/non-CUDA tensors, inputs
+    are returned unchanged.
+    """
+    if not torch.is_autocast_enabled("cuda"):
+        return tensors if len(tensors) > 1 else tensors[0]
+    dtype = torch.get_autocast_dtype("cuda")
+    cast = tuple(
+        t.to(dtype)
+        if isinstance(t, torch.Tensor) and t.is_cuda and t.dtype == torch.float32
+        else t
+        for t in tensors
+    )
+    return cast if len(cast) > 1 else cast[0]

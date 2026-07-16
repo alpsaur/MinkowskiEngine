@@ -134,7 +134,7 @@ at::Tensor ConvolutionForwardGPU(
     cudaStream_t stream = at::cuda::getCurrentCUDAStream().stream();
     cublasSetStream(handle, stream);
 
-    AT_DISPATCH_FLOATING_TYPES(
+    AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
         in_feat.scalar_type(), "convolution_forward_gpu", [&] {
           LOG_DEBUG("ConvolutionForwardKernelGPU with",
                     std::is_same<float, scalar_t>::value ? "float" : "double");
@@ -218,7 +218,7 @@ std::pair<at::Tensor, at::Tensor> ConvolutionBackwardGPU(
     cudaStream_t stream = at::cuda::getCurrentCUDAStream().stream();
     cublasSetStream(handle, stream);
 
-    AT_DISPATCH_FLOATING_TYPES(
+    AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
         in_feat.scalar_type(), "convolution_backward_gpu", [&] {
           TemplatedAllocator<char> byte_allocator;
           ConvolutionBackwardKernelGPU<scalar_t, default_types::index_type,

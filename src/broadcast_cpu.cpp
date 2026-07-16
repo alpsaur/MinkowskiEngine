@@ -80,7 +80,7 @@ BroadcastForwardCPU(at::Tensor const &in_feat, at::Tensor const &in_feat_glob,
   auto out_feat =
       torch::empty({in_feat.size(0), in_feat.size(1)}, in_feat.options());
 
-  AT_DISPATCH_FLOATING_TYPES(
+  AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
       in_feat.scalar_type(), "broadcast_forward_cpu", [&] {
         BroadcastForwardKernelCPU<scalar_t, int>(
             in_feat.template data_ptr<scalar_t>(), in_feat.size(0),
@@ -143,7 +143,7 @@ BroadcastBackwardCPU(at::Tensor const &in_feat, at::Tensor const &in_feat_glob,
   auto grad_glob_feat = torch::zeros(
       {in_feat_glob.size(0), in_feat_glob.size(1)}, in_feat_glob.options());
 
-  AT_DISPATCH_FLOATING_TYPES(
+  AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
       in_feat.scalar_type(), "broadcast_backward_cpu", [&] {
         BroadcastBackwardKernelCPU<scalar_t, int>(
             in_feat.template data_ptr<scalar_t>(),

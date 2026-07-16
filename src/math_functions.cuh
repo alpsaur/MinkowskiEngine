@@ -31,7 +31,44 @@
 
 #include "gpu.cuh"
 
+#include <ATen/cuda/Atomic.cuh>
+#include <c10/util/BFloat16.h>
+#include <c10/util/Half.h>
+
+#include <type_traits>
+
 namespace minkowski {
+
+namespace detail {
+
+// Reduced-precision (16-bit) feature types. These accumulate in fp32 and are
+// routed to cublasGemmEx / cusparseSpMM with a CUDA_R_32F compute type.
+template <typename Dtype> struct is_reduced_fp : std::false_type {};
+template <> struct is_reduced_fp<c10::Half> : std::true_type {};
+template <> struct is_reduced_fp<c10::BFloat16> : std::true_type {};
+
+// Scalar type used for accumulation / library compute: fp32 for 16-bit
+// feature types, the feature type itself otherwise (keeps fp32/fp64
+// behavior unchanged).
+template <typename Dtype>
+using accum_type_t =
+    typename std::conditional<is_reduced_fp<Dtype>::value, float, Dtype>::type;
+
+template <typename Dtype> constexpr cudaDataType cuda_data_type_of() {
+  return std::is_same<Dtype, double>::value
+             ? CUDA_R_64F
+             : (std::is_same<Dtype, c10::Half>::value
+                    ? CUDA_R_16F
+                    : (std::is_same<Dtype, c10::BFloat16>::value ? CUDA_R_16BF
+                                                                 : CUDA_R_32F));
+}
+
+// cusparseSpMM compute type: 16-bit data computes in fp32.
+template <typename Dtype> constexpr cudaDataType cusparse_compute_type_of() {
+  return std::is_same<Dtype, double>::value ? CUDA_R_64F : CUDA_R_32F;
+}
+
+} // end namespace detail
 
 template <typename Dtype>
 void gpu_gemm(cublasHandle_t handle, const CBLAS_TRANSPOSE TransA,
@@ -103,7 +140,7 @@ __shared_accumulate_kernel_map(Dtype *__restrict__ dst,
     smap[smap_index] = map[src_index];
   __syncthreads();
   if (i < nthreads)
-    atomicAdd(&dst[smap[smap_index] * length + length_index], src[i]);
+    gpuAtomicAdd(&dst[smap[smap_index] * length + length_index], src[i]);
 }
 
 template <typename Dtype, typename Itype>

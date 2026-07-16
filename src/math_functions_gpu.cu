@@ -62,6 +62,55 @@ void gpu_gemm<double>(cublasHandle_t handle, const CBLAS_TRANSPOSE TransA,
                            A, lda, &beta, C, N));
 }
 
+// 16-bit GEMMs go through cublasGemmEx with fp32 accumulation
+// (CUBLAS_COMPUTE_32F engages tensor cores on Volta+ / Ampere+).
+namespace detail {
+
+template <typename Dtype>
+void gpu_gemm_ex_16bit(cublasHandle_t handle, const CBLAS_TRANSPOSE TransA,
+                       const CBLAS_TRANSPOSE TransB, const int M, const int N,
+                       const int K, const float alpha, const Dtype *A,
+                       const Dtype *B, const float beta, Dtype *C) {
+  int lda = (TransA == CblasNoTrans) ? K : M;
+  int ldb = (TransB == CblasNoTrans) ? N : K;
+  cublasOperation_t cuTransA =
+      (TransA == CblasNoTrans) ? CUBLAS_OP_N : CUBLAS_OP_T;
+  cublasOperation_t cuTransB =
+      (TransB == CblasNoTrans) ? CUBLAS_OP_N : CUBLAS_OP_T;
+  constexpr cudaDataType data_type = cuda_data_type_of<Dtype>();
+  CUBLAS_CHECK(cublasGemmEx(handle, cuTransB, cuTransA, N, M, K, &alpha, //
+                            B, data_type, ldb,                          //
+                            A, data_type, lda,                          //
+                            &beta, C, data_type, N,                     //
+                            CUBLAS_COMPUTE_32F, CUBLAS_GEMM_DEFAULT));
+}
+
+} // namespace detail
+
+template <>
+void gpu_gemm<c10::Half>(cublasHandle_t handle, const CBLAS_TRANSPOSE TransA,
+                         const CBLAS_TRANSPOSE TransB, const int M, const int N,
+                         const int K, const c10::Half alpha,
+                         const c10::Half *A, const c10::Half *B,
+                         const c10::Half beta, c10::Half *C) {
+  detail::gpu_gemm_ex_16bit<c10::Half>(handle, TransA, TransB, M, N, K,
+                                       static_cast<float>(alpha), A, B,
+                                       static_cast<float>(beta), C);
+}
+
+template <>
+void gpu_gemm<c10::BFloat16>(cublasHandle_t handle,
+                             const CBLAS_TRANSPOSE TransA,
+                             const CBLAS_TRANSPOSE TransB, const int M,
+                             const int N, const int K,
+                             const c10::BFloat16 alpha, const c10::BFloat16 *A,
+                             const c10::BFloat16 *B, const c10::BFloat16 beta,
+                             c10::BFloat16 *C) {
+  detail::gpu_gemm_ex_16bit<c10::BFloat16>(handle, TransA, TransB, M, N, K,
+                                           static_cast<float>(alpha), A, B,
+                                           static_cast<float>(beta), C);
+}
+
 template <typename Dtype>
 __global__ void addition_kernel(const int n, const Dtype *a, const Dtype *b,
                                 Dtype *y) {
@@ -90,6 +139,15 @@ template void gpu_addition<double>(const int N, const double *a,
                                    const double *b, double *y,
                                    cudaStream_t stream);
 
+template void gpu_addition<c10::Half>(const int N, const c10::Half *a,
+                                      const c10::Half *b, c10::Half *y,
+                                      cudaStream_t stream);
+
+template void gpu_addition<c10::BFloat16>(const int N, const c10::BFloat16 *a,
+                                          const c10::BFloat16 *b,
+                                          c10::BFloat16 *y,
+                                          cudaStream_t stream);
+
 template <typename Dtype>
 void gpu_multiplication(const int N, const Dtype *a, const Dtype *b, Dtype *y,
                         cudaStream_t stream) {
@@ -106,6 +164,16 @@ template void gpu_multiplication<float>(const int N, const float *a,
 template void gpu_multiplication<double>(const int N, const double *a,
                                          const double *b, double *y,
                                          cudaStream_t stream);
+
+template void gpu_multiplication<c10::Half>(const int N, const c10::Half *a,
+                                            const c10::Half *b, c10::Half *y,
+                                            cudaStream_t stream);
+
+template void gpu_multiplication<c10::BFloat16>(const int N,
+                                                const c10::BFloat16 *a,
+                                                const c10::BFloat16 *b,
+                                                c10::BFloat16 *y,
+                                                cudaStream_t stream);
 
 template <typename Dtype>
 __global__ void col2row_major_kernel(const int n, const int nrows,
@@ -135,6 +203,15 @@ template void col2row_major<double>(const int nrows, const int ncols,
                                     const double *colA, double *rowA,
                                     cudaStream_t stream);
 
+template void col2row_major<c10::Half>(const int nrows, const int ncols,
+                                       const c10::Half *colA, c10::Half *rowA,
+                                       cudaStream_t stream);
+
+template void col2row_major<c10::BFloat16>(const int nrows, const int ncols,
+                                           const c10::BFloat16 *colA,
+                                           c10::BFloat16 *rowA,
+                                           cudaStream_t stream);
+
 template <typename Dtype>
 __global__ void row2col_major_kernel(const int n, const int nrows,
                                      const int ncols, const Dtype *rowA,
@@ -162,6 +239,15 @@ template void row2col_major<float>(const int nrows, const int ncols,
 template void row2col_major<double>(const int nrows, const int ncols,
                                     const double *colA, double *rowA,
                                     cudaStream_t stream);
+
+template void row2col_major<c10::Half>(const int nrows, const int ncols,
+                                       const c10::Half *colA, c10::Half *rowA,
+                                       cudaStream_t stream);
+
+template void row2col_major<c10::BFloat16>(const int nrows, const int ncols,
+                                           const c10::BFloat16 *colA,
+                                           c10::BFloat16 *rowA,
+                                           cudaStream_t stream);
 
 // Sort (row, col) pairs row-major order.
 template <typename allocator_type>

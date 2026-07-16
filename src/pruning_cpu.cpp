@@ -90,7 +90,7 @@ PruningForwardCPU(at::Tensor const &in_feat, // CPU feat
     WARNING(true, "MinkowskiPruning: Generating an empty SparseTensor");
   } else {
     out_feat.zero_();
-    AT_DISPATCH_FLOATING_TYPES(
+    AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
         in_feat.scalar_type(), "pruning_forward_cpu", [&] {
           PruningForwardKernelCPU<scalar_t>(
               in_feat.template data_ptr<scalar_t>(),
@@ -129,7 +129,7 @@ PruningBackwardCPU(at::Tensor &grad_out_feat,       // CPU out feat
       torch::zeros({N_in, nchannel}, grad_out_feat.options());
 
   if (grad_out_feat.size(0) > 0)
-    AT_DISPATCH_FLOATING_TYPES(
+    AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
         grad_out_feat.scalar_type(), "pruning_backward_cpu", [&] {
           PruningBackwardKernelCPU<scalar_t>(
               grad_in_feat.template data_ptr<scalar_t>(),

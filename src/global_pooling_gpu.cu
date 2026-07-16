@@ -150,7 +150,7 @@ std::tuple<at::Tensor, at::Tensor> GlobalPoolingForwardGPU(
 
         if (is_field) {
           const auto &in_outs = p_map_manager->origin_field_map(p_in_map_key);
-          AT_DISPATCH_FLOATING_TYPES(
+          AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
               in_feat.scalar_type(), "global_pooling_forward_gpu", [&] {
                 NonzeroAvgPoolingForwardKernelGPU<scalar_t,
                                                   default_types::index_type,
@@ -162,7 +162,7 @@ std::tuple<at::Tensor, at::Tensor> GlobalPoolingForwardGPU(
               });
         } else {
           const auto &in_outs = p_map_manager->origin_map(p_in_map_key);
-          AT_DISPATCH_FLOATING_TYPES(
+          AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
               in_feat.scalar_type(), "global_pooling_forward_gpu", [&] {
                 NonzeroAvgPoolingForwardKernelGPU<scalar_t,
                                                   default_types::index_type,
@@ -194,7 +194,7 @@ std::tuple<at::Tensor, at::Tensor> GlobalPoolingForwardGPU(
         TemplatedAllocator<char> byte_allocator;
         if (is_field) {
           const auto &in_outs = p_map_manager->origin_field_map(p_in_map_key);
-          AT_DISPATCH_FLOATING_TYPES(
+          AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
               in_feat.scalar_type(), "global_pooling_forward_gpu", [&] {
                 MaxPoolingForwardKernelGPU<scalar_t, default_types::index_type,
                                            TemplatedAllocator<char>>(
@@ -205,7 +205,7 @@ std::tuple<at::Tensor, at::Tensor> GlobalPoolingForwardGPU(
               });
         } else {
           const auto &in_outs = p_map_manager->origin_map(p_in_map_key);
-          AT_DISPATCH_FLOATING_TYPES(
+          AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
               in_feat.scalar_type(), "global_pooling_forward_gpu", [&] {
                 MaxPoolingForwardKernelGPU<scalar_t, default_types::index_type,
                                            TemplatedAllocator<char>>(
@@ -300,7 +300,7 @@ at::Tensor GlobalPoolingBackwardGPU(
       if (is_field) {
         const auto &in_outs = p_map_manager->origin_field_map(p_in_map_key);
         grad_in_feat.zero_();
-        AT_DISPATCH_FLOATING_TYPES(
+        AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
             in_feat.scalar_type(), "global_pooling_backward_gpu", [&] {
               NonzeroAvgPoolingBackwardKernelGPU<scalar_t,
                                                  default_types::index_type,
@@ -314,7 +314,7 @@ at::Tensor GlobalPoolingBackwardGPU(
       } else {
         const auto &in_outs = p_map_manager->origin_map(p_in_map_key);
         grad_in_feat.zero_();
-        AT_DISPATCH_FLOATING_TYPES(
+        AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
             in_feat.scalar_type(), "global_pooling_backward_gpu", [&] {
               NonzeroAvgPoolingBackwardKernelGPU<scalar_t,
                                                  default_types::index_type,
@@ -330,7 +330,7 @@ at::Tensor GlobalPoolingBackwardGPU(
   } else {
     // MAX Pooling
     grad_in_feat.zero_();
-    AT_DISPATCH_FLOATING_TYPES(
+    AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
         in_feat.scalar_type(), "global_pooling_backward_gpu", [&] {
           MaxPoolingBackwardKernelGPU<scalar_t>(
               grad_in_feat.template data_ptr<scalar_t>(), in_feat.size(0),

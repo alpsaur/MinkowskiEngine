@@ -90,7 +90,7 @@ LocalPoolingForwardCPU(at::Tensor const &in_feat,
     max_index.resize_({out_nrows, in_feat.size(1)});
     max_index.zero_();
 
-    AT_DISPATCH_FLOATING_TYPES(
+    AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
         in_feat.scalar_type(), "local_pooling_forward_cpu", [&] {
           MaxPoolingForwardKernelCPU<scalar_t, int32_t,
                                      default_types::index_type>(
@@ -107,7 +107,7 @@ LocalPoolingForwardCPU(at::Tensor const &in_feat,
       num_nonzero.resize_({out_nrows});
       num_nonzero.zero_();
     }
-    AT_DISPATCH_FLOATING_TYPES(
+    AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
         in_feat.scalar_type(), "local_pooling_forward_cpu", [&] {
           NonzeroAvgPoolingForwardKernelCPU<scalar_t, coordinate_type>(
               in_feat.template data_ptr<scalar_t>(),
@@ -162,7 +162,7 @@ LocalPoolingBackwardCPU(at::Tensor const &in_feat,                         //
       torch::zeros({in_feat.size(0), in_feat.size(1)}, in_feat.options());
 
   if (pooling_mode == PoolingMode::LOCAL_MAX_POOLING) {
-    AT_DISPATCH_FLOATING_TYPES(
+    AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
         in_feat.scalar_type(), "local_pooling_backward_cpu", [&] {
           MaxPoolingBackwardKernelCPU<scalar_t, int32_t>(
               grad_in_feat.template data_ptr<scalar_t>(), in_feat.size(0),
@@ -171,7 +171,7 @@ LocalPoolingBackwardCPU(at::Tensor const &in_feat,                         //
               in_feat.size(1));
         });
   } else {
-    AT_DISPATCH_FLOATING_TYPES(
+    AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, 
         in_feat.scalar_type(), "local_pooling_backward_cpu", [&] {
           NonzeroAvgPoolingBackwardKernelCPU<scalar_t,
                                              default_types::index_type>(
@@ -231,6 +231,24 @@ template void MaxPoolingBackwardKernelCPU<double, int64_t>(
     double *p_grad_in_feat, size_t const in_nrows,
     double const *p_grad_out_feat, size_t const out_nrows,
     int64_t const *p_mask_index, size_t const nchannel);
+
+// 16-bit feature types (fp16 / bf16)
+#define MINK_INSTANTIATE_MAX_POOL_CPU(Dtype, Itype)                            \
+  template void max_pooling_forward_pointer_kernel_cpu<Dtype, Itype, Itype>(  \
+      Dtype const *p_in_feat, Dtype *p_out_feat, Itype *p_mask_index,         \
+      size_t const nchannel, Itype const *const p_in_maps,                    \
+      Itype const *const p_out_maps, size_t const map_size);                  \
+  template void MaxPoolingBackwardKernelCPU<Dtype, Itype>(                    \
+      Dtype *p_grad_in_feat, size_t const in_nrows,                           \
+      Dtype const *p_grad_out_feat, size_t const out_nrows,                   \
+      Itype const *p_mask_index, size_t const nchannel);
+
+MINK_INSTANTIATE_MAX_POOL_CPU(c10::Half, int32_t)
+MINK_INSTANTIATE_MAX_POOL_CPU(c10::Half, int64_t)
+MINK_INSTANTIATE_MAX_POOL_CPU(c10::BFloat16, int32_t)
+MINK_INSTANTIATE_MAX_POOL_CPU(c10::BFloat16, int64_t)
+
+#undef MINK_INSTANTIATE_MAX_POOL_CPU
 
 template std::pair<at::Tensor, at::Tensor> LocalPoolingForwardCPU<int32_t>(
     at::Tensor const &in_feat,
