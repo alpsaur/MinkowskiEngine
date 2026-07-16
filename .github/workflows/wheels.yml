@@ -49,9 +49,11 @@ jobs:
 
       - name: Install torch (cu128) + build tooling
         run: |
+          # the container's sh PATH has `python` (via setup-python) but no
+          # `pip` shim — always go through `python -m pip` here.
           python -m pip install --upgrade pip
-          pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu128
-          pip install --no-cache-dir wheel setuptools ninja
+          python -m pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu128
+          python -m pip install --no-cache-dir wheel setuptools ninja
 
       - name: Build wheel
         env:
@@ -61,7 +63,7 @@ jobs:
           MAX_COMPILATION_THREADS: "8"
         run: |
           # --no-build-isolation: build in this env so setup.py sees the installed torch.
-          pip wheel . --no-build-isolation -w wheelhouse/
+          python -m pip wheel . --no-build-isolation -w wheelhouse/
           ls -la wheelhouse/
 
       - name: Upload wheel artifact
