@@ -70,18 +70,19 @@ class MinkowskiLocalPoolingFunction(Function):
         ctx.pooling_mode = pooling_mode
 
         fw_fn = get_minkowski_function("LocalPoolingForward", input_features)
-        out_feat, num_nonzero = fw_fn(
-            ctx.input_features,
-            kernel_generator.kernel_size,
-            kernel_generator.kernel_stride,
-            kernel_generator.kernel_dilation,
-            kernel_generator.region_type,
-            kernel_generator.region_offsets,
-            pooling_mode,
-            ctx.in_coordinate_map_key,
-            ctx.out_coordinate_map_key,
-            ctx.coordinate_manager._manager,
-        )
+        with torch.profiler.record_function("ME::LocalPooling.forward"):
+            out_feat, num_nonzero = fw_fn(
+                ctx.input_features,
+                kernel_generator.kernel_size,
+                kernel_generator.kernel_stride,
+                kernel_generator.kernel_dilation,
+                kernel_generator.region_type,
+                kernel_generator.region_offsets,
+                pooling_mode,
+                ctx.in_coordinate_map_key,
+                ctx.out_coordinate_map_key,
+                ctx.coordinate_manager._manager,
+            )
         ctx.num_nonzero = num_nonzero
         return out_feat
 
@@ -89,20 +90,21 @@ class MinkowskiLocalPoolingFunction(Function):
     def backward(ctx, grad_out_feat):
         grad_out_feat = grad_out_feat.contiguous()
         bw_fn = get_minkowski_function("LocalPoolingBackward", grad_out_feat)
-        grad_in_feat = bw_fn(
-            ctx.input_features,
-            grad_out_feat,
-            ctx.num_nonzero,
-            ctx.kernel_generator.kernel_size,
-            ctx.kernel_generator.kernel_stride,
-            ctx.kernel_generator.kernel_dilation,
-            ctx.kernel_generator.region_type,
-            ctx.kernel_generator.region_offsets,
-            ctx.pooling_mode,
-            ctx.in_coordinate_map_key,
-            ctx.out_coordinate_map_key,
-            ctx.coordinate_manager._manager,
-        )
+        with torch.profiler.record_function("ME::LocalPooling.backward"):
+            grad_in_feat = bw_fn(
+                ctx.input_features,
+                grad_out_feat,
+                ctx.num_nonzero,
+                ctx.kernel_generator.kernel_size,
+                ctx.kernel_generator.kernel_stride,
+                ctx.kernel_generator.kernel_dilation,
+                ctx.kernel_generator.region_type,
+                ctx.kernel_generator.region_offsets,
+                ctx.pooling_mode,
+                ctx.in_coordinate_map_key,
+                ctx.out_coordinate_map_key,
+                ctx.coordinate_manager._manager,
+            )
         return (
             grad_in_feat,
             None,
@@ -471,19 +473,20 @@ class MinkowskiLocalPoolingTransposeFunction(Function):
         ctx.pooling_mode = pooling_mode
 
         fw_fn = get_minkowski_function("LocalPoolingTransposeForward", input_features)
-        out_feat, num_nonzero = fw_fn(
-            ctx.input_features,
-            kernel_generator.kernel_size,
-            kernel_generator.kernel_stride,
-            kernel_generator.kernel_dilation,
-            kernel_generator.region_type,
-            kernel_generator.region_offsets,
-            kernel_generator.expand_coordinates,
-            pooling_mode,
-            ctx.in_coordinate_map_key,
-            ctx.out_coordinate_map_key,
-            ctx.coordinate_manager._manager,
-        )
+        with torch.profiler.record_function("ME::LocalPoolingTranspose.forward"):
+            out_feat, num_nonzero = fw_fn(
+                ctx.input_features,
+                kernel_generator.kernel_size,
+                kernel_generator.kernel_stride,
+                kernel_generator.kernel_dilation,
+                kernel_generator.region_type,
+                kernel_generator.region_offsets,
+                kernel_generator.expand_coordinates,
+                pooling_mode,
+                ctx.in_coordinate_map_key,
+                ctx.out_coordinate_map_key,
+                ctx.coordinate_manager._manager,
+            )
         ctx.num_nonzero = num_nonzero
         return out_feat
 
@@ -491,20 +494,21 @@ class MinkowskiLocalPoolingTransposeFunction(Function):
     def backward(ctx, grad_out_feat):
         grad_out_feat = grad_out_feat.contiguous()
         bw_fn = get_minkowski_function("LocalPoolingTransposeBackward", grad_out_feat)
-        grad_in_feat = bw_fn(
-            ctx.input_features,
-            grad_out_feat,
-            ctx.num_nonzero,
-            ctx.kernel_generator.kernel_size,
-            ctx.kernel_generator.kernel_stride,
-            ctx.kernel_generator.kernel_dilation,
-            ctx.kernel_generator.region_type,
-            ctx.kernel_generator.region_offsets,
-            ctx.pooling_mode,
-            ctx.in_coordinate_map_key,
-            ctx.out_coordinate_map_key,
-            ctx.coordinate_manager._manager,
-        )
+        with torch.profiler.record_function("ME::LocalPoolingTranspose.backward"):
+            grad_in_feat = bw_fn(
+                ctx.input_features,
+                grad_out_feat,
+                ctx.num_nonzero,
+                ctx.kernel_generator.kernel_size,
+                ctx.kernel_generator.kernel_stride,
+                ctx.kernel_generator.kernel_dilation,
+                ctx.kernel_generator.region_type,
+                ctx.kernel_generator.region_offsets,
+                ctx.pooling_mode,
+                ctx.in_coordinate_map_key,
+                ctx.out_coordinate_map_key,
+                ctx.coordinate_manager._manager,
+            )
         return (
             grad_in_feat,
             None,
@@ -610,13 +614,14 @@ class MinkowskiGlobalPoolingFunction(Function):
         ctx.pooling_mode = pooling_mode
 
         fw_fn = get_minkowski_function("GlobalPoolingForward", input_features)
-        out_feat, num_nonzero = fw_fn(
-            input_features,
-            pooling_mode,
-            ctx.in_coords_key,
-            ctx.out_coords_key,
-            ctx.coordinate_manager._manager,
-        )
+        with torch.profiler.record_function("ME::GlobalPooling.forward"):
+            out_feat, num_nonzero = fw_fn(
+                input_features,
+                pooling_mode,
+                ctx.in_coords_key,
+                ctx.out_coords_key,
+                ctx.coordinate_manager._manager,
+            )
         ctx.num_nonzero = num_nonzero
         return out_feat
 
@@ -624,15 +629,16 @@ class MinkowskiGlobalPoolingFunction(Function):
     def backward(ctx, grad_out_feat):
         grad_out_feat = grad_out_feat.contiguous()
         bw_fn = get_minkowski_function("GlobalPoolingBackward", grad_out_feat)
-        grad_in_feat = bw_fn(
-            ctx.input_features,
-            grad_out_feat,
-            ctx.num_nonzero,
-            ctx.pooling_mode,
-            ctx.in_coords_key,
-            ctx.out_coords_key,
-            ctx.coordinate_manager._manager,
-        )
+        with torch.profiler.record_function("ME::GlobalPooling.backward"):
+            grad_in_feat = bw_fn(
+                ctx.input_features,
+                grad_out_feat,
+                ctx.num_nonzero,
+                ctx.pooling_mode,
+                ctx.in_coords_key,
+                ctx.out_coords_key,
+                ctx.coordinate_manager._manager,
+            )
         return grad_in_feat, None, None, None, None, None
 
 
@@ -768,9 +774,10 @@ class MinkowskiDirectMaxPoolingFunction(Function):
     ):
         # AMP: backend ops have no autocast dispatch keys, cast explicitly.
         in_feat = maybe_autocast(in_feat)
-        out_feat, max_mask = _C.direct_max_pool_fw(
-            in_map, out_map, in_feat, out_nrows, is_sorted
-        )
+        with torch.profiler.record_function("ME::DirectMaxPooling.forward"):
+            out_feat, max_mask = _C.direct_max_pool_fw(
+                in_map, out_map, in_feat, out_nrows, is_sorted
+            )
         ctx.in_nrows = in_feat.size(0)
         ctx.save_for_backward(max_mask)
         return out_feat
@@ -779,7 +786,8 @@ class MinkowskiDirectMaxPoolingFunction(Function):
     def backward(ctx, grad_out_feat):
         grad_out_feat = grad_out_feat.contiguous()
         max_mask = ctx.saved_tensors[0]
-        grad = _C.direct_max_pool_bw(grad_out_feat, max_mask, ctx.in_nrows)
+        with torch.profiler.record_function("ME::DirectMaxPooling.backward"):
+            grad = _C.direct_max_pool_bw(grad_out_feat, max_mask, ctx.in_nrows)
         return (
             None,
             None,

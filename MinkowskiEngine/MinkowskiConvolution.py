@@ -74,20 +74,21 @@ class MinkowskiConvolutionFunction(Function):
         ]
 
         fw_fn = get_minkowski_function("ConvolutionForward", input_features)
-        return fw_fn(
-            ctx.input_features,
-            kernel_weights,
-            kernel_generator.kernel_size,
-            kernel_generator.kernel_stride,
-            kernel_generator.kernel_dilation,
-            kernel_generator.region_type,
-            kernel_generator.region_offsets,
-            kernel_generator.expand_coordinates,
-            convolution_mode,
-            in_coordinate_map_key,
-            out_coordinate_map_key,
-            coordinate_manager._manager,
-        )
+        with torch.profiler.record_function("ME::Convolution.forward"):
+            return fw_fn(
+                ctx.input_features,
+                kernel_weights,
+                kernel_generator.kernel_size,
+                kernel_generator.kernel_stride,
+                kernel_generator.kernel_dilation,
+                kernel_generator.region_type,
+                kernel_generator.region_offsets,
+                kernel_generator.expand_coordinates,
+                convolution_mode,
+                in_coordinate_map_key,
+                out_coordinate_map_key,
+                coordinate_manager._manager,
+            )
 
     @staticmethod
     def backward(ctx, grad_out_feat: torch.Tensor):
@@ -101,20 +102,21 @@ class MinkowskiConvolutionFunction(Function):
         ) = ctx.misc
 
         bw_fn = get_minkowski_function("ConvolutionBackward", grad_out_feat)
-        grad_in_feat, grad_kernel = bw_fn(
-            ctx.input_features,
-            grad_out_feat,
-            ctx.kernel_weights,
-            kernel_generator.kernel_size,
-            kernel_generator.kernel_stride,
-            kernel_generator.kernel_dilation,
-            kernel_generator.region_type,
-            kernel_generator.region_offsets,
-            convolution_mode,
-            in_coordinate_map_key,
-            out_coordinate_map_key,
-            coordinate_manager._manager,
-        )
+        with torch.profiler.record_function("ME::Convolution.backward"):
+            grad_in_feat, grad_kernel = bw_fn(
+                ctx.input_features,
+                grad_out_feat,
+                ctx.kernel_weights,
+                kernel_generator.kernel_size,
+                kernel_generator.kernel_stride,
+                kernel_generator.kernel_dilation,
+                kernel_generator.region_type,
+                kernel_generator.region_offsets,
+                convolution_mode,
+                in_coordinate_map_key,
+                out_coordinate_map_key,
+                coordinate_manager._manager,
+            )
         return (
             grad_in_feat,
             grad_kernel,
@@ -158,20 +160,21 @@ class MinkowskiConvolutionTransposeFunction(Function):
         )
 
         fw_fn = get_minkowski_function("ConvolutionTransposeForward", input_features)
-        return fw_fn(
-            ctx.input_features,
-            kernel_weights,
-            kernel_generator.kernel_size,
-            kernel_generator.kernel_stride,
-            kernel_generator.kernel_dilation,
-            kernel_generator.region_type,
-            kernel_generator.region_offsets,
-            kernel_generator.expand_coordinates,
-            convolution_mode,
-            in_coordinate_map_key,
-            out_coordinate_map_key,
-            coordinate_manager._manager,
-        )
+        with torch.profiler.record_function("ME::ConvolutionTranspose.forward"):
+            return fw_fn(
+                ctx.input_features,
+                kernel_weights,
+                kernel_generator.kernel_size,
+                kernel_generator.kernel_stride,
+                kernel_generator.kernel_dilation,
+                kernel_generator.region_type,
+                kernel_generator.region_offsets,
+                kernel_generator.expand_coordinates,
+                convolution_mode,
+                in_coordinate_map_key,
+                out_coordinate_map_key,
+                coordinate_manager._manager,
+            )
 
     @staticmethod
     def backward(ctx, grad_out_feat: torch.Tensor):
@@ -185,20 +188,21 @@ class MinkowskiConvolutionTransposeFunction(Function):
         ) = ctx.misc
 
         bw_fn = get_minkowski_function("ConvolutionTransposeBackward", grad_out_feat)
-        grad_in_feat, grad_kernel = bw_fn(
-            ctx.input_features,
-            grad_out_feat,
-            ctx.kernel_weights,
-            kernel_generator.kernel_size,
-            kernel_generator.kernel_stride,
-            kernel_generator.kernel_dilation,
-            kernel_generator.region_type,
-            kernel_generator.region_offsets,
-            convolution_mode,
-            in_coordinate_map_key,
-            out_coordinate_map_key,
-            coordinate_manager._manager,
-        )
+        with torch.profiler.record_function("ME::ConvolutionTranspose.backward"):
+            grad_in_feat, grad_kernel = bw_fn(
+                ctx.input_features,
+                grad_out_feat,
+                ctx.kernel_weights,
+                kernel_generator.kernel_size,
+                kernel_generator.kernel_stride,
+                kernel_generator.kernel_dilation,
+                kernel_generator.region_type,
+                kernel_generator.region_offsets,
+                convolution_mode,
+                in_coordinate_map_key,
+                out_coordinate_map_key,
+                coordinate_manager._manager,
+            )
         return (
             grad_in_feat,
             grad_kernel,
