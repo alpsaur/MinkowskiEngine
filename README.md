@@ -14,7 +14,15 @@
 
 ## CUDA 12.8+ / Blackwell GPU Fork
 
-This fork adds compatibility for **CUDA Toolkit 12.8+** and **NVIDIA Blackwell architecture GPUs** (RTX 5090, 5080, 5070, etc.).
+**What this fork adds over stock NVIDIA MinkowskiEngine:**
+
+1. **It builds and runs on modern toolchains** — CUDA Toolkit 12.8+ and Blackwell GPUs (RTX 5090/5080/5070, sm_120), NumPy 2.0, PyTorch 2.x, Python 3.10–3.13, GCC 13. Upstream compiles on none of these.
+2. **It's faster and lighter — on any GPU generation:**
+   - **fp16 / bf16 across all ops** with `torch.autocast` (stock ME is fp32/fp64-only): ~20% less training memory, tensor-core GEMMs with fp32 accumulation
+   - **Fused, vectorized gather/scatter** (v0.5.7): the per-kernel-offset copy launches that consumed 56% of GPU time on a real sparse U-Net are gone — **−38% total GPU time per training step**
+   - **Opt-in sync elimination** (`ME_LAZY_SYNC=1`): ~7–11% faster steps
+   - See the [performance guide](docs/performance.md) — combined with TF32, a real training pipeline measured ~2x faster per step at ~25% less memory vs stock-ME fp32
+3. **It's maintained and installable** — [prebuilt wheels](https://github.com/alpsaur/MinkowskiEngine/releases/latest) (one `pip install`, no compile), CI on every change, a repaired test suite, working Docker, [hosted docs](https://alpsaur.github.io/MinkowskiEngine/), and built-in `torch.profiler` ranges (`ME::*`) for diagnosing your own workloads.
 
 ### Quick Install (v0.5.7)
 
