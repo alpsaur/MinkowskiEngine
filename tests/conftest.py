@@ -120,6 +120,12 @@ _LEGACY_FAILURES = {
         "non-differentiable extras (kernel maps) that modern gradcheck's "
         "numerical-jacobian filtering no longer aligns with analytical outputs"
     ),
+    "tests/python/interpolation.py::TestInterpolation::test_gpu": (
+        "same torch 2.x gradcheck IndexError as ::test (non-differentiable "
+        "extras); pre-existing, unrelated to the renormalization fix -- "
+        "verified failing identically on the pre-fix build. Gradient "
+        "correctness is covered by interpolation_renorm.py gradcheck tests"
+    ),
 }
 
 
