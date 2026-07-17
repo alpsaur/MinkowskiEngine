@@ -314,6 +314,21 @@ class MinkowskiConvolutionBase(MinkowskiModuleBase):
         assert isinstance(input, SparseTensor)
         assert input.D == self.dimension
 
+        # Opt-in deterministic path (ME.set_deterministic(True)): sort the input
+        # into a canonical coordinate order so the backend accumulation order --
+        # and therefore the output -- is independent of the input row ordering.
+        # See MinkowskiEngine/utils/determinism.py and upstream issues #554/#504.
+        # Skipped for the use_mm (kernel_volume == 1) path, which is a plain
+        # matrix multiply with no coordinate-order-dependent accumulation.
+        if not self.use_mm:
+            from MinkowskiEngine.utils.determinism import (
+                is_deterministic,
+                sorted_coordinates,
+            )
+
+            if is_deterministic():
+                input = sorted_coordinates(input)
+
         if self.use_mm:
             # If the kernel_size == 1, the convolution is simply a matrix
             # multiplication

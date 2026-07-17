@@ -208,6 +208,12 @@ import MinkowskiFunctional
 
 import MinkowskiEngine.utils as utils
 
+from MinkowskiEngine.utils.determinism import (
+    set_deterministic,
+    is_deterministic,
+    sorted_coordinates,
+)
+
 import MinkowskiEngine.modules as modules
 
 from sparse_matrix_functions import (
