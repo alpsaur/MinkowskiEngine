@@ -368,23 +368,27 @@ fixed across runs. Two forward passes on the same input produce identical
 results up to floating-point reduction-order differences, which appear as
 low-order-bit noise in the output. This is upstream
 <a class="reference external" href="https://github.com/NVIDIA/MinkowskiEngine/issues/554">#554</a>.</p>
-<p>A built-in <code class="docutils literal notranslate"><span class="pre">ME.set_deterministic()</span></code> option is planned (coordinate sorting
-before each kernel plus deterministic atomics) but is <strong>not yet merged</strong> into
-this fork. Until it lands, the manual workaround is to sort the coordinate
-key before constructing the SparseTensor so that the insertion order is fixed
-regardless of the upstream data order:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Manual deterministic ordering: sort rows by (batch, x, y, z, ...).</span>
-<span class="n">order</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>           <span class="c1"># stable sort on full key</span>
-<span class="n">coords</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">order</span><span class="p">]</span>
-<span class="n">feats</span> <span class="o">=</span> <span class="n">feats</span><span class="p">[</span><span class="n">order</span><span class="p">]</span>
-<span class="n">sin</span> <span class="o">=</span> <span class="n">ME</span><span class="o">.</span><span class="n">SparseTensor</span><span class="p">(</span><span class="n">feats</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span>
+<p>This fork ships a built-in opt-in: <code class="docutils literal notranslate"><span class="pre">ME.set_deterministic(True)</span></code> routes every
+<code class="docutils literal notranslate"><span class="pre">MinkowskiConvolution</span></code> / <code class="docutils literal notranslate"><span class="pre">MinkowskiConvolutionTranspose</span></code> input through a
+canonical lexicographic coordinate sort before the kernel runs, which makes
+repeated runs on the same point set (in any row order) produce identical
+outputs. Cost: one coordinate sort per conv; intended for
+reproducibility/debugging, not throughput.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">MinkowskiEngine</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ME</span>
+
+<span class="n">ME</span><span class="o">.</span><span class="n">set_deterministic</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>   <span class="c1"># process-wide; ME.is_deterministic() to query</span>
+<span class="c1"># ... build and run the model as usual ...</span>
 </pre></div>
 </div>
-<p>This fixes the coordinate ordering but does not eliminate the atomic-add
-noise inside the GEMM. For bitwise reproducibility you also need
-<code class="docutils literal notranslate"><span class="pre">torch.use_deterministic_algorithms(True)</span></code>, which will error on any ME op
-that lacks a deterministic kernel (currently all sparse convs), so full
-bitwise determinism is not achievable today without the planned built-in.</p>
+<p>The underlying helper is also exposed directly if you want to sort a single
+tensor once instead of paying the per-conv cost:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sin</span> <span class="o">=</span> <span class="n">ME</span><span class="o">.</span><span class="n">sorted_coordinates</span><span class="p">(</span><span class="n">sin</span><span class="p">)</span>   <span class="c1"># returns a canonically-ordered SparseTensor</span>
+</pre></div>
+</div>
+<p>Caveat: this fixes the dominant source (coordinate/dispatch ordering). True
+bitwise determinism across different GPUs or driver versions is still not
+guaranteed, since atomic reduction order inside cuBLAS/atomics can differ
+across hardware.</p>
 </section>
 </section>
 <section id="me-lazy-sync-single-stream-assumption">
