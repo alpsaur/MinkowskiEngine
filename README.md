@@ -93,7 +93,25 @@ This fork applies community workarounds from issues [#543](https://github.com/NV
 
 > All changes live on the default `master` branch. The previous `cuda12-compat` branch was merged in and removed; install from `master`. BLAS is auto-detected at build time (OpenBLAS by default), so `--install-option` is not required.
 
+### Requirements (CUDA 12.8+ / Blackwell)
+
+- Linux (tested on Ubuntu 24.04 under WSL2); CUDA Toolkit **12.8 or newer** (must match the CUDA PyTorch was built with)
+- PyTorch **>= 2.7** with cu128 (CI tests 2.7 and 2.9; prebuilt wheels require **2.9.x**)
+- Python **3.10–3.13** (wheels: 3.10–3.12)
+- GCC **11–13** (required by CUDA 12.8; source builds only)
+- `ninja` (source builds only); OpenBLAS (auto-detected at build time)
+
 ---
+
+# Original MinkowskiEngine documentation
+
+Everything below this line is inherited from the upstream NVIDIA README and
+describes the library itself (concepts, network building, examples). It is
+kept because it is still the best introduction to using the engine. A few
+places are annotated where upstream instructions no longer work on modern
+toolchains (marked as legacy or with a note); apart from those annotations
+the content is upstream's, and only the fork-specific sections above have
+been validated on current hardware.
 
 The Minkowski Engine is an auto-differentiation library for sparse tensors. It supports all standard neural network layers such as convolution, pooling, unpooling, and broadcasting operations for sparse tensors. For more information, please visit [the documentation page](http://nvidia.github.io/MinkowskiEngine/overview.html).
 
@@ -139,15 +157,7 @@ We visualized a sparse tensor network operation on a sparse tensor, convolution,
 
 ## Requirements
 
-**For this fork (CUDA 12.8+ / Blackwell):**
-- Linux (tested on Ubuntu 24.04 under WSL2); CUDA Toolkit **12.8 or newer** (must match the CUDA PyTorch was built with)
-- PyTorch **>= 2.7** with cu128 (CI tests 2.7 and 2.9; prebuilt wheels require **2.9.x**)
-- Python **3.10–3.13** (wheels: 3.10–3.12)
-- GCC **11–13** (required by CUDA 12.8; source builds only)
-- `ninja` (for compilation; source builds only)
-- OpenBLAS (auto-detected at build time)
-
-**Original engine support (reference only, not validated on this fork):** CUDA >= 10.1, PyTorch >= 1.7, Python >= 3.6, GCC >= 7.4.0, Ubuntu >= 14.04. You must always match the CUDA version PyTorch uses with the one used to compile MinkowskiEngine.
+**Requirements for this fork are listed in the [fork section above](#requirements-cuda-128--blackwell)** (CUDA 12.8+, PyTorch >= 2.7, Python 3.10–3.13). Historical upstream support, for reference only and not validated on this fork: CUDA >= 10.1, PyTorch >= 1.7, Python >= 3.6, GCC >= 7.4.0, Ubuntu >= 14.04. You must always match the CUDA version PyTorch uses with the one used to compile MinkowskiEngine.
 
 
 ## Installation
