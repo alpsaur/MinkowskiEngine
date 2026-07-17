@@ -1,0 +1,461 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Operations Cookbook &mdash; MinkowskiEngine 0.5.6 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=722679d6"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Migration Guide from v0.4.x to v0.5.0" href="migration_05.html" />
+    <link rel="prev" title="Performance Guide" href="performance.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MinkowskiEngine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="sparse_tensor_network.html">Sparse Tensor Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="terminology.html">Definitions and Terminology</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/sparse_tensor_basic.html">Sparse Tensor Basics</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Demos</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="demo/training.html">Training Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="demo/modelnet40_classification.html">ModelNet40 Classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="demo/segmentation.html">Semantic Segmentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="demo/sparse_tensor_reconstruction.html">3D Sparsity Pattern Reconstruction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="demo/interop.html">Working with Pytorch Layers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="demo/multigpu.html">Multi-GPU with Pytorch-Lightning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="demo/pointnet.html">PointNet</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="sparse_tensor.html">SparseTensor and TensorField</a></li>
+<li class="toctree-l1"><a class="reference internal" href="convolution.html">MinkowskiConvolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pooling.html">MinkowskiPooling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="broadcast.html">MinkowskiBroadcast</a></li>
+<li class="toctree-l1"><a class="reference internal" href="normalization.html">MinkowskiNormalization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nonlinearity.html">MinkowskiNonlinearities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pruning.html">MinkowskiPruning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interp.html">MinkowskiInterpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="union.html">MinkowskiUnion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coords.html">Coordinate Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utility Functions and Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="common.html">Miscellaneous Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="misc.html">Miscellanea</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Miscellanea</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="issues.html">Common Issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guides.html">Guidelines for Faster Networks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Operations Cookbook</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#memory-management-with-varying-point-counts">Memory management with varying point counts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#the-oom-leak-caveat-issue-359">The OOM-leak caveat (issue #359)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#coordinate-manager-lifecycle">Coordinate-manager lifecycle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#multi-gpu-distributeddataparallel">Multi-GPU / DistributedDataParallel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#torch-compile-dynamo">torch.compile / Dynamo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#determinism">Determinism</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#a-coordinate-quantization-differs-between-cpu-and-gpu">(a) Coordinate quantization differs between CPU and GPU</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#b-convolution-outputs-vary-in-low-order-bits-run-to-run">(b) Convolution outputs vary in low-order bits run-to-run</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#me-lazy-sync-single-stream-assumption">ME_LAZY_SYNC: single-stream assumption</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="migration_05.html">Migration Guide from v0.4.x to v0.5.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="benchmark.html">Benchmark</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MinkowskiEngine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Operations Cookbook</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/operations.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+
+           <div itemprop="articleBody">
+             
+  <section id="operations-cookbook">
+<h1>Operations Cookbook<a class="headerlink" href="#operations-cookbook" title="Link to this heading"></a></h1>
+<p>This page is a practical “running ME in production and long trainings”
+cookbook. It covers the recurring pain points seen across upstream and
+downstream issue trackers: memory fragmentation, coordinate-manager leaks,
+multi-GPU setup, torch.compile incompatibility, determinism, and the
+single-stream assumption behind <code class="docutils literal notranslate"><span class="pre">ME_LAZY_SYNC</span></code>.</p>
+<p>Every section below is code-snippet-first. For throughput and memory knobs
+(TF32, mixed precision, fused gather/scatter), see the
+<a class="reference internal" href="performance.html"><span class="doc">Performance Guide</span></a> instead.</p>
+<section id="memory-management-with-varying-point-counts">
+<h2>Memory management with varying point counts<a class="headerlink" href="#memory-management-with-varying-point-counts" title="Link to this heading"></a></h2>
+<p>When the number of active points (non-zero coordinates) changes every
+iteration, which is the norm for point-cloud and segmentation workloads,
+PyTorch’s CUDA caching allocator fragments. It holds fixed-size blocks that
+matched a previous iteration’s allocation profile and cannot satisfy the new
+one without over-allocating. Left unchecked, peak memory creeps upward until
+the process OOMs. This is a consequence of the allocator’s design, not a leak
+in MinkowskiEngine, but it bites ME workloads harder than dense ones because
+sparse tensor sizes swing widely. This is the pattern behind
+<a class="reference external" href="https://github.com/NVIDIA/MinkowskiEngine/issues/150">#150</a>,
+<a class="reference external" href="https://github.com/NVIDIA/MinkowskiEngine/issues/290">#290</a>, and
+<a class="reference external" href="https://github.com/NVIDIA/MinkowskiEngine/issues/359">#359</a>.</p>
+<p>Clear the caching allocator on a regular interval:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cache_clear_interval</span> <span class="o">=</span> <span class="mi">500</span>  <span class="c1"># tune; every few hundred steps is typical</span>
+
+<span class="k">for</span> <span class="n">step</span><span class="p">,</span> <span class="n">batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">loader</span><span class="p">):</span>
+    <span class="o">...</span>
+    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">step</span> <span class="o">%</span> <span class="n">cache_clear_interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>
+</pre></div>
+</div>
+<section id="the-oom-leak-caveat-issue-359">
+<h3>The OOM-leak caveat (issue #359)<a class="headerlink" href="#the-oom-leak-caveat-issue-359" title="Link to this heading"></a></h3>
+<p>A C++-side allocation failure (a hard GPU OOM during a kernel) can leave GPU
+memory in an intermediate state that the Python process never recovers. The
+process keeps running but the GPU is stranded at near-full utilization, so the
+next iteration OOMs again immediately. You cannot reliably catch and continue
+from this with a <code class="docutils literal notranslate"><span class="pre">try/except</span> <span class="pre">RuntimeError</span></code> alone. For long unattended
+trainings, structure training as a restartable loop so an OOM does not strand
+the GPU until a manual restart:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span><span class="o">,</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">run_training_segment</span><span class="p">(</span><span class="n">resume_ckpt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Launch one training subprocess; checkpoint every N steps inside.&quot;&quot;&quot;</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">,</span> <span class="s2">&quot;train.py&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">resume_ckpt</span><span class="p">:</span>
+        <span class="n">cmd</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;--resume&quot;</span><span class="p">,</span> <span class="n">resume_ckpt</span><span class="p">]</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">)</span>
+    <span class="n">completed</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">completed</span><span class="o">.</span><span class="n">returncode</span>
+
+<span class="n">ckpt</span> <span class="o">=</span> <span class="s2">&quot;ckpt/latest.pt&quot;</span>
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="n">rc</span> <span class="o">=</span> <span class="n">run_training_segment</span><span class="p">(</span><span class="n">resume_ckpt</span><span class="o">=</span><span class="n">ckpt</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">rc</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">break</span>                       <span class="c1"># training finished cleanly</span>
+    <span class="c1"># non-zero: the subprocess died (OOM, etc.). The GPU is freed when the</span>
+    <span class="c1"># child process exits. Loop back and resume from the last checkpoint.</span>
+</pre></div>
+</div>
+<p>The key property: a hard OOM kills the child process, the OS reclaims the GPU,
+and the parent relaunches from the last saved checkpoint. This turns a
+stranded-GPU situation into a short delay instead of a silent stall.</p>
+</section>
+</section>
+<section id="coordinate-manager-lifecycle">
+<h2>Coordinate-manager lifecycle<a class="headerlink" href="#coordinate-manager-lifecycle" title="Link to this heading"></a></h2>
+<p>Every <code class="docutils literal notranslate"><span class="pre">SparseTensor</span></code> owns a coordinate manager that tracks the kernel maps
+(hashed coordinate-to-coordinate mappings) for all operations applied to it.
+There are two modes, set with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">MinkowskiEngine</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ME</span>
+
+<span class="n">ME</span><span class="o">.</span><span class="n">set_sparse_tensor_operation_mode</span><span class="p">(</span>
+    <span class="n">ME</span><span class="o">.</span><span class="n">SparseTensorOperationMode</span><span class="o">.</span><span class="n">SEPARATE_COORDINATE_MANAGER</span>  <span class="c1"># default</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Under the default <code class="docutils literal notranslate"><span class="pre">SEPARATE_COORDINATE_MANAGER</span></code> mode, each SparseTensor gets
+its own coordinate manager that is garbage-collected when the tensor goes out
+of scope. No manual cleanup is needed.</p>
+<p>Under <code class="docutils literal notranslate"><span class="pre">SHARE_COORDINATE_MANAGER</span></code>, a single global coordinate manager is reused
+across all SparseTensors. This is faster (kernel maps are cached and shared
+across layers) but the cache grows for the lifetime of the process. If you use
+this mode you <strong>must</strong> clear the global manager after every iteration, or the
+kernel-map cache grows without bound and leaks memory:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ME</span><span class="o">.</span><span class="n">set_sparse_tensor_operation_mode</span><span class="p">(</span>
+    <span class="n">ME</span><span class="o">.</span><span class="n">SparseTensorOperationMode</span><span class="o">.</span><span class="n">SHARE_COORDINATE_MANAGER</span>
+<span class="p">)</span>
+
+<span class="k">for</span> <span class="n">step</span><span class="p">,</span> <span class="n">batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">loader</span><span class="p">):</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">sparse_input</span><span class="p">)</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+    <span class="n">ME</span><span class="o">.</span><span class="n">clear_global_coordinate_manager</span><span class="p">()</span>  <span class="c1"># required every iteration</span>
+</pre></div>
+</div>
+<p>If you see memory growing linearly with the number of steps and you use the
+shared mode, a missing <code class="docutils literal notranslate"><span class="pre">clear_global_coordinate_manager()</span></code> call is the first
+thing to check.</p>
+</section>
+<section id="multi-gpu-distributeddataparallel">
+<h2>Multi-GPU / DistributedDataParallel<a class="headerlink" href="#multi-gpu-distributeddataparallel" title="Link to this heading"></a></h2>
+<p>Multi-GPU is the single most common source of confusion in downstream usage.
+The rules:</p>
+<p><strong>DataParallel is not supported.</strong> PyTorch’s <code class="docutils literal notranslate"><span class="pre">DataParallel</span></code> replicates module
+attributes by shallow copy, which breaks the internal coordinate-manager
+references inside ME modules. It silently produces wrong results or crashes.
+This is documented in upstream
+<a class="reference external" href="https://github.com/NVIDIA/MinkowskiEngine/issues/264">#264</a>. Use
+<code class="docutils literal notranslate"><span class="pre">DistributedDataParallel</span></code> instead.</p>
+<p><strong>Working DDP recipe:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.distributed</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">dist</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">MinkowskiEngine</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ME</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">setup_ddp</span><span class="p">(</span><span class="n">local_rank</span><span class="p">):</span>
+    <span class="c1"># 1. Set the device BEFORE init_process_group.</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">set_device</span><span class="p">(</span><span class="n">local_rank</span><span class="p">)</span>
+
+    <span class="c1"># 2. NCCL is the only backend that works for ME on GPU.</span>
+    <span class="n">dist</span><span class="o">.</span><span class="n">init_process_group</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s2">&quot;nccl&quot;</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="n">local_rank</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;LOCAL_RANK&quot;</span><span class="p">])</span>
+    <span class="n">setup_ddp</span><span class="p">(</span><span class="n">local_rank</span><span class="p">)</span>
+
+    <span class="n">model</span> <span class="o">=</span> <span class="n">build_model</span><span class="p">()</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">DistributedDataParallel</span><span class="p">(</span>
+        <span class="n">model</span><span class="p">,</span>
+        <span class="n">device_ids</span><span class="o">=</span><span class="p">[</span><span class="n">local_rank</span><span class="p">],</span>
+        <span class="c1"># Required if your head has conditionally-unused parameters</span>
+        <span class="c1"># (e.g. Mask3D-style heads with dynamic pruning).</span>
+        <span class="n">find_unused_parameters</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">sampler</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">distributed</span><span class="o">.</span><span class="n">DistributedSampler</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="p">,</span>
+        <span class="n">drop_last</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>   <span class="c1"># avoid ragged last batch that breaks collation</span>
+    <span class="p">)</span>
+    <span class="n">loader</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">sampler</span><span class="o">=</span><span class="n">sampler</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+
+    <span class="n">cache_clear_interval</span> <span class="o">=</span> <span class="mi">500</span>
+    <span class="k">for</span> <span class="n">step</span><span class="p">,</span> <span class="n">batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">loader</span><span class="p">):</span>
+        <span class="n">coords</span><span class="p">,</span> <span class="n">feats</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">batch</span>
+        <span class="c1"># Use ME.utils.sparse_collate / batched_coordinates to build</span>
+        <span class="c1"># per-rank SparseTensor inputs.</span>
+        <span class="n">sin</span> <span class="o">=</span> <span class="n">ME</span><span class="o">.</span><span class="n">SparseTensor</span><span class="p">(</span><span class="n">feats</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">sin</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+        <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">step</span> <span class="o">%</span> <span class="n">cache_clear_interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>   <span class="c1"># per-rank; each rank clears its own</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Launch with <code class="docutils literal notranslate"><span class="pre">torchrun</span></code> (one process per GPU):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>torchrun<span class="w"> </span>--nproc_per_node<span class="o">=</span><span class="m">4</span><span class="w"> </span>train.py
+</pre></div>
+</div>
+<p><strong>Pickling note:</strong> ME modules could not be pickled under <code class="docutils literal notranslate"><span class="pre">ddp_spawn</span></code> in early
+upstream releases; this was fixed in upstream
+<a class="reference external" href="https://github.com/NVIDIA/MinkowskiEngine/pull/139">PR #139</a> and is inherited
+by this fork. Prefer standard <code class="docutils literal notranslate"><span class="pre">torchrun</span></code> launch over <code class="docutils literal notranslate"><span class="pre">mp.spawn</span></code> regardless, as
+<code class="docutils literal notranslate"><span class="pre">spawn</span></code> complicates debugging and checkpointing.</p>
+<blockquote>
+<div><p><strong>Honesty note:</strong> multi-GPU is upstream functionality that this fork has
+<strong>not</strong> re-validated on torch 2.9. Single-GPU is the tested path in this
+fork’s CI. The guidance above is community-sourced and matches what works in
+the major downstream repositories (MinkowskiEngine-based detection and
+segmentation pipelines). If you hit a DDP-specific issue, please report it.</p>
+</div></blockquote>
+</section>
+<section id="torch-compile-dynamo">
+<h2>torch.compile / Dynamo<a class="headerlink" href="#torch-compile-dynamo" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">torch.compile</span></code> does not work on models containing MinkowskiEngine layers. ME
+operations are C++ autograd <code class="docutils literal notranslate"><span class="pre">Function</span></code> subclasses that hold opaque
+coordinate-manager and kernel-map objects. Dynamo cannot trace through them,
+so <code class="docutils literal notranslate"><span class="pre">torch.compile</span></code> on a model with ME layers either graph-breaks at every ME
+op (losing most of the compile benefit) or errors outright.</p>
+<p><strong>Workaround:</strong> disable Dynamo on the ME-containing submodule and compile only
+the dense head:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch._dynamo</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">MinkowskiEngine</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ME</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">build_model</span><span class="p">()</span>
+
+<span class="c1"># Option A: disable on the sparse backbone, compile the dense head.</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">_dynamo</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">sparse_backbone</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">dense_head</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">dense_head</span><span class="p">)</span>
+
+<span class="c1"># Option B: compile nothing, avoid the overhead entirely.</span>
+<span class="c1"># torch.compile(model)  # &lt;- will graph-break; do not do this</span>
+</pre></div>
+</div>
+<p>Full <code class="docutils literal notranslate"><span class="pre">torch.compile</span></code> support would require redesigning the ME op API so that
+Dynamo can see tensor-in/tensor-out boundaries with no opaque handles. This is
+not planned for this fork.</p>
+</section>
+<section id="determinism">
+<h2>Determinism<a class="headerlink" href="#determinism" title="Link to this heading"></a></h2>
+<p>There are two independent sources of non-determinism to be aware of.</p>
+<section id="a-coordinate-quantization-differs-between-cpu-and-gpu">
+<h3>(a) Coordinate quantization differs between CPU and GPU<a class="headerlink" href="#a-coordinate-quantization-differs-between-cpu-and-gpu" title="Link to this heading"></a></h3>
+<p>MinkowskiEngine quantizes continuous float coordinates to an integer grid as
+the first step of building a SparseTensor. The GPU quantization kernel can
+produce a different set of active coordinates (or a different ordering) than
+the CPU path for identical float inputs, due to rounding and parallel
+insertion order. This is upstream
+<a class="reference external" href="https://github.com/NVIDIA/MinkowskiEngine/issues/441">#441</a>.</p>
+<p>If you quantize on CPU during preprocessing but on GPU during training (or
+vice versa), your active coordinate set can shift between data preparation and
+training, or between train and inference. <strong>Quantize on one device
+consistently</strong> across your entire pipeline:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Pick one: quantize on GPU for the whole pipeline.</span>
+<span class="n">coords</span> <span class="o">=</span> <span class="n">coords</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+<span class="n">feats</span> <span class="o">=</span> <span class="n">feats</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+<span class="n">sin</span> <span class="o">=</span> <span class="n">ME</span><span class="o">.</span><span class="n">SparseTensor</span><span class="p">(</span><span class="n">feats</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="b-convolution-outputs-vary-in-low-order-bits-run-to-run">
+<h3>(b) Convolution outputs vary in low-order bits run-to-run<a class="headerlink" href="#b-convolution-outputs-vary-in-low-order-bits-run-to-run" title="Link to this heading"></a></h3>
+<p>Sparse convolution uses atomic adds and a parallel dispatch order that is not
+fixed across runs. Two forward passes on the same input produce identical
+results up to floating-point reduction-order differences, which appear as
+low-order-bit noise in the output. This is upstream
+<a class="reference external" href="https://github.com/NVIDIA/MinkowskiEngine/issues/554">#554</a>.</p>
+<p>A built-in <code class="docutils literal notranslate"><span class="pre">ME.set_deterministic()</span></code> option is planned (coordinate sorting
+before each kernel plus deterministic atomics) but is <strong>not yet merged</strong> into
+this fork. Until it lands, the manual workaround is to sort the coordinate
+key before constructing the SparseTensor so that the insertion order is fixed
+regardless of the upstream data order:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Manual deterministic ordering: sort rows by (batch, x, y, z, ...).</span>
+<span class="n">order</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>           <span class="c1"># stable sort on full key</span>
+<span class="n">coords</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">order</span><span class="p">]</span>
+<span class="n">feats</span> <span class="o">=</span> <span class="n">feats</span><span class="p">[</span><span class="n">order</span><span class="p">]</span>
+<span class="n">sin</span> <span class="o">=</span> <span class="n">ME</span><span class="o">.</span><span class="n">SparseTensor</span><span class="p">(</span><span class="n">feats</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This fixes the coordinate ordering but does not eliminate the atomic-add
+noise inside the GEMM. For bitwise reproducibility you also need
+<code class="docutils literal notranslate"><span class="pre">torch.use_deterministic_algorithms(True)</span></code>, which will error on any ME op
+that lacks a deterministic kernel (currently all sparse convs), so full
+bitwise determinism is not achievable today without the planned built-in.</p>
+</section>
+</section>
+<section id="me-lazy-sync-single-stream-assumption">
+<h2>ME_LAZY_SYNC: single-stream assumption<a class="headerlink" href="#me-lazy-sync-single-stream-assumption" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">ME_LAZY_SYNC=1</span></code> environment variable (see the
+<a class="reference internal" href="performance.html"><span class="doc">Performance Guide</span></a>) removes the end-of-operation CUDA stream
+synchronization that ME inserts by default. It gives a measurable speedup but
+relies on an assumption: <strong>all ME work executes on a single CUDA stream</strong>,
+which is the PyTorch default.</p>
+<p>If your code uses custom side streams, manual <code class="docutils literal notranslate"><span class="pre">torch.cuda.Stream()</span></code>
+contexts around ME ops, or CUDA-graph-style capture (<code class="docutils literal notranslate"><span class="pre">torch.cuda.graph</span></code>),
+<code class="docutils literal notranslate"><span class="pre">ME_LAZY_SYNC=1</span></code> is unsafe. The removed syncs were guarding against
+cross-stream read-after-write hazards; without them, a consumer on stream B
+can read output that a producer on stream A has not finished writing.
+Symptoms are intermittent, non-reproducible NaNs or silently wrong outputs.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ME_LAZY_SYNC</span></code> is <strong>off by default</strong>. Leave it off if you do any of the
+following:</p>
+<ul class="simple">
+<li><p>use <code class="docutils literal notranslate"><span class="pre">torch.cuda.Stream</span></code> to overlap ME ops with other work,</p></li>
+<li><p>capture ME ops inside <code class="docutils literal notranslate"><span class="pre">torch.cuda.graph</span></code> / <code class="docutils literal notranslate"><span class="pre">make_graphed_callables</span></code>,</p></li>
+<li><p>call <code class="docutils literal notranslate"><span class="pre">torch.cuda.synchronize()</span></code> manually between custom streams.</p></li>
+</ul>
+<p>If you only use the default stream (no explicit stream management), turning it
+on is safe and recommended. See the
+<a class="reference internal" href="performance.html"><span class="doc">Performance Guide</span></a> for measured numbers.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+<a href="https://github.com/NVIDIA/MinkowskiEngine">
+    <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub">
+</a>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-43980256-3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-43980256-3');
+</script>
+
+
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="performance.html" class="btn btn-neutral float-left" title="Performance Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="migration_05.html" class="btn btn-neutral float-right" title="Migration Guide from v0.4.x to v0.5.0" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-2026, Chris Choy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
