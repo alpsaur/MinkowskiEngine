@@ -266,25 +266,31 @@ results up to floating-point reduction-order differences, which appear as
 low-order-bit noise in the output. This is upstream
 [#554](https://github.com/NVIDIA/MinkowskiEngine/issues/554).
 
-A built-in `ME.set_deterministic()` option is planned (coordinate sorting
-before each kernel plus deterministic atomics) but is **not yet merged** into
-this fork. Until it lands, the manual workaround is to sort the coordinate
-key before constructing the SparseTensor so that the insertion order is fixed
-regardless of the upstream data order:
+This fork ships a built-in opt-in: `ME.set_deterministic(True)` routes every
+`MinkowskiConvolution` / `MinkowskiConvolutionTranspose` input through a
+canonical lexicographic coordinate sort before the kernel runs, which makes
+repeated runs on the same point set (in any row order) produce identical
+outputs. Cost: one coordinate sort per conv; intended for
+reproducibility/debugging, not throughput.
 
 ```python
-# Manual deterministic ordering: sort rows by (batch, x, y, z, ...).
-order = torch.argsort(coords[:, 0])           # stable sort on full key
-coords = coords[order]
-feats = feats[order]
-sin = ME.SparseTensor(feats, coords)
+import MinkowskiEngine as ME
+
+ME.set_deterministic(True)   # process-wide; ME.is_deterministic() to query
+# ... build and run the model as usual ...
 ```
 
-This fixes the coordinate ordering but does not eliminate the atomic-add
-noise inside the GEMM. For bitwise reproducibility you also need
-`torch.use_deterministic_algorithms(True)`, which will error on any ME op
-that lacks a deterministic kernel (currently all sparse convs), so full
-bitwise determinism is not achievable today without the planned built-in.
+The underlying helper is also exposed directly if you want to sort a single
+tensor once instead of paying the per-conv cost:
+
+```python
+sin = ME.sorted_coordinates(sin)   # returns a canonically-ordered SparseTensor
+```
+
+Caveat: this fixes the dominant source (coordinate/dispatch ordering). True
+bitwise determinism across different GPUs or driver versions is still not
+guaranteed, since atomic reduction order inside cuBLAS/atomics can differ
+across hardware.
 
 
 ## ME_LAZY_SYNC: single-stream assumption
