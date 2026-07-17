@@ -8,7 +8,7 @@
 
 [![CI](https://github.com/alpsaur/MinkowskiEngine/actions/workflows/ci.yml/badge.svg)](https://github.com/alpsaur/MinkowskiEngine/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/alpsaur/MinkowskiEngine?label=release%20%2B%20wheels)](https://github.com/alpsaur/MinkowskiEngine/releases/latest) [![slack chat][slack-badge]][slack-url]
 
-> Modernized fork of [NVIDIA/MinkowskiEngine](https://github.com/NVIDIA/MinkowskiEngine) (upstream dormant since 2022; its PyPI package does not build on NumPy 2 / CUDA 12.8). Developed as needed for the author's own workloads — CI-tested and released, but no support commitment; issues and PRs are welcome and handled best-effort.
+> Modernized fork of [NVIDIA/MinkowskiEngine](https://github.com/NVIDIA/MinkowskiEngine) (upstream dormant since 2022; its PyPI package does not build on NumPy 2 / CUDA 12.8). Developed as needed for the author's own workloads: CI-tested and released, but no support commitment; issues and PRs are welcome and handled best-effort.
 
 ---
 
@@ -16,24 +16,24 @@
 
 **What this fork adds over stock NVIDIA MinkowskiEngine:**
 
-1. **It builds and runs on modern toolchains** — CUDA Toolkit 12.8+ and Blackwell GPUs (RTX 5090/5080/5070, sm_120), NumPy 2.0, PyTorch 2.x, Python 3.10–3.13, GCC 13. Upstream compiles on none of these.
-2. **It's faster and lighter — on any GPU generation:**
+1. **It builds and runs on modern toolchains**: CUDA Toolkit 12.8+ and Blackwell GPUs (RTX 5090/5080/5070, sm_120), NumPy 2.0, PyTorch 2.x, Python 3.10–3.13, GCC 13. Upstream compiles on none of these.
+2. **It's faster and lighter, on any GPU generation:**
    - **fp16 / bf16 across all ops** with `torch.autocast` (stock ME is fp32/fp64-only): ~20% less training memory, tensor-core GEMMs with fp32 accumulation
-   - **Fused, vectorized gather/scatter** (v0.5.7): the per-kernel-offset copy launches that consumed 56% of GPU time on a real sparse U-Net are gone — **−38% total GPU time per training step**
+   - **Fused, vectorized gather/scatter** (v0.5.7): the per-kernel-offset copy launches that consumed 56% of GPU time on a real sparse U-Net are gone. **38% less total GPU time per training step**
    - **Opt-in sync elimination** (`ME_LAZY_SYNC=1`): ~7–11% faster steps
-   - See the [performance guide](docs/performance.md) — combined with TF32, a real training pipeline measured ~2x faster per step at ~25% less memory vs stock-ME fp32
-3. **It's tested and installable** — [prebuilt wheels](https://github.com/alpsaur/MinkowskiEngine/releases/latest) (one `pip install`, no compile), CI on every change, a repaired test suite, working Docker, [hosted docs](https://alpsaur.github.io/MinkowskiEngine/), and built-in `torch.profiler` ranges (`ME::*`) for diagnosing your own workloads.
+   - See the [performance guide](docs/performance.md): combined with TF32, a real training pipeline measured ~2x faster per step at ~25% less memory vs stock-ME fp32
+3. **It's tested and installable**: [prebuilt wheels](https://github.com/alpsaur/MinkowskiEngine/releases/latest) (one `pip install`, no compile), CI on every change, a repaired test suite, working Docker, [hosted docs](https://alpsaur.github.io/MinkowskiEngine/), and built-in `torch.profiler` ranges (`ME::*`) for diagnosing your own workloads.
 
 ### Quick Install (v0.5.7)
 
-**Prebuilt wheels** (fastest — no compilation; CUDA 12.8 / sm_120, built against **torch 2.9.x cu128**, Python 3.10–3.12):
+**Prebuilt wheels** (fastest, no compilation; CUDA 12.8 / sm_120, built against **torch 2.9.x cu128**, Python 3.10–3.12):
 
 ```bash
 # pick the wheel matching your Python from the release page
 pip install https://github.com/alpsaur/MinkowskiEngine/releases/download/v0.5.7/minkowskiengine-0.5.7-cp312-cp312-linux_x86_64.whl
 ```
 
-All wheels: [Releases](https://github.com/alpsaur/MinkowskiEngine/releases/latest). The wheel dynamically links your torch install — it needs a **torch 2.9.x + cu128** runtime; for other torch lines, build from source instead.
+All wheels: [Releases](https://github.com/alpsaur/MinkowskiEngine/releases/latest). The wheel dynamically links your torch install, so it needs a **torch 2.9.x + cu128** runtime; for other torch lines, build from source instead.
 
 **From source** (any torch >= 2.7 cu128; ~10–20 min compile):
 
@@ -52,7 +52,7 @@ The build no longer wipes `build/` on every run, `python setup.py build_ext --in
 
 ### New in v0.5.7
 
-**Fused + vectorized gather/scatter.** The copy-GEMM convolution path used to launch tiny gather/scatter kernels once per kernel offset (27x per layer for a 3^3 kernel) — profiling a real sparse U-Net showed these copies eating **56% of total GPU time** across ~358k launches per 50 steps. They are now a single vectorized gather and a single vectorized scatter-accumulate per direction (16/8/4-byte chunks per thread), and the backward input-gradient GEMM is reoriented so its scatter is coalesced. Measured on the same workload: copy-kernel GPU time **5.9s → 1.7s**, kernel launches **358k → 14k**, total GPU time per step **−38%**. Enabled by default; `ME_FUSED_COPY=0` restores the legacy path, `ME_FUSED_COPY_MAX_MB` caps staging memory (default 2048).
+**Fused + vectorized gather/scatter.** The copy-GEMM convolution path used to launch tiny gather/scatter kernels once per kernel offset (27x per layer for a 3^3 kernel); profiling a real sparse U-Net showed these copies eating **56% of total GPU time** across ~358k launches per 50 steps. They are now a single vectorized gather and a single vectorized scatter-accumulate per direction (16/8/4-byte chunks per thread), and the backward input-gradient GEMM is reoriented so its scatter is coalesced. Measured on the same workload: copy-kernel GPU time **5.9s → 1.7s**, kernel launches **358k → 14k**, total GPU time per step **−38%**. Enabled by default; `ME_FUSED_COPY=0` restores the legacy path, `ME_FUSED_COPY_MAX_MB` caps staging memory (default 2048).
 
 ### New in v0.5.6
 
@@ -65,7 +65,7 @@ with torch.autocast("cuda", dtype=torch.bfloat16):
 
 Typical effect on real training: **~20% lower peak GPU memory**; throughput gains grow with channel width / batch size. fp32/fp64 behavior is unchanged.
 
-**Opt-in sync elimination.** Set `ME_LAZY_SYNC=1` to skip redundant per-op stream synchronizations (the conv-backward ones fired once *per kernel offset* — 27x per layer for a 3^3 kernel). Measured **~7–11% faster training steps** on a sparse U-Net at small batch. Default **off** (behavior identical to previous releases); assumes all ME work runs on a single CUDA stream (the PyTorch default).
+**Opt-in sync elimination.** Set `ME_LAZY_SYNC=1` to skip redundant per-op stream synchronizations (the conv-backward ones fired once *per kernel offset*, 27x per layer for a 3^3 kernel). Measured **~7–11% faster training steps** on a sparse U-Net at small batch. Default **off** (behavior identical to previous releases); assumes all ME work runs on a single CUDA stream (the PyTorch default).
 
 ```bash
 ME_LAZY_SYNC=1 python train.py
@@ -83,7 +83,7 @@ This fork applies community workarounds from issues [#543](https://github.com/NV
 
 **Tested on:** RTX 5090 (sm_120), CUDA 12.8, PyTorch 2.9 (cu128), Python 3.12, GCC 13. Half-precision paths validated against fp32 references on-GPU (`tests/python/half_precision.py`); the released wheels are import- and smoke-tested on real Blackwell hardware.
 
-> All changes live on the default `master` branch. The previous `cuda12-compat` branch was merged in and removed — install from `master`. BLAS is auto-detected at build time (OpenBLAS by default), so `--install-option` is not required.
+> All changes live on the default `master` branch. The previous `cuda12-compat` branch was merged in and removed; install from `master`. BLAS is auto-detected at build time (OpenBLAS by default), so `--install-option` is not required.
 
 ---
 
@@ -91,10 +91,10 @@ The Minkowski Engine is an auto-differentiation library for sparse tensors. It s
 
 ## News
 
-- 2026-07 **v0.5.7 — fused gather/scatter: 38% less GPU time per training step.** Profiling showed the per-kernel-offset copy kernels were the engine's biggest cost (56% of GPU time); they are now fused and vectorized. On by default with an opt-out (`ME_FUSED_COPY=0`).
-- 2026-07 **v0.5.6 released — [prebuilt wheels](https://github.com/alpsaur/MinkowskiEngine/releases/tag/v0.5.6), half precision, faster training.** One-line install for Blackwell GPUs (no more compiling from source). fp16/bf16 now work across all ops with tensor-core GEMMs and `torch.autocast` — in our training runs this cut peak GPU memory by ~20%. An opt-in `ME_LAZY_SYNC=1` flag removes redundant GPU synchronizations for ~7–11% faster training steps.
-- 2026-07 **v0.5.5 — project infrastructure**: CI (build + tests on every change), working `pip install` / Docker / [docs](https://alpsaur.github.io/MinkowskiEngine/), a repaired test suite, and packaging/build-system fixes throughout.
-- 2026-07 All CUDA 12.8 / Blackwell and NumPy 2.0 fixes unified on the default `master` branch — just install from `master`.
+- 2026-07 **v0.5.7: fused gather/scatter, 38% less GPU time per training step.** Profiling showed the per-kernel-offset copy kernels were the engine's biggest cost (56% of GPU time); they are now fused and vectorized. On by default with an opt-out (`ME_FUSED_COPY=0`).
+- 2026-07 **v0.5.6 released: [prebuilt wheels](https://github.com/alpsaur/MinkowskiEngine/releases/tag/v0.5.6), half precision, faster training.** One-line install for Blackwell GPUs (no more compiling from source). fp16/bf16 now work across all ops with tensor-core GEMMs and `torch.autocast`; in our training runs this cut peak GPU memory by ~20%. An opt-in `ME_LAZY_SYNC=1` flag removes redundant GPU synchronizations for ~7–11% faster training steps.
+- 2026-07 **v0.5.5, project infrastructure**: CI (build + tests on every change), working `pip install` / Docker / [docs](https://alpsaur.github.io/MinkowskiEngine/), a repaired test suite, and packaging/build-system fixes throughout.
+- 2026-07 All CUDA 12.8 / Blackwell and NumPy 2.0 fixes unified on the default `master` branch; just install from `master`.
 - 2025-12 The engine builds again on modern toolchains: NumPy 2.0 support (upstream relied on the removed `numpy.distutils`) and CUDA 12.8 / Blackwell (RTX 50-series) compatibility.
 - 2021-08-11 Docker installation instruction added
 - 2021-08-06 All installation errors with pytorch 1.8 and 1.9 have been resolved.
@@ -144,12 +144,12 @@ We visualized a sparse tensor network operation on a sparse tensor, convolution,
 ## Requirements
 
 **For this fork (CUDA 12.8+ / Blackwell):**
-- Linux (tested on Ubuntu 24.04 under WSL2); CUDA Toolkit **12.8 or newer** — must match the CUDA PyTorch was built with
+- Linux (tested on Ubuntu 24.04 under WSL2); CUDA Toolkit **12.8 or newer** (must match the CUDA PyTorch was built with)
 - PyTorch **>= 2.7** with cu128 (CI tests 2.7 and 2.9; prebuilt wheels require **2.9.x**)
 - Python **3.10–3.13** (wheels: 3.10–3.12)
 - GCC **11–13** (required by CUDA 12.8; source builds only)
 - `ninja` (for compilation; source builds only)
-- OpenBLAS — auto-detected at build time
+- OpenBLAS (auto-detected at build time)
 
 **Original engine support (reference only, not validated on this fork):** CUDA >= 10.1, PyTorch >= 1.7, Python >= 3.6, GCC >= 7.4.0, Ubuntu >= 14.04. You must always match the CUDA version PyTorch uses with the one used to compile MinkowskiEngine.
 
@@ -169,7 +169,7 @@ If you cannot find a relevant problem, please report the issue on [this fork's i
 
 ### Pip
 
-> **Note:** the `MinkowskiEngine` package on PyPI is the unmaintained upstream 0.5.4 — it does **not** build on NumPy 2 / CUDA 12.8. Use this fork's [prebuilt wheels](https://github.com/alpsaur/MinkowskiEngine/releases/tag/v0.5.6) or install from source below. (`--install-option` is also no longer supported by modern pip.)
+> **Note:** the `MinkowskiEngine` package on PyPI is the unmaintained upstream 0.5.4, which does **not** build on NumPy 2 / CUDA 12.8. Use this fork's [prebuilt wheels](https://github.com/alpsaur/MinkowskiEngine/releases/tag/v0.5.6) or install from source below. (`--install-option` is also no longer supported by modern pip.)
 
 First, install pytorch following the [instruction](https://pytorch.org). Next, install `openblas`.
 
@@ -194,7 +194,7 @@ pip install -U git+https://github.com/alpsaur/MinkowskiEngine@master
 
 ### Anaconda
 
-> **Legacy (upstream, pre-CUDA-12):** kept for reference for older CUDA 10.2 / 11.x setups. Not validated on this fork, and the `--install-option` flags below no longer work on modern pip — on current toolchains use the [Quick Install](#cuda-128--blackwell-gpu-fork) instead.
+> **Legacy (upstream, pre-CUDA-12):** kept for reference for older CUDA 10.2 / 11.x setups. Not validated on this fork, and the `--install-option` flags below no longer work on modern pip; on current toolchains use the [Quick Install](#cuda-128--blackwell-gpu-fork) instead.
 
 MinkowskiEngine supports both CUDA 10.2 and cuda 11.1, which work for most of latest pytorch versions.
 #### CUDA 10.2
@@ -375,7 +375,7 @@ To profile where time goes inside ME ops and coordinate-map construction, see
 
 ## Performance
 
-For the full set of runtime and build knobs — TF32, mixed precision (fp16/bf16 via `torch.autocast`), the `ME_LAZY_SYNC=1` sync-elimination flag, `OMP_NUM_THREADS` tuning, and `torch.cuda.empty_cache()` for varying point counts — see the [Performance Guide](https://alpsaur.github.io/MinkowskiEngine/performance.html) (`docs/performance.md`). The headline items: enable TF32 on Ampere+ for ~15% faster steps, run bf16 autocast for ~20% lower peak memory, and set `ME_LAZY_SYNC=1` for another ~7–11% speedup at small batch.
+For the full set of runtime and build knobs (TF32, mixed precision fp16/bf16 via `torch.autocast`, the `ME_LAZY_SYNC=1` sync-elimination flag, `OMP_NUM_THREADS` tuning, and `torch.cuda.empty_cache()` for varying point counts) see the [Performance Guide](https://alpsaur.github.io/MinkowskiEngine/performance.html) (`docs/performance.md`). The headline items: enable TF32 on Ampere+ for ~15% faster steps, run bf16 autocast for ~20% lower peak memory, and set `ME_LAZY_SYNC=1` for another ~7–11% speedup at small batch.
 
 
 ## Known Issues
