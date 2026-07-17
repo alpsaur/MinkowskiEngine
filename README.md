@@ -377,6 +377,8 @@ To profile where time goes inside ME ops and coordinate-map construction, see
 
 For the full set of runtime and build knobs (TF32, mixed precision fp16/bf16 via `torch.autocast`, the `ME_LAZY_SYNC=1` sync-elimination flag, `OMP_NUM_THREADS` tuning, and `torch.cuda.empty_cache()` for varying point counts) see the [Performance Guide](https://alpsaur.github.io/MinkowskiEngine/performance.html) (`docs/performance.md`). The headline items: enable TF32 on Ampere+ for ~15% faster steps, run bf16 autocast for ~20% lower peak memory, and set `ME_LAZY_SYNC=1` for another ~7–11% speedup at small batch.
 
+For running ME in production and long trainings (memory management with varying point counts, coordinate-manager lifecycle, DDP multi-GPU setup, torch.compile incompatibility, determinism, and the `ME_LAZY_SYNC` single-stream assumption), see the [Operations Cookbook](https://alpsaur.github.io/MinkowskiEngine/operations.html) (`docs/operations.md`).
+
 
 ## Known Issues
 
