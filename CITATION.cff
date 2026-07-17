@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite both the software and the CVPR'19 paper below."
-title: "MinkowskiEngine (CUDA 12.8/Blackwell maintained fork)"
+title: "MinkowskiEngine (CUDA 12.8/Blackwell fork)"
 type: software
 authors:
   - family-names: Choy
@@ -11,8 +11,8 @@ authors:
     given-names: Silvio
 repository-code: "https://github.com/alpsaur/MinkowskiEngine"
 url: "https://github.com/alpsaur/MinkowskiEngine"
-version: "0.5.6"
-date-released: "2026-07-15"
+version: "0.5.7"
+date-released: "2026-07-17"
 license: MIT
 keywords:
   - sparse-tensor

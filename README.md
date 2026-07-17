@@ -8,7 +8,7 @@
 
 [![CI](https://github.com/alpsaur/MinkowskiEngine/actions/workflows/ci.yml/badge.svg)](https://github.com/alpsaur/MinkowskiEngine/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/alpsaur/MinkowskiEngine?label=release%20%2B%20wheels)](https://github.com/alpsaur/MinkowskiEngine/releases/latest) [![slack chat][slack-badge]][slack-url]
 
-> Maintained fork of [NVIDIA/MinkowskiEngine](https://github.com/NVIDIA/MinkowskiEngine) (upstream dormant since 2022; its PyPI package does not build on NumPy 2 / CUDA 12.8).
+> Modernized fork of [NVIDIA/MinkowskiEngine](https://github.com/NVIDIA/MinkowskiEngine) (upstream dormant since 2022; its PyPI package does not build on NumPy 2 / CUDA 12.8). Developed as needed for the author's own workloads — CI-tested and released, but no support commitment; issues and PRs are welcome and handled best-effort.
 
 ---
 
@@ -22,7 +22,7 @@
    - **Fused, vectorized gather/scatter** (v0.5.7): the per-kernel-offset copy launches that consumed 56% of GPU time on a real sparse U-Net are gone — **−38% total GPU time per training step**
    - **Opt-in sync elimination** (`ME_LAZY_SYNC=1`): ~7–11% faster steps
    - See the [performance guide](docs/performance.md) — combined with TF32, a real training pipeline measured ~2x faster per step at ~25% less memory vs stock-ME fp32
-3. **It's maintained and installable** — [prebuilt wheels](https://github.com/alpsaur/MinkowskiEngine/releases/latest) (one `pip install`, no compile), CI on every change, a repaired test suite, working Docker, [hosted docs](https://alpsaur.github.io/MinkowskiEngine/), and built-in `torch.profiler` ranges (`ME::*`) for diagnosing your own workloads.
+3. **It's tested and installable** — [prebuilt wheels](https://github.com/alpsaur/MinkowskiEngine/releases/latest) (one `pip install`, no compile), CI on every change, a repaired test suite, working Docker, [hosted docs](https://alpsaur.github.io/MinkowskiEngine/), and built-in `torch.profiler` ranges (`ME::*`) for diagnosing your own workloads.
 
 ### Quick Install (v0.5.7)
 
@@ -93,7 +93,7 @@ The Minkowski Engine is an auto-differentiation library for sparse tensors. It s
 
 - 2026-07 **v0.5.7 — fused gather/scatter: 38% less GPU time per training step.** Profiling showed the per-kernel-offset copy kernels were the engine's biggest cost (56% of GPU time); they are now fused and vectorized. On by default with an opt-out (`ME_FUSED_COPY=0`).
 - 2026-07 **v0.5.6 released — [prebuilt wheels](https://github.com/alpsaur/MinkowskiEngine/releases/tag/v0.5.6), half precision, faster training.** One-line install for Blackwell GPUs (no more compiling from source). fp16/bf16 now work across all ops with tensor-core GEMMs and `torch.autocast` — in our training runs this cut peak GPU memory by ~20%. An opt-in `ME_LAZY_SYNC=1` flag removes redundant GPU synchronizations for ~7–11% faster training steps.
-- 2026-07 **v0.5.5 — the fork is now a maintained project**: CI (build + tests on every change), working `pip install` / Docker / [docs](https://alpsaur.github.io/MinkowskiEngine/), a repaired test suite, and packaging/build-system fixes throughout.
+- 2026-07 **v0.5.5 — project infrastructure**: CI (build + tests on every change), working `pip install` / Docker / [docs](https://alpsaur.github.io/MinkowskiEngine/), a repaired test suite, and packaging/build-system fixes throughout.
 - 2026-07 All CUDA 12.8 / Blackwell and NumPy 2.0 fixes unified on the default `master` branch — just install from `master`.
 - 2025-12 The engine builds again on modern toolchains: NumPy 2.0 support (upstream relied on the removed `numpy.distutils`) and CUDA 12.8 / Blackwell (RTX 50-series) compatibility.
 - 2021-08-11 Docker installation instruction added
