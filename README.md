@@ -24,13 +24,13 @@
    - See the [performance guide](docs/performance.md): combined with TF32, a real training pipeline measured ~2x faster per step at ~25% less memory vs stock-ME fp32
 3. **It's tested and installable**: [prebuilt wheels](https://github.com/alpsaur/MinkowskiEngine/releases/latest) (one `pip install`, no compile), CI on every change, a repaired test suite, working Docker, [hosted docs](https://alpsaur.github.io/MinkowskiEngine/), and built-in `torch.profiler` ranges (`ME::*`) for diagnosing your own workloads.
 
-### Quick Install (v0.5.7)
+### Quick Install (v0.5.8)
 
 **Prebuilt wheels** (fastest, no compilation; CUDA 12.8 / sm_120, built against **torch 2.9.x cu128**, Python 3.10–3.12):
 
 ```bash
 # pick the wheel matching your Python from the release page
-pip install https://github.com/alpsaur/MinkowskiEngine/releases/download/v0.5.7/minkowskiengine-0.5.7-cp312-cp312-linux_x86_64.whl
+pip install https://github.com/alpsaur/MinkowskiEngine/releases/download/v0.5.8/minkowskiengine-0.5.8-cp312-cp312-linux_x86_64.whl
 ```
 
 All wheels: [Releases](https://github.com/alpsaur/MinkowskiEngine/releases/latest). The wheel dynamically links your torch install, so it needs a **torch 2.9.x + cu128** runtime; for other torch lines, build from source instead.
@@ -49,6 +49,14 @@ docker build -t minkowski_engine docker
 ```
 
 The build no longer wipes `build/` on every run, `python setup.py build_ext --inplace` works out of the box (a `MinkowskiEngineBackend/` namespace stub is included), and a minimal `pyproject.toml` is provided for PEP 517 installs. `FORCE_CUDA=1` (env var) forces a CUDA build on machines without a visible GPU.
+
+### New in v0.5.8
+
+**Correct interpolation at sparse boundaries.** `MinkowskiInterpolation` / `features_at_coordinates` renormalizes weights over the lattice corners that actually exist, fixing the long-standing upstream bug ([#477](https://github.com/NVIDIA/MinkowskiEngine/issues/477)) where queries next to valid data decayed toward zero. Exact-on-voxel and full-neighborhood results are bit-identical to before; only previously-broken boundary queries change.
+
+**Opt-in deterministic convolution.** `ME.set_deterministic(True)` sorts conv inputs into a canonical coordinate order so outputs are reproducible run-to-run regardless of input row ordering (upstream [#554](https://github.com/NVIDIA/MinkowskiEngine/issues/554)). Off by default; costs one sort per conv.
+
+Also: regression tests locking in empty-pruning behavior ([#579](https://github.com/NVIDIA/MinkowskiEngine/issues/579)) and TensorField backprop ([#395](https://github.com/NVIDIA/MinkowskiEngine/issues/395)); a new [operations cookbook](docs/operations.md) (memory, DDP, torch.compile, determinism).
 
 ### New in v0.5.7
 
@@ -90,6 +98,8 @@ This fork applies community workarounds from issues [#543](https://github.com/NV
 The Minkowski Engine is an auto-differentiation library for sparse tensors. It supports all standard neural network layers such as convolution, pooling, unpooling, and broadcasting operations for sparse tensors. For more information, please visit [the documentation page](http://nvidia.github.io/MinkowskiEngine/overview.html).
 
 ## News
+
+- 2026-07 **v0.5.8: correctness release.** Boundary interpolation fixed (upstream #477, open since 2022), opt-in deterministic convolution (#554), regression tests for #579/#395, and an operations cookbook (memory, DDP, torch.compile).
 
 - 2026-07 **v0.5.7: fused gather/scatter, 38% less GPU time per training step.** Profiling showed the per-kernel-offset copy kernels were the engine's biggest cost (56% of GPU time); they are now fused and vectorized. On by default with an opt-out (`ME_FUSED_COPY=0`).
 - 2026-07 **v0.5.6 released: [prebuilt wheels](https://github.com/alpsaur/MinkowskiEngine/releases/tag/v0.5.6), half precision, faster training.** One-line install for Blackwell GPUs (no more compiling from source). fp16/bf16 now work across all ops with tensor-core GEMMs and `torch.autocast`; in our training runs this cut peak GPU memory by ~20%. An opt-in `ME_LAZY_SYNC=1` flag removes redundant GPU synchronizations for ~7–11% faster training steps.
