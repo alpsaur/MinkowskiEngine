@@ -97,20 +97,6 @@ This fork applies community workarounds from issues [#543](https://github.com/NV
 
 The Minkowski Engine is an auto-differentiation library for sparse tensors. It supports all standard neural network layers such as convolution, pooling, unpooling, and broadcasting operations for sparse tensors. For more information, please visit [the documentation page](http://nvidia.github.io/MinkowskiEngine/overview.html).
 
-## News
-
-- 2026-07 **v0.5.8: correctness release.** Boundary interpolation fixed (upstream #477, open since 2022), opt-in deterministic convolution (#554), regression tests for #579/#395, and an operations cookbook (memory, DDP, torch.compile).
-
-- 2026-07 **v0.5.7: fused gather/scatter, 38% less GPU time per training step.** Profiling showed the per-kernel-offset copy kernels were the engine's biggest cost (56% of GPU time); they are now fused and vectorized. On by default with an opt-out (`ME_FUSED_COPY=0`).
-- 2026-07 **v0.5.6 released: [prebuilt wheels](https://github.com/alpsaur/MinkowskiEngine/releases/tag/v0.5.6), half precision, faster training.** One-line install for Blackwell GPUs (no more compiling from source). fp16/bf16 now work across all ops with tensor-core GEMMs and `torch.autocast`; in our training runs this cut peak GPU memory by ~20%. An opt-in `ME_LAZY_SYNC=1` flag removes redundant GPU synchronizations for ~7–11% faster training steps.
-- 2026-07 **v0.5.5, project infrastructure**: CI (build + tests on every change), working `pip install` / Docker / [docs](https://alpsaur.github.io/MinkowskiEngine/), a repaired test suite, and packaging/build-system fixes throughout.
-- 2026-07 All CUDA 12.8 / Blackwell and NumPy 2.0 fixes unified on the default `master` branch; just install from `master`.
-- 2025-12 The engine builds again on modern toolchains: NumPy 2.0 support (upstream relied on the removed `numpy.distutils`) and CUDA 12.8 / Blackwell (RTX 50-series) compatibility.
-- 2021-08-11 Docker installation instruction added
-- 2021-08-06 All installation errors with pytorch 1.8 and 1.9 have been resolved.
-- 2021-04-08 Due to recent errors in [pytorch 1.8 + CUDA 11](https://github.com/NVIDIA/MinkowskiEngine/issues/330), it is recommended to use [anaconda for installation](#anaconda).
-- 2020-12-24 v0.5 is now available! The new version provides CUDA accelerations for all coordinate management functions.
-
 ## Example Networks
 
 The Minkowski Engine supports various functions that can be built on a sparse tensor. We list a few popular network architectures and applications here. To run the examples, please install the package and run the command in the package root directory.
