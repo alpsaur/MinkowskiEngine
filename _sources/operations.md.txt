@@ -169,8 +169,9 @@ def main():
         coords, feats, labels = batch
         # Use ME.utils.sparse_collate / batched_coordinates to build
         # per-rank SparseTensor inputs.
-        sin = ME.SparseTensor(feats, coords).cuda()
+        sin = ME.SparseTensor(feats, coords, device=f"cuda:{local_rank}")
 
+        optimizer.zero_grad(set_to_none=True)
         out = model(sin)
         loss = criterion(out.F, labels)
         loss.backward()
@@ -221,7 +222,7 @@ import MinkowskiEngine as ME
 model = build_model()
 
 # Option A: disable on the sparse backbone, compile the dense head.
-torch._dynamo.disable(model.sparse_backbone)
+model.sparse_backbone.forward = torch.compiler.disable(model.sparse_backbone.forward)
 model.dense_head = torch.compile(model.dense_head)
 
 # Option B: compile nothing, avoid the overhead entirely.
@@ -266,12 +267,19 @@ results up to floating-point reduction-order differences, which appear as
 low-order-bit noise in the output. This is upstream
 [#554](https://github.com/NVIDIA/MinkowskiEngine/issues/554).
 
-This fork ships a built-in opt-in: `ME.set_deterministic(True)` routes every
-`MinkowskiConvolution` / `MinkowskiConvolutionTranspose` input through a
-canonical lexicographic coordinate sort before the kernel runs, which makes
-repeated runs on the same point set (in any row order) produce identical
-outputs. Cost: one coordinate sort per conv; intended for
-reproducibility/debugging, not throughput.
+As of v0.5.9, `ME.set_deterministic(True)` combines canonical coordinate
+ordering with a **non-fused copy-GEMM** convolution path. Sorting alone (the
+v0.5.8 implementation) did not order the atomic additions in fused scatter.
+The mode overrides `ME_FUSED_COPY`, direct-GEMM selection, and the
+`MEMORY_EFFICIENT` algorithm preference for convolution.
+
+Canonical maps and permutations are cached in the **original** coordinate
+manager. Stride-1 output-map identity, residual additions/concatenations,
+explicit transpose targets, and TensorField slicing are preserved. No feature
+values or autograd graphs are cached. Cost: a sort and extra map per distinct
+input map, feature reindexing per call, and slower per-offset gather/scatter.
+The cache is released with its coordinate manager; shared-manager users still
+need the lifecycle discipline described above.
 
 ```python
 import MinkowskiEngine as ME
@@ -280,17 +288,27 @@ ME.set_deterministic(True)   # process-wide; ME.is_deterministic() to query
 # ... build and run the model as usual ...
 ```
 
-The underlying helper is also exposed directly if you want to sort a single
-tensor once instead of paying the per-conv cost:
+For a single layer, pass `convolution_mode=ME.ConvolutionMode.DETERMINISTIC`
+to its constructor instead of changing the process-wide flag. The selected
+backend mode is saved for backward, so changing the flag after forward does
+not change that operation's backward implementation. No environment variables
+are temporarily rewritten.
 
-```python
-sin = ME.sorted_coordinates(sin)   # returns a canonically-ordered SparseTensor
-```
+`ME.sorted_coordinates(sin)` remains available as a same-manager sorting
+helper, but **sorting by itself does not make fused convolution deterministic**.
 
-Caveat: this fixes the dominant source (coordinate/dispatch ordering). True
-bitwise determinism across different GPUs or driver versions is still not
-guaranteed, since atomic reduction order inside cuBLAS/atomics can differ
-across hardware.
+**Scope:** forward convolution values for the same point/feature set on the
+same device, build, CUDA stream, precision, and PyTorch math settings. Compare
+outputs by coordinates, not raw row positions. Duplicate-point quantization
+has already happened before convolution and is not made deterministic by this
+flag. The plain kernel-size-1 matrix-multiply shortcut follows PyTorch's own
+reproducibility rules.
+
+Backward is supported and covered by value/gradient tests, but this is **not a
+promise of bitwise-identical training**: weight-gradient reductions, other ME
+ops, cuBLAS workspace/stream settings, and hardware/version differences remain
+outside the contract. Follow PyTorch's reproducibility guidance (including
+`CUBLAS_WORKSPACE_CONFIG` where required) for the rest of a model.
 
 
 ## ME_LAZY_SYNC: single-stream assumption

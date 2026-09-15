@@ -6,20 +6,20 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Performance Guide &mdash; MinkowskiEngine 0.5.6 documentation</title>
+  <title>Performance Guide &mdash; MinkowskiEngine 0.5.9 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=722679d6"></script>
+      <script src="_static/documentation_options.js?v=9a3cda14"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Operations Cookbook" href="operations.html" />
+    <link rel="next" title="Profiling MinkowskiEngine" href="profiling.html" />
     <link rel="prev" title="Guidelines for Faster Networks" href="guides.html" /> 
 </head>
 
@@ -92,7 +92,9 @@
 <li class="toctree-l2"><a class="reference internal" href="#build-parallelism-max-compilation-threads">Build parallelism: MAX_COMPILATION_THREADS</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="profiling.html">Profiling MinkowskiEngine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operations.html">Operations Cookbook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releasing.html">Validation and release checklist</a></li>
 <li class="toctree-l1"><a class="reference internal" href="migration_05.html">Migration Guide from v0.4.x to v0.5.0</a></li>
 <li class="toctree-l1"><a class="reference internal" href="benchmark.html">Benchmark</a></li>
 </ul>
@@ -127,7 +129,9 @@
 <p>This page collects practical knobs for getting the best throughput and memory
 footprint out of this fork on CUDA 12.8 / Blackwell (and Ampere/Ada) GPUs.
 All numbers below are illustrative measurements from a sparse U-Net training
-run; your mileage will vary with model width, batch size, and point counts.</p>
+run; your mileage will vary with model width, batch size, and point counts.
+Use the <a class="reference internal" href="benchmark.html"><span class="doc">reproducible benchmark harness</span></a> to compare changes on
+your own hardware before drawing performance conclusions.</p>
 <section id="tf32-on-ampere">
 <h2>TF32 on Ampere+<a class="headerlink" href="#tf32-on-ampere" title="Link to this heading"></a></h2>
 <p>On Ampere (sm_80+) and newer architectures, enable TF32 so the fp32 GEMMs in
@@ -137,8 +141,8 @@ MinkowskiEngine engage the tensor cores:</p>
 <span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">cudnn</span><span class="o">.</span><span class="n">allow_tf32</span> <span class="o">=</span> <span class="kc">True</span>   <span class="c1"># harmless to set alongside</span>
 </pre></div>
 </div>
-<p>TF32 trades a few mantissa bits (19-bit accumulation) for tensor-core
-throughput. In our sparse U-Net runs this gave roughly a <strong>15% step-time
+<p>TF32 rounds fp32 multiplicands to reduced mantissa precision while
+accumulating in fp32, trading input precision for tensor-core throughput. In our sparse U-Net runs this gave roughly a <strong>15% step-time
 reduction</strong> with no measurable accuracy impact. It is on by default for some
 PyTorch versions and off for others, so set it explicitly if you depend on it.</p>
 </section>
@@ -148,7 +152,7 @@ PyTorch versions and off for others, so set it explicitly if you depend on it.</
 spmm) run in fp16 and bf16 as of v0.5.6, with GEMMs on tensor cores
 accumulating in fp32. Use standard <code class="docutils literal notranslate"><span class="pre">torch.autocast</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">autocast</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">):</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">autocast</span><span class="p">(</span><span class="s2">"cuda"</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">):</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">sparse_input</span><span class="p">)</span>   <span class="c1"># ME layers cast + run in bf16 automatically</span>
 </pre></div>
 </div>
@@ -157,7 +161,7 @@ with channel width and batch size. bf16 needs no scaler. For fp16, wrap your
 optimizer steps with <code class="docutils literal notranslate"><span class="pre">torch.cuda.amp.GradScaler</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">scaler</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">amp</span><span class="o">.</span><span class="n">GradScaler</span><span class="p">()</span>
 
-<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">autocast</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">):</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">autocast</span><span class="p">(</span><span class="s2">"cuda"</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">):</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">sparse_input</span><span class="p">)</span>
     <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
 
@@ -255,7 +259,7 @@ or file descriptors on smaller machines:</p>
 
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="guides.html" class="btn btn-neutral float-left" title="Guidelines for Faster Networks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="operations.html" class="btn btn-neutral float-right" title="Operations Cookbook" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="profiling.html" class="btn btn-neutral float-right" title="Profiling MinkowskiEngine" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

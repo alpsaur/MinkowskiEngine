@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Multi-GPU with Pytorch-Lightning &mdash; MinkowskiEngine 0.5.6 documentation</title>
+  <title>Multi-GPU with Pytorch-Lightning &mdash; MinkowskiEngine 0.5.9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=722679d6"></script>
+      <script src="../_static/documentation_options.js?v=9a3cda14"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -89,7 +89,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../issues.html">Common Issues</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides.html">Guidelines for Faster Networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../performance.html">Performance Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../profiling.html">Profiling MinkowskiEngine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../operations.html">Operations Cookbook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Validation and release checklist</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../migration_05.html">Migration Guide from v0.4.x to v0.5.0</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../benchmark.html">Benchmark</a></li>
 </ul>
@@ -141,34 +143,34 @@
         <span class="p">)</span>
         <span class="n">random_labels</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">feats</span><span class="p">))</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;coordinates&quot;</span><span class="p">:</span> <span class="n">quantized_coords</span><span class="p">,</span>
-            <span class="s2">&quot;features&quot;</span><span class="p">:</span> <span class="n">feats</span><span class="p">,</span>
-            <span class="s2">&quot;labels&quot;</span><span class="p">:</span> <span class="n">random_labels</span><span class="p">,</span>
+            <span class="s2">"coordinates"</span><span class="p">:</span> <span class="n">quantized_coords</span><span class="p">,</span>
+            <span class="s2">"features"</span><span class="p">:</span> <span class="n">feats</span><span class="p">,</span>
+            <span class="s2">"labels"</span><span class="p">:</span> <span class="n">random_labels</span><span class="p">,</span>
         <span class="p">}</span>
 </pre></div>
 </div>
 <p>To use this with a pytorch data loader, we need a custom collation function that merges all coordinates into a batched coordinates that are compatible with the MinkowskiEngine sparse tensor format.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">minkowski_collate_fn</span><span class="p">(</span><span class="n">list_data</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""</span>
 <span class="sd">    Collation function for MinkowskiEngine.SparseTensor that creates batched</span>
 <span class="sd">    cooordinates given a list of dictionaries.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">coordinates_batch</span><span class="p">,</span> <span class="n">features_batch</span><span class="p">,</span> <span class="n">labels_batch</span> <span class="o">=</span> <span class="n">ME</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">sparse_collate</span><span class="p">(</span>
-        <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">list_data</span><span class="p">],</span>
-        <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">list_data</span><span class="p">],</span>
-        <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">list_data</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s2">"coordinates"</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">list_data</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s2">"features"</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">list_data</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s2">"labels"</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">list_data</span><span class="p">],</span>
         <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="p">{</span>
-        <span class="s2">&quot;coordinates&quot;</span><span class="p">:</span> <span class="n">coordinates_batch</span><span class="p">,</span>
-        <span class="s2">&quot;features&quot;</span><span class="p">:</span> <span class="n">features_batch</span><span class="p">,</span>
-        <span class="s2">&quot;labels&quot;</span><span class="p">:</span> <span class="n">labels_batch</span><span class="p">,</span>
+        <span class="s2">"coordinates"</span><span class="p">:</span> <span class="n">coordinates_batch</span><span class="p">,</span>
+        <span class="s2">"features"</span><span class="p">:</span> <span class="n">features_batch</span><span class="p">,</span>
+        <span class="s2">"labels"</span><span class="p">:</span> <span class="n">labels_batch</span><span class="p">,</span>
     <span class="p">}</span>
 
 <span class="o">...</span>
 
 <span class="n">dataset</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span>
-       <span class="n">DummyDataset</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="n">voxel_size</span><span class="o">=</span><span class="n">voxel_size</span><span class="p">),</span>
+       <span class="n">DummyDataset</span><span class="p">(</span><span class="s2">"train"</span><span class="p">,</span> <span class="n">voxel_size</span><span class="o">=</span><span class="n">voxel_size</span><span class="p">),</span>
        <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
        <span class="n">collate_fn</span><span class="o">=</span><span class="n">minkowski_collate_fn</span><span class="p">,</span>
        <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -204,14 +206,14 @@
 <h2>Lightning Module<a class="headerlink" href="#lightning-module" title="Link to this heading"></a></h2>
 <p><a class="reference external" href="https://www.pytorchlightning.ai/">Pytorch lightning</a> is a high-level pytorch wrapper that simplifies a lot of boilerplate code. The core of the pytorch lightning is the <code class="docutils literal notranslate"><span class="pre">LightningModule</span></code> that provides a warpper for the training framework. In this section, we provide a segmentation training wrapper that extends the <code class="docutils literal notranslate"><span class="pre">LightningModule</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MinkowskiSegmentationModule</span><span class="p">(</span><span class="n">LightningModule</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""</span>
 <span class="sd">    Segmentation Module for MinkowskiEngine.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">,</span>
-        <span class="n">optimizer_name</span><span class="o">=</span><span class="s2">&quot;SGD&quot;</span><span class="p">,</span>
+        <span class="n">optimizer_name</span><span class="o">=</span><span class="s2">"SGD"</span><span class="p">,</span>
         <span class="n">lr</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
         <span class="n">weight_decay</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
         <span class="n">voxel_size</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
@@ -222,14 +224,14 @@
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;self&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">!=</span> <span class="s2">"self"</span><span class="p">:</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">criterion</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">train_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">DataLoader</span><span class="p">(</span>
-            <span class="n">DummyDataset</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="n">voxel_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">),</span>
+            <span class="n">DummyDataset</span><span class="p">(</span><span class="s2">"train"</span><span class="p">,</span> <span class="n">voxel_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">),</span>
             <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
             <span class="n">collate_fn</span><span class="o">=</span><span class="n">minkowski_collate_fn</span><span class="p">,</span>
             <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -237,7 +239,7 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">val_dataloader</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">DataLoader</span><span class="p">(</span>
-            <span class="n">DummyDataset</span><span class="p">(</span><span class="s2">&quot;val&quot;</span><span class="p">,</span> <span class="n">voxel_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">),</span>
+            <span class="n">DummyDataset</span><span class="p">(</span><span class="s2">"val"</span><span class="p">,</span> <span class="n">voxel_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">voxel_size</span><span class="p">),</span>
             <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">val_batch_size</span><span class="p">,</span>
             <span class="n">collate_fn</span><span class="o">=</span><span class="n">minkowski_collate_fn</span><span class="p">,</span>
         <span class="p">)</span>
@@ -247,18 +249,18 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
         <span class="n">stensor</span> <span class="o">=</span> <span class="n">ME</span><span class="o">.</span><span class="n">SparseTensor</span><span class="p">(</span>
-            <span class="n">coordinates</span><span class="o">=</span><span class="n">batch</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">],</span> <span class="n">features</span><span class="o">=</span><span class="n">batch</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">]</span>
+            <span class="n">coordinates</span><span class="o">=</span><span class="n">batch</span><span class="p">[</span><span class="s2">"coordinates"</span><span class="p">],</span> <span class="n">features</span><span class="o">=</span><span class="n">batch</span><span class="p">[</span><span class="s2">"features"</span><span class="p">]</span>
         <span class="p">)</span>
         <span class="c1"># Must clear cache at regular interval</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_step</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">criterion</span><span class="p">(</span><span class="bp">self</span><span class="p">(</span><span class="n">stensor</span><span class="p">)</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">())</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">criterion</span><span class="p">(</span><span class="bp">self</span><span class="p">(</span><span class="n">stensor</span><span class="p">)</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="n">batch</span><span class="p">[</span><span class="s2">"labels"</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">())</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
         <span class="n">stensor</span> <span class="o">=</span> <span class="n">ME</span><span class="o">.</span><span class="n">SparseTensor</span><span class="p">(</span>
-            <span class="n">coordinates</span><span class="o">=</span><span class="n">batch</span><span class="p">[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">],</span> <span class="n">features</span><span class="o">=</span><span class="n">batch</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">]</span>
+            <span class="n">coordinates</span><span class="o">=</span><span class="n">batch</span><span class="p">[</span><span class="s2">"coordinates"</span><span class="p">],</span> <span class="n">features</span><span class="o">=</span><span class="n">batch</span><span class="p">[</span><span class="s2">"features"</span><span class="p">]</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">criterion</span><span class="p">(</span><span class="bp">self</span><span class="p">(</span><span class="n">stensor</span><span class="p">)</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">())</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">criterion</span><span class="p">(</span><span class="bp">self</span><span class="p">(</span><span class="n">stensor</span><span class="p">)</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="n">batch</span><span class="p">[</span><span class="s2">"labels"</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">())</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">SGD</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lr</span><span class="p">,</span> <span class="n">weight_decay</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">weight_decay</span><span class="p">)</span>
@@ -270,7 +272,7 @@
     <span class="c1"># Must clear cache at a regular interval</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_step</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">criterion</span><span class="p">(</span><span class="bp">self</span><span class="p">(</span><span class="n">stensor</span><span class="p">)</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="n">batch</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">())</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">criterion</span><span class="p">(</span><span class="bp">self</span><span class="p">(</span><span class="n">stensor</span><span class="p">)</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="n">batch</span><span class="p">[</span><span class="s2">"labels"</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">())</span>
 </pre></div>
 </div>
 </section>
@@ -278,7 +280,7 @@
 <h2>Training<a class="headerlink" href="#training" title="Link to this heading"></a></h2>
 <p>Once we created the segmentation module, we can train a network with the following code.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pl_module</span> <span class="o">=</span> <span class="n">MinkowskiSegmentationModule</span><span class="p">(</span><span class="n">DummyNetwork</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="n">D</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span> <span class="n">lr</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">lr</span><span class="p">)</span>
-<span class="n">trainer</span> <span class="o">=</span> <span class="n">Trainer</span><span class="p">(</span><span class="n">max_epochs</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">,</span> <span class="n">gpus</span><span class="o">=</span><span class="n">num_devices</span><span class="p">,</span> <span class="n">accelerator</span><span class="o">=</span><span class="s2">&quot;ddp&quot;</span><span class="p">)</span>
+<span class="n">trainer</span> <span class="o">=</span> <span class="n">Trainer</span><span class="p">(</span><span class="n">max_epochs</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">max_epochs</span><span class="p">,</span> <span class="n">gpus</span><span class="o">=</span><span class="n">num_devices</span><span class="p">,</span> <span class="n">accelerator</span><span class="o">=</span><span class="s2">"ddp"</span><span class="p">)</span>
 <span class="n">trainer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">pl_module</span><span class="p">)</span>
 </pre></div>
 </div>

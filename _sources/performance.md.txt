@@ -4,6 +4,8 @@ This page collects practical knobs for getting the best throughput and memory
 footprint out of this fork on CUDA 12.8 / Blackwell (and Ampere/Ada) GPUs.
 All numbers below are illustrative measurements from a sparse U-Net training
 run; your mileage will vary with model width, batch size, and point counts.
+Use the [reproducible benchmark harness](benchmark.md) to compare changes on
+your own hardware before drawing performance conclusions.
 
 
 ## TF32 on Ampere+
@@ -17,8 +19,8 @@ torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True   # harmless to set alongside
 ```
 
-TF32 trades a few mantissa bits (19-bit accumulation) for tensor-core
-throughput. In our sparse U-Net runs this gave roughly a **15% step-time
+TF32 rounds fp32 multiplicands to reduced mantissa precision while
+accumulating in fp32, trading input precision for tensor-core throughput. In our sparse U-Net runs this gave roughly a **15% step-time
 reduction** with no measurable accuracy impact. It is on by default for some
 PyTorch versions and off for others, so set it explicitly if you depend on it.
 

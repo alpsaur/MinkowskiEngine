@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Benchmark &mdash; MinkowskiEngine 0.5.6 documentation</title>
+  <title>Benchmark &mdash; MinkowskiEngine 0.5.9 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=722679d6"></script>
+      <script src="_static/documentation_options.js?v=9a3cda14"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -82,9 +82,13 @@
 <li class="toctree-l1"><a class="reference internal" href="issues.html">Common Issues</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guides.html">Guidelines for Faster Networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="profiling.html">Profiling MinkowskiEngine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operations.html">Operations Cookbook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releasing.html">Validation and release checklist</a></li>
 <li class="toctree-l1"><a class="reference internal" href="migration_05.html">Migration Guide from v0.4.x to v0.5.0</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Benchmark</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#reproducible-fork-benchmark-v0-5-9">Reproducible fork benchmark (v0.5.9+)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#historical-upstream-results-v0-4-3-titan-x">Historical upstream results (v0.4.3, Titan X)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#experiment-setup">Experiment setup</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#single-convolution-layer">Single Convolution Layer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#simple-unet">Simple UNet</a></li>
@@ -119,8 +123,51 @@
              
   <section id="benchmark">
 <h1>Benchmark<a class="headerlink" href="#benchmark" title="Link to this heading"></a></h1>
+<section id="reproducible-fork-benchmark-v0-5-9">
+<h2>Reproducible fork benchmark (v0.5.9+)<a class="headerlink" href="#reproducible-fork-benchmark-v0-5-9" title="Link to this heading"></a></h2>
+<p>From a checkout with a matching, built extension:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Same fixed synthetic inputs and weights; fresh process per configuration.</span>
+<span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">2</span><span class="w"> </span>python<span class="w"> </span>scripts/benchmark.py<span class="w"> </span>--device<span class="w"> </span>cuda<span class="w"> </span>--precision<span class="w"> </span>fp32<span class="w"> </span>--output<span class="w"> </span>baseline.json
+<span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">2</span><span class="w"> </span>python<span class="w"> </span>scripts/benchmark.py<span class="w"> </span>--device<span class="w"> </span>cuda<span class="w"> </span>--precision<span class="w"> </span>bf16<span class="w"> </span>--lazy-sync<span class="w"> </span>--output<span class="w"> </span>bf16.json
+<span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">2</span><span class="w"> </span>python<span class="w"> </span>scripts/benchmark.py<span class="w"> </span>--device<span class="w"> </span>cuda<span class="w"> </span>--fused-copy<span class="w"> </span>off<span class="w"> </span>--output<span class="w"> </span>legacy.json
+
+<span class="c1"># Separate reusable-map inference/training setups from map-rebuild overhead.</span>
+python<span class="w"> </span>scripts/benchmark.py<span class="w"> </span>--device<span class="w"> </span>cuda<span class="w"> </span>--map-mode<span class="w"> </span>warm<span class="w"> </span>--channels<span class="w"> </span><span class="m">64</span>
+<span class="c1"># Quick CPU functionality check, not a GPU performance comparison:</span>
+python<span class="w"> </span>scripts/benchmark.py<span class="w"> </span>--device<span class="w"> </span>cpu<span class="w"> </span>--points<span class="w"> </span><span class="m">128</span><span class="w"> </span>--channels<span class="w"> </span><span class="m">4</span><span class="w"> </span>--iterations<span class="w"> </span><span class="m">2</span>
+</pre></div>
+</div>
+<p>The harness runs a small sparse U-Net with a residual block, down/up sampling,
+and an explicit skip-coordinate target. It measures forward, loss/backward,
+and total step latency; reports CUDA allocator peak allocated/reserved memory;
+and emits JSON with seed, active point count, precision, settings, and native
+build provenance. <code class="docutils literal notranslate"><span class="pre">--help</span></code> lists all controls, including <code class="docutils literal notranslate"><span class="pre">--tf32</span></code> and
+<code class="docutils literal notranslate"><span class="pre">--deterministic</span></code>.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--map-mode</span> <span class="pre">cold</span></code> (default) creates a fresh coordinate manager per step.
+<code class="docutils literal notranslate"><span class="pre">warm</span></code> reuses maps across steps. Compare like with like.</p></li>
+<li><p>Input generation, H2D transfer, DataLoader work, optimizer updates, and
+gradient-scaler overhead are <strong>not</strong> included. Weights stay fixed; every
+iteration clears gradients and performs a real backward pass.</p></li>
+<li><p>CUDA forward/backward figures use events and include launch/idle gaps;
+they are not summed GPU-kernel busy time. Total step time is synchronized
+wall-clock latency. CPU figures use the wall clock.</p></li>
+<li><p>Warmup runs precede measurement. CUDA memory includes model/inputs/cached
+maps; CPU allocator memory is not reported. Avoid other GPU workloads and
+compare multiple runs, not one noisy minimum.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ME_LAZY_SYNC</span></code> is latched on first native use: launch a new process for each
+configuration. The harness explicitly sets both lazy-sync and fused-copy
+options, rather than silently inheriting those two environment flags.</p></li>
+<li><p>This is a regression/experimentation tool, not evidence of a speedup on
+your real training pipeline. Profile that pipeline before optimizing it.</p></li>
+</ul>
+</section>
+<section id="historical-upstream-results-v0-4-3-titan-x">
+<h2>Historical upstream results (v0.4.3, Titan X)<a class="headerlink" href="#historical-upstream-results-v0-4-3-titan-x" title="Link to this heading"></a></h2>
+<p>The results below are retained for reference and are not measurements of this fork.</p>
 <p>We report the feed forward and backward pass time of a convolution layer, and a small U-network for v0.4.3. Note that the kernel map can be reused for other layers with the same tensor-stride, stride, and kernel offsets, thus the time reported in this page can be amortized across all layers used in a large nueral network.</p>
 <p>We use a Titan X for the experiments.</p>
+</section>
 <section id="experiment-setup">
 <h2>Experiment setup<a class="headerlink" href="#experiment-setup" title="Link to this heading"></a></h2>
 <p>For a single-convolution-layer experiment, we use the following setup.</p>

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MinkowskiNormalization &mdash; MinkowskiEngine 0.5.9 documentation</title>
+  <title>Validation and release checklist &mdash; MinkowskiEngine 0.5.9 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
@@ -19,8 +19,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="MinkowskiNonlinearities" href="nonlinearity.html" />
-    <link rel="prev" title="MinkowskiBroadcast" href="broadcast.html" /> 
+    <link rel="next" title="Migration Guide from v0.4.x to v0.5.0" href="migration_05.html" />
+    <link rel="prev" title="Operations Cookbook" href="operations.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -63,17 +63,12 @@
 <li class="toctree-l1"><a class="reference internal" href="demo/pointnet.html">PointNet</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="sparse_tensor.html">SparseTensor and TensorField</a></li>
 <li class="toctree-l1"><a class="reference internal" href="convolution.html">MinkowskiConvolution</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pooling.html">MinkowskiPooling</a></li>
 <li class="toctree-l1"><a class="reference internal" href="broadcast.html">MinkowskiBroadcast</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">MinkowskiNormalization</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#minkowskibatchnorm">MinkowskiBatchNorm</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#minkowskisyncbatchnorm">MinkowskiSyncBatchNorm</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#minkowskiinstancenorm">MinkowskiInstanceNorm</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="normalization.html">MinkowskiNormalization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="nonlinearity.html">MinkowskiNonlinearities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pruning.html">MinkowskiPruning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interp.html">MinkowskiInterpolation</a></li>
@@ -84,13 +79,18 @@
 <li class="toctree-l1"><a class="reference internal" href="misc.html">Miscellanea</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Miscellanea</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="issues.html">Common Issues</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guides.html">Guidelines for Faster Networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="profiling.html">Profiling MinkowskiEngine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="operations.html">Operations Cookbook</a></li>
-<li class="toctree-l1"><a class="reference internal" href="releasing.html">Validation and release checklist</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Validation and release checklist</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#local-trusted-gpu-validation">Local/trusted GPU validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ci-boundaries">CI boundaries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#publishing">Publishing</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="migration_05.html">Migration Guide from v0.4.x to v0.5.0</a></li>
 <li class="toctree-l1"><a class="reference internal" href="benchmark.html">Benchmark</a></li>
 </ul>
@@ -109,9 +109,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">MinkowskiNormalization</li>
+      <li class="breadcrumb-item active">Validation and release checklist</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/normalization.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/releasing.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -120,16 +120,69 @@
 
            <div itemprop="articleBody">
              
-  <section id="minkowskinormalization">
-<h1>MinkowskiNormalization<a class="headerlink" href="#minkowskinormalization" title="Link to this heading"></a></h1>
-<section id="minkowskibatchnorm">
-<h2>MinkowskiBatchNorm<a class="headerlink" href="#minkowskibatchnorm" title="Link to this heading"></a></h2>
+  <section id="validation-and-release-checklist">
+<h1>Validation and release checklist<a class="headerlink" href="#validation-and-release-checklist" title="Link to this heading"></a></h1>
+<p>This fork is maintained best-effort. A green CPU CI badge does not establish
+GPU correctness, and a successful wheel build does not establish importability.</p>
+<section id="local-trusted-gpu-validation">
+<h2>Local/trusted GPU validation<a class="headerlink" href="#local-trusted-gpu-validation" title="Link to this heading"></a></h2>
+<p>Use a fresh environment with the intended torch/CUDA versions. CUDA 12.8 /
+Blackwell releases currently target <code class="docutils literal notranslate"><span class="pre">torch~=2.9.0</span></code> from the cu128 index.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">2</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">CUDA_HOME</span><span class="o">=</span>/usr/local/cuda-12.8
+<span class="nb">export</span><span class="w"> </span><span class="nv">TORCH_CUDA_ARCH_LIST</span><span class="o">=</span><span class="s2">"12.0+PTX"</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">MAX_COMPILATION_THREADS</span><span class="o">=</span><span class="m">6</span><span class="w">  </span><span class="c1"># tune to available RAM</span>
+python<span class="w"> </span>setup.py<span class="w"> </span>build_ext<span class="w"> </span>--inplace
+python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"import torch, MinkowskiEngine as ME; assert torch.cuda.is_available() and ME.is_cuda_available(); ME.print_diagnostics()"</span>
+python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>-q
+bash<span class="w"> </span>scripts/build_wheels.sh
+python<span class="w"> </span>scripts/check_wheel.py<span class="w"> </span>--cuda<span class="w"> </span>--tests<span class="w"> </span>wheelhouse/minkowskiengine-*.whl
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">check_wheel.py</span></code> installs into a temporary target using the current interpreter’s
+torch/numpy dependencies. Its smoke process runs outside the checkout, with
+<code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> pointing only to the installation target, and asserts that both
+Python and native modules were loaded from that target. It does not modify the
+current environment. <code class="docutils literal notranslate"><span class="pre">--tests</span></code> also copies the regression tests (not the
+package) into that temporary directory and runs them against the installed
+wheel; this needs pytest. Without <code class="docutils literal notranslate"><span class="pre">--cuda</span></code>, GPU visibility is disabled for the
+check. Do not test a cp310 wheel with a cp312 interpreter.</p>
+<p>Long legacy convolution leak probes are disabled during ordinary tests; opt in
+with <code class="docutils literal notranslate"><span class="pre">ME_LEAK_TEST_ITER=100000</span></code> when specifically investigating lifetime issues.
+Optional Open3D/data tests are separate from the synthetic regression suite:
+opt in with <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pytest</span> <span class="pre">--run-data-tests</span></code> (or <code class="docutils literal notranslate"><span class="pre">ME_RUN_DATA_TESTS=1</span></code>).
+These include very large channel/batch sweeps and 1000-iteration point-cloud
+stress loops; they can take hours. Merely installing Open3D does not enable them.</p>
 </section>
-<section id="minkowskisyncbatchnorm">
-<h2>MinkowskiSyncBatchNorm<a class="headerlink" href="#minkowskisyncbatchnorm" title="Link to this heading"></a></h2>
+<section id="ci-boundaries">
+<h2>CI boundaries<a class="headerlink" href="#ci-boundaries" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Pushes and PRs: CPU builds/tests for Python 3.10–3.13, torch 2.7/2.9, plus
+isolated installed-wheel smoke tests.</p></li>
+<li><p>GPU CI: <strong>trusted manual dispatch only</strong>, with <code class="docutils literal notranslate"><span class="pre">run_gpu=true</span></code>. A registered
+self-hosted <code class="docutils literal notranslate"><span class="pre">[linux,</span> <span class="pre">gpu]</span></code> runner is required; this repository does not
+provision one. Without a runner, perform and record the GPU checks locally.
+Never automatically run untrusted PR code on a persistent GPU host.</p></li>
+<li><p>Wheel workflow: CUDA-toolkit container builds for Python 3.10–3.13, pinned
+torch 2.9 cu128. Every wheel must pass install/import/CPU smoke tests before
+artifact upload. This step needs no visible GPU.</p></li>
+</ul>
 </section>
-<section id="minkowskiinstancenorm">
-<h2>MinkowskiInstanceNorm<a class="headerlink" href="#minkowskiinstancenorm" title="Link to this heading"></a></h2>
+<section id="publishing">
+<h2>Publishing<a class="headerlink" href="#publishing" title="Link to this heading"></a></h2>
+<ol class="simple">
+<li><p>Update the version, changelog, README, citation, and docs fallback version.</p></li>
+<li><p>Run local gates and independent review; merge only after required CI passes.</p></li>
+<li><p>Push the version tag. The wheel workflow attaches artifacts to a <strong>draft</strong>
+release only after every matrix job passes. Manual wheel dispatches upload
+Actions artifacts without creating a release.</p></li>
+<li><p>Download the actual release wheel(s) to the appropriate trusted GPU runtime;
+run <code class="docutils literal notranslate"><span class="pre">scripts/check_wheel.py</span> <span class="pre">--cuda</span> <span class="pre">--tests</span></code> on the artifact, not just a local build.
+Record which Python/GPU combinations were tested; do not imply that all
+wheels ran on hardware when only one did.</p></li>
+<li><p>Inspect wheel assets, notes, and validation evidence, then publish the draft.
+Never publish merely because compilation succeeded.</p></li>
+</ol>
 </section>
 </section>
 
@@ -151,8 +204,8 @@
 
 
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="broadcast.html" class="btn btn-neutral float-left" title="MinkowskiBroadcast" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="nonlinearity.html" class="btn btn-neutral float-right" title="MinkowskiNonlinearities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="operations.html" class="btn btn-neutral float-left" title="Operations Cookbook" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="migration_05.html" class="btn btn-neutral float-right" title="Migration Guide from v0.4.x to v0.5.0" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

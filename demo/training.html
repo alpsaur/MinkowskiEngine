@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Training Pipeline &mdash; MinkowskiEngine 0.5.6 documentation</title>
+  <title>Training Pipeline &mdash; MinkowskiEngine 0.5.9 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=722679d6"></script>
+      <script src="../_static/documentation_options.js?v=9a3cda14"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -89,7 +89,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../issues.html">Common Issues</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../guides.html">Guidelines for Faster Networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../performance.html">Performance Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../profiling.html">Profiling MinkowskiEngine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../operations.html">Operations Cookbook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Validation and release checklist</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../migration_05.html">Migration Guide from v0.4.x to v0.5.0</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../benchmark.html">Benchmark</a></li>
 </ul>
@@ -142,7 +144,7 @@ In this example, let’s create a random dataset that generates a noisy line.</p
         <span class="n">angle</span><span class="p">,</span> <span class="n">intercept</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_uniform_to_angle</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">())),</span> <span class="bp">self</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span>
 
-        <span class="c1"># Line as x = cos(theta) * t, y = sin(theta) * t + intercept and random t&#39;s</span>
+        <span class="c1"># Line as x = cos(theta) * t, y = sin(theta) * t + intercept and random t's</span>
         <span class="c1"># Drop some samples</span>
         <span class="n">xs_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_xs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_data</span><span class="p">)</span>
         <span class="n">ys_data</span> <span class="o">=</span> <span class="n">angle</span> <span class="o">*</span> <span class="n">xs_data</span> <span class="o">+</span> <span class="n">intercept</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_noise</span><span class="p">(</span>
@@ -289,7 +291,7 @@ maps, cannot be referenced outside the process that generated it.</p>
 <span class="n">criterion</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">(</span><span class="n">ignore_index</span><span class="o">=-</span><span class="mi">100</span><span class="p">)</span>
 
 <span class="c1"># Dataset, data loader</span>
-<span class="n">train_dataset</span> <span class="o">=</span> <span class="n">RandomLineDataset</span><span class="p">(</span><span class="n">noise_type</span><span class="o">=</span><span class="s1">&#39;gaussian&#39;</span><span class="p">)</span>
+<span class="n">train_dataset</span> <span class="o">=</span> <span class="n">RandomLineDataset</span><span class="p">(</span><span class="n">noise_type</span><span class="o">=</span><span class="s1">'gaussian'</span><span class="p">)</span>
 
 <span class="n">train_dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span>
     <span class="n">train_dataset</span><span class="p">,</span>
@@ -316,7 +318,7 @@ maps, cannot be referenced outside the process that generated it.</p>
 
         <span class="k">if</span> <span class="n">tot_iter</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">tot_iter</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s1">&#39;Iter: </span><span class="si">{</span><span class="n">tot_iter</span><span class="si">}</span><span class="s1">, Epoch: </span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s1">, Loss: </span><span class="si">{</span><span class="n">accum_loss</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">accum_iter</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="sa">f</span><span class="s1">'Iter: </span><span class="si">{</span><span class="n">tot_iter</span><span class="si">}</span><span class="s1">, Epoch: </span><span class="si">{</span><span class="n">epoch</span><span class="si">}</span><span class="s1">, Loss: </span><span class="si">{</span><span class="n">accum_loss</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">accum_iter</span><span class="si">}</span><span class="s1">'</span>
             <span class="p">)</span>
             <span class="n">accum_loss</span><span class="p">,</span> <span class="n">accum_iter</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
 </pre></div>

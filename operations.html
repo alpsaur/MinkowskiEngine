@@ -6,21 +6,21 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Operations Cookbook &mdash; MinkowskiEngine 0.5.6 documentation</title>
+  <title>Operations Cookbook &mdash; MinkowskiEngine 0.5.9 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=722679d6"></script>
+      <script src="_static/documentation_options.js?v=9a3cda14"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Migration Guide from v0.4.x to v0.5.0" href="migration_05.html" />
-    <link rel="prev" title="Performance Guide" href="performance.html" /> 
+    <link rel="next" title="Validation and release checklist" href="releasing.html" />
+    <link rel="prev" title="Profiling MinkowskiEngine" href="profiling.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -83,6 +83,7 @@
 <li class="toctree-l1"><a class="reference internal" href="issues.html">Common Issues</a></li>
 <li class="toctree-l1"><a class="reference internal" href="guides.html">Guidelines for Faster Networks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="performance.html">Performance Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="profiling.html">Profiling MinkowskiEngine</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Operations Cookbook</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#memory-management-with-varying-point-counts">Memory management with varying point counts</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#the-oom-leak-caveat-issue-359">The OOM-leak caveat (issue #359)</a></li>
@@ -99,6 +100,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#me-lazy-sync-single-stream-assumption">ME_LAZY_SYNC: single-stream assumption</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="releasing.html">Validation and release checklist</a></li>
 <li class="toctree-l1"><a class="reference internal" href="migration_05.html">Migration Guide from v0.4.x to v0.5.0</a></li>
 <li class="toctree-l1"><a class="reference internal" href="benchmark.html">Benchmark</a></li>
 </ul>
@@ -175,15 +177,15 @@ the GPU until a manual restart:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span><span class="o">,</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">os</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">run_training_segment</span><span class="p">(</span><span class="n">resume_ckpt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Launch one training subprocess; checkpoint every N steps inside.&quot;&quot;&quot;</span>
-    <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">,</span> <span class="s2">&quot;train.py&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">"""Launch one training subprocess; checkpoint every N steps inside."""</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">,</span> <span class="s2">"train.py"</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">resume_ckpt</span><span class="p">:</span>
-        <span class="n">cmd</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;--resume&quot;</span><span class="p">,</span> <span class="n">resume_ckpt</span><span class="p">]</span>
+        <span class="n">cmd</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">"--resume"</span><span class="p">,</span> <span class="n">resume_ckpt</span><span class="p">]</span>
     <span class="n">env</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">)</span>
     <span class="n">completed</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">completed</span><span class="o">.</span><span class="n">returncode</span>
 
-<span class="n">ckpt</span> <span class="o">=</span> <span class="s2">&quot;ckpt/latest.pt&quot;</span>
+<span class="n">ckpt</span> <span class="o">=</span> <span class="s2">"ckpt/latest.pt"</span>
 <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
     <span class="n">rc</span> <span class="o">=</span> <span class="n">run_training_segment</span><span class="p">(</span><span class="n">resume_ckpt</span><span class="o">=</span><span class="n">ckpt</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">rc</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -255,10 +257,10 @@ This is documented in upstream
     <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">set_device</span><span class="p">(</span><span class="n">local_rank</span><span class="p">)</span>
 
     <span class="c1"># 2. NCCL is the only backend that works for ME on GPU.</span>
-    <span class="n">dist</span><span class="o">.</span><span class="n">init_process_group</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s2">&quot;nccl&quot;</span><span class="p">)</span>
+    <span class="n">dist</span><span class="o">.</span><span class="n">init_process_group</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s2">"nccl"</span><span class="p">)</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-    <span class="n">local_rank</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;LOCAL_RANK&quot;</span><span class="p">])</span>
+    <span class="n">local_rank</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"LOCAL_RANK"</span><span class="p">])</span>
     <span class="n">setup_ddp</span><span class="p">(</span><span class="n">local_rank</span><span class="p">)</span>
 
     <span class="n">model</span> <span class="o">=</span> <span class="n">build_model</span><span class="p">()</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
@@ -281,8 +283,9 @@ This is documented in upstream
         <span class="n">coords</span><span class="p">,</span> <span class="n">feats</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">batch</span>
         <span class="c1"># Use ME.utils.sparse_collate / batched_coordinates to build</span>
         <span class="c1"># per-rank SparseTensor inputs.</span>
-        <span class="n">sin</span> <span class="o">=</span> <span class="n">ME</span><span class="o">.</span><span class="n">SparseTensor</span><span class="p">(</span><span class="n">feats</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+        <span class="n">sin</span> <span class="o">=</span> <span class="n">ME</span><span class="o">.</span><span class="n">SparseTensor</span><span class="p">(</span><span class="n">feats</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="sa">f</span><span class="s2">"cuda:</span><span class="si">{</span><span class="n">local_rank</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
+        <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">(</span><span class="n">set_to_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">sin</span><span class="p">)</span>
         <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
         <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
@@ -291,7 +294,7 @@ This is documented in upstream
         <span class="k">if</span> <span class="n">step</span> <span class="o">%</span> <span class="n">cache_clear_interval</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">empty_cache</span><span class="p">()</span>   <span class="c1"># per-rank; each rank clears its own</span>
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
     <span class="n">main</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -328,7 +331,7 @@ the dense head:</p>
 <span class="n">model</span> <span class="o">=</span> <span class="n">build_model</span><span class="p">()</span>
 
 <span class="c1"># Option A: disable on the sparse backbone, compile the dense head.</span>
-<span class="n">torch</span><span class="o">.</span><span class="n">_dynamo</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">sparse_backbone</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">sparse_backbone</span><span class="o">.</span><span class="n">forward</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">compiler</span><span class="o">.</span><span class="n">disable</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">sparse_backbone</span><span class="o">.</span><span class="n">forward</span><span class="p">)</span>
 <span class="n">model</span><span class="o">.</span><span class="n">dense_head</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">dense_head</span><span class="p">)</span>
 
 <span class="c1"># Option B: compile nothing, avoid the overhead entirely.</span>
@@ -357,7 +360,7 @@ consistently</strong> across your entire pipeline:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Pick one: quantize on GPU for the whole pipeline.</span>
 <span class="n">coords</span> <span class="o">=</span> <span class="n">coords</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
 <span class="n">feats</span> <span class="o">=</span> <span class="n">feats</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
-<span class="n">sin</span> <span class="o">=</span> <span class="n">ME</span><span class="o">.</span><span class="n">SparseTensor</span><span class="p">(</span><span class="n">feats</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+<span class="n">sin</span> <span class="o">=</span> <span class="n">ME</span><span class="o">.</span><span class="n">SparseTensor</span><span class="p">(</span><span class="n">feats</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">"cuda"</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -368,27 +371,42 @@ fixed across runs. Two forward passes on the same input produce identical
 results up to floating-point reduction-order differences, which appear as
 low-order-bit noise in the output. This is upstream
 <a class="reference external" href="https://github.com/NVIDIA/MinkowskiEngine/issues/554">#554</a>.</p>
-<p>This fork ships a built-in opt-in: <code class="docutils literal notranslate"><span class="pre">ME.set_deterministic(True)</span></code> routes every
-<code class="docutils literal notranslate"><span class="pre">MinkowskiConvolution</span></code> / <code class="docutils literal notranslate"><span class="pre">MinkowskiConvolutionTranspose</span></code> input through a
-canonical lexicographic coordinate sort before the kernel runs, which makes
-repeated runs on the same point set (in any row order) produce identical
-outputs. Cost: one coordinate sort per conv; intended for
-reproducibility/debugging, not throughput.</p>
+<p>As of v0.5.9, <code class="docutils literal notranslate"><span class="pre">ME.set_deterministic(True)</span></code> combines canonical coordinate
+ordering with a <strong>non-fused copy-GEMM</strong> convolution path. Sorting alone (the
+v0.5.8 implementation) did not order the atomic additions in fused scatter.
+The mode overrides <code class="docutils literal notranslate"><span class="pre">ME_FUSED_COPY</span></code>, direct-GEMM selection, and the
+<code class="docutils literal notranslate"><span class="pre">MEMORY_EFFICIENT</span></code> algorithm preference for convolution.</p>
+<p>Canonical maps and permutations are cached in the <strong>original</strong> coordinate
+manager. Stride-1 output-map identity, residual additions/concatenations,
+explicit transpose targets, and TensorField slicing are preserved. No feature
+values or autograd graphs are cached. Cost: a sort and extra map per distinct
+input map, feature reindexing per call, and slower per-offset gather/scatter.
+The cache is released with its coordinate manager; shared-manager users still
+need the lifecycle discipline described above.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">MinkowskiEngine</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ME</span>
 
 <span class="n">ME</span><span class="o">.</span><span class="n">set_deterministic</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>   <span class="c1"># process-wide; ME.is_deterministic() to query</span>
 <span class="c1"># ... build and run the model as usual ...</span>
 </pre></div>
 </div>
-<p>The underlying helper is also exposed directly if you want to sort a single
-tensor once instead of paying the per-conv cost:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sin</span> <span class="o">=</span> <span class="n">ME</span><span class="o">.</span><span class="n">sorted_coordinates</span><span class="p">(</span><span class="n">sin</span><span class="p">)</span>   <span class="c1"># returns a canonically-ordered SparseTensor</span>
-</pre></div>
-</div>
-<p>Caveat: this fixes the dominant source (coordinate/dispatch ordering). True
-bitwise determinism across different GPUs or driver versions is still not
-guaranteed, since atomic reduction order inside cuBLAS/atomics can differ
-across hardware.</p>
+<p>For a single layer, pass <code class="docutils literal notranslate"><span class="pre">convolution_mode=ME.ConvolutionMode.DETERMINISTIC</span></code>
+to its constructor instead of changing the process-wide flag. The selected
+backend mode is saved for backward, so changing the flag after forward does
+not change that operation’s backward implementation. No environment variables
+are temporarily rewritten.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ME.sorted_coordinates(sin)</span></code> remains available as a same-manager sorting
+helper, but <strong>sorting by itself does not make fused convolution deterministic</strong>.</p>
+<p><strong>Scope:</strong> forward convolution values for the same point/feature set on the
+same device, build, CUDA stream, precision, and PyTorch math settings. Compare
+outputs by coordinates, not raw row positions. Duplicate-point quantization
+has already happened before convolution and is not made deterministic by this
+flag. The plain kernel-size-1 matrix-multiply shortcut follows PyTorch’s own
+reproducibility rules.</p>
+<p>Backward is supported and covered by value/gradient tests, but this is <strong>not a
+promise of bitwise-identical training</strong>: weight-gradient reductions, other ME
+ops, cuBLAS workspace/stream settings, and hardware/version differences remain
+outside the contract. Follow PyTorch’s reproducibility guidance (including
+<code class="docutils literal notranslate"><span class="pre">CUBLAS_WORKSPACE_CONFIG</span></code> where required) for the rest of a model.</p>
 </section>
 </section>
 <section id="me-lazy-sync-single-stream-assumption">
@@ -435,8 +453,8 @@ on is safe and recommended. See the
 
 
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="performance.html" class="btn btn-neutral float-left" title="Performance Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="migration_05.html" class="btn btn-neutral float-right" title="Migration Guide from v0.4.x to v0.5.0" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="profiling.html" class="btn btn-neutral float-left" title="Profiling MinkowskiEngine" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="releasing.html" class="btn btn-neutral float-right" title="Validation and release checklist" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
