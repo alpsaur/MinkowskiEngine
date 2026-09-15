@@ -62,6 +62,11 @@ def _renormalize_partial_neighborhoods(
 
     num_out = out_feat.shape[0]
     full_neighborhood = 2 ** dimension
+    # Each query contributes at most 2**D map entries. If all entries exist,
+    # every neighborhood is full: this metadata-only fast path needs neither
+    # GPU reductions nor a host read of their result.
+    if weights.numel() == num_out * full_neighborhood:
+        return out_feat, weights
     out_map_long = out_map.long()
     # accumulate in fp32 (or fp64) even for 16-bit weights
     w_acc = (
@@ -75,9 +80,8 @@ def _renormalize_partial_neighborhoods(
     num_found.scatter_add_(0, out_map_long, torch.ones_like(out_map_long))
 
     partial = (num_found < full_neighborhood) & (weight_sum > 0)
-    if not bool(partial.any()):
-        return out_feat, weights
-
+    # Stay on-device: converting partial.any() to bool synchronizes CUDA.
+    # Multiplication by one preserves rows that do not need renormalization.
     scale = torch.where(
         partial, weight_sum.reciprocal(), torch.ones_like(weight_sum)
     )
@@ -181,7 +185,7 @@ class MinkowskiInterpolation(MinkowskiModuleBase):
         MinkowskiModuleBase.__init__(self)
         self.return_kernel_map = return_kernel_map
         self.return_weights = return_weights
-        self.interp = MinkowskiInterpolationFunction()
+        self.interp = MinkowskiInterpolationFunction
 
     def forward(
         self,

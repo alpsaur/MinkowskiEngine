@@ -42,9 +42,9 @@ Additional arguments:
 """
 import sys
 
-if sys.version_info < (3, 6):
+if sys.version_info < (3, 10):
     sys.stdout.write(
-        "Minkowski Engine requires Python 3.6 or higher. Please use anaconda https://www.anaconda.com/distribution/ for an isolated python environment.\n"
+        "Minkowski Engine requires Python 3.10 or higher.\n"
     )
     sys.exit(1)
 
@@ -55,6 +55,7 @@ except ImportError:
 
 import codecs
 import ctypes.util
+import json
 import os
 import re
 import subprocess
@@ -174,6 +175,7 @@ if not torch.cuda.is_available() and not FORCE_CUDA:
         "torch.cuda.is_available() is False. MinkowskiEngine will compile with CPU_ONLY. Please use `--force_cuda` to compile with CUDA."
     )
 
+CPU_ONLY = CPU_ONLY or os.environ.get("CPU_ONLY", "").lower() in ("1", "true", "on")
 CPU_ONLY = CPU_ONLY or not torch.cuda.is_available()
 if FORCE_CUDA:
     print("--------------------------------")
@@ -359,16 +361,58 @@ ext_modules = [
     ),
 ]
 
+class ProvenanceBuildExtension(BuildExtension):
+    """Keep build facts beside the extension AND compiled into that binary."""
+
+    def build_extensions(self):
+        from torch.utils.cpp_extension import _get_cuda_arch_flags
+
+        self.build_info = {
+            "torch_version": torch.__version__,
+            "torch_cuda": torch.version.cuda,
+            "cxx11_abi": bool(torch._C._GLIBCXX_USE_CXX11_ABI),
+            "cpu_only": bool(CPU_ONLY),
+            "cuda_arch_flags": [] if CPU_ONLY else _get_cuda_arch_flags(),
+        }
+        header_dir = Path(self.build_temp).resolve()
+        header_dir.mkdir(parents=True, exist_ok=True)
+        header = header_dir / "ME_build_info.h"
+        contents = "#define ME_BUILD_INFO " + json.dumps(json.dumps(self.build_info, sort_keys=True)) + "\n"
+        if not header.exists() or header.read_text() != contents:
+            header.write_text(contents)
+        for extension in self.extensions:
+            extension.include_dirs.append(str(header_dir))
+        super().build_extensions()
+
+    def run(self):
+        super().run()
+        # Write only AFTER a successful native build. In-place and wheel
+        # builds put this next to their own binary, never in a shared manifest.
+        for extension in self.extensions:
+            destination = Path(self.get_ext_fullpath(extension.name)).parent
+            (destination / "_build_info.json").write_text(
+                json.dumps(self.build_info, sort_keys=True) + "\n"
+            )
+
+
+# Every binary wheel is tied to the libtorch minor used to compile it. Source
+# distributions remain unconstrained; their metadata is regenerated on build.
+_torch_version = Version(torch.__version__)
+_torch_requirement = (
+    "torch>=2.7" if "sdist" in argv
+    else f"torch~={_torch_version.major}.{_torch_version.minor}.0"
+)
+
 # Python interface
 setup(
     name="MinkowskiEngine",
     version=find_version("MinkowskiEngine", "__init__.py"),
-    install_requires=["numpy>=1.21", "torch>=2.7"],
-    packages=["MinkowskiEngine", "MinkowskiEngine.utils", "MinkowskiEngine.modules"],
+    install_requires=["numpy>=1.21", _torch_requirement],
+    packages=["MinkowskiEngine", "MinkowskiEngine.utils", "MinkowskiEngine.modules", "MinkowskiEngineBackend"],
     package_dir={"MinkowskiEngine": "./MinkowskiEngine"},
     ext_modules=ext_modules,
     include_dirs=[str(SRC_PATH), str(SRC_PATH / "3rdparty"), *include_dirs],
-    cmdclass={"build_ext": BuildExtension.with_options(use_ninja=True)},
+    cmdclass={"build_ext": ProvenanceBuildExtension.with_options(use_ninja=True)},
     author="Christopher Choy",
     author_email="chrischoy@ai.stanford.edu",
     description="a convolutional neural network library for sparse tensors",
@@ -394,7 +438,6 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Programming Language :: C++",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
@@ -406,5 +449,5 @@ setup(
         "Topic :: Scientific/Engineering :: Physics",
         "Topic :: Scientific/Engineering :: Visualization",
     ],
-    python_requires=">=3.9",
+    python_requires=">=3.10",
 )

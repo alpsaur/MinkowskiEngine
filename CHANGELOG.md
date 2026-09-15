@@ -1,5 +1,30 @@
 # Change Log
 
+## [0.5.9] — fork reliability release
+
+- Fix a GPU coordinate-publication race that produced duplicate phantom rows in
+  generated maps (transpose convolution, expanded convolution, pooling transpose).
+  Generate coordinate payloads before a separate hash-insertion kernel.
+- Give empty kernel maps cache-owned lifetimes and avoid zero-block CUDA launches
+  when inserting empty coordinates or generating an empty region.
+- Repair deterministic convolution's coordinate-manager relationships for residuals,
+  U-Net targets, and TensorField slicing; cache canonical maps and use a per-call
+  non-fused copy-GEMM backend. Clarify the forward-only reproducibility contract.
+- Embed native torch/CUDA/ABI/architecture build facts and verify adjacent metadata
+  before loading incompatible extensions. Pin binary wheels to their build-time
+  torch minor; keep source builds usable with other supported torch versions.
+- Include GPU binding sources in sdists and package the backend stub consistently.
+- Install/import/smoke-test wheels outside the checkout before attaching them to
+  draft releases; include Python 3.13 wheels. Expand trusted manual GPU CI to the
+  regression suite. Automatic CI still uses CPU runners.
+- Fix public gradcheck compatibility instead of monkeypatching PyTorch in tests;
+  restore analytic convolution and kernel-map checks, and repair an interpolation
+  test's reused autograd graph. Make real-data benchmarks and leak probes opt-in.
+- Add a fixed-input U-Net timing/memory benchmark with cold/warm map modes and JSON output.
+- Remove interpolation renormalization's CUDA-to-host boolean synchronization,
+  with a metadata-only fast path for full neighborhoods. Retain boundary,
+  empty-neighborhood, and gradient behavior.
+
 ## [0.5.5]
 
 - MKL compilation fix (#358)

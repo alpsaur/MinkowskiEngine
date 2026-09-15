@@ -73,9 +73,10 @@ template <typename Itype> struct fused_copy_plan {
 template <typename Itype, typename ByteAllocator>
 fused_copy_plan<Itype>
 make_fused_copy_plan(gpu_kernel_map<Itype, ByteAllocator> const &kernel_map,
-                     size_t const staging_bytes_per_row) {
+                     size_t const staging_bytes_per_row,
+                     ConvolutionMode::Type const convolution_mode) {
   fused_copy_plan<Itype> plan;
-  if (!fused_copy_enabled())
+  if (convolution_mode == ConvolutionMode::DETERMINISTIC || !fused_copy_enabled())
     return plan;
 
   // Verify the invariant the fused path relies on: region offsets are the
@@ -115,6 +116,8 @@ make_fused_copy_plan(gpu_kernel_map<Itype, ByteAllocator> const &kernel_map,
 bool check_direct_gemm_forward(MinkowskiAlgorithm::Mode const algo_index, //
                                ConvolutionMode::Type const &convolution_mode,
                                long const sA, long const sB, long const N) {
+  if (convolution_mode == ConvolutionMode::DETERMINISTIC)
+    return false; // Explicit reproducibility overrides the memory/perf hint.
   if ((convolution_mode == ConvolutionMode::DIRECT_GEMM) ||
       (algo_index == MinkowskiAlgorithm::MEMORY_EFFICIENT))
     return true;
@@ -147,6 +150,8 @@ bool check_direct_gemm_forward(MinkowskiAlgorithm::Mode const algo_index, //
 bool check_direct_gemm_backward(MinkowskiAlgorithm::Mode const algo_index, //
                                 ConvolutionMode::Type const &convolution_mode,
                                 long const sA, long const sB, long const N) {
+  if (convolution_mode == ConvolutionMode::DETERMINISTIC)
+    return false;
   if ((convolution_mode == ConvolutionMode::DIRECT_GEMM) ||
       (algo_index == MinkowskiAlgorithm::MEMORY_EFFICIENT))
     return true;
@@ -514,7 +519,8 @@ void ConvolutionForwardKernelGPU(
       CUDA_CHECK(cudaGetLastError());
     }
   } else if (auto const plan = detail::make_fused_copy_plan(
-                 kernel_map, (in_nchannel + out_nchannel) * sizeof(Dtype));
+                 kernel_map, (in_nchannel + out_nchannel) * sizeof(Dtype),
+                 convolution_mode);
              plan.usable) {
     // Fused copy-GEMM: one vectorized gather over the concatenated kernel
     // map, one GEMM per offset on the staged rows, one vectorized
@@ -736,7 +742,8 @@ void ConvolutionBackwardKernelGPU(
       !detail::check_direct_gemm_backward(
           algo_index, convolution_mode, in_nchannel, out_nchannel, in_nrows)) {
     auto const plan = detail::make_fused_copy_plan(
-        kernel_map, (in_nchannel + out_nchannel) * sizeof(Dtype));
+        kernel_map, (in_nchannel + out_nchannel) * sizeof(Dtype),
+        convolution_mode);
     if (plan.usable) {
       // Fused copy-GEMM backward. Two vectorized gathers (grad_out and
       // in_feat) and one vectorized scatter-accumulate per group replace the

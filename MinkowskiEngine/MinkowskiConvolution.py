@@ -292,9 +292,9 @@ class MinkowskiConvolutionBase(MinkowskiModuleBase):
         self.bias = Parameter(Tensor(1, out_channels)) if bias else None
         self.convolution_mode = convolution_mode
         self.conv = (
-            MinkowskiConvolutionTransposeFunction()
+            MinkowskiConvolutionTransposeFunction
             if is_transpose
-            else MinkowskiConvolutionFunction()
+            else MinkowskiConvolutionFunction
         )
 
     def forward(
@@ -314,36 +314,45 @@ class MinkowskiConvolutionBase(MinkowskiModuleBase):
         assert isinstance(input, SparseTensor)
         assert input.D == self.dimension
 
-        # Opt-in deterministic path (ME.set_deterministic(True)): sort the input
-        # into a canonical coordinate order so the backend accumulation order --
-        # and therefore the output -- is independent of the input row ordering.
-        # See MinkowskiEngine/utils/determinism.py and upstream issues #554/#504.
-        # Skipped for the use_mm (kernel_volume == 1) path, which is a plain
-        # matrix multiply with no coordinate-order-dependent accumulation.
-        if not self.use_mm:
-            from MinkowskiEngine.utils.determinism import (
-                is_deterministic,
-                sorted_coordinates,
-            )
-
-            if is_deterministic():
-                input = sorted_coordinates(input)
-
         if self.use_mm:
             # If the kernel_size == 1, the convolution is simply a matrix
             # multiplication
             out_coordinate_map_key = input.coordinate_map_key
             outfeat = input.F.mm(self.kernel)
         else:
-            # Get a new coordinate_map_key or extract one from the coords
-            out_coordinate_map_key = _get_coordinate_map_key(
-                input, coordinates, self.kernel_generator.expand_coordinates
+            from MinkowskiEngine.utils.determinism import (
+                is_deterministic,
+                sorted_coordinates,
             )
+
+            mode = self.convolution_mode
+            deterministic = is_deterministic() or mode == ConvolutionMode.DETERMINISTIC
+            stride = self.kernel_generator.kernel_stride
+            out_stride = [
+                s // k if self.is_transpose else s * k
+                for s, k in zip(input.tensor_stride, stride)
+            ]
+            # Resolve targets against the caller's manager, BEFORE sorting.
+            out_coordinate_map_key = _get_coordinate_map_key(
+                input, coordinates, tensor_stride=out_stride,
+                # An explicit target takes precedence over coordinate expansion.
+                expand_coordinates=self.kernel_generator.expand_coordinates and coordinates is None,
+            )
+            if deterministic:
+                if (coordinates is None and not self.is_transpose
+                        and not self.kernel_generator.expand_coordinates):
+                    # Keep the natural map identity (especially stride-1
+                    # residuals/ME.cat and TensorField inverse mappings).
+                    out_coordinate_map_key = input.coordinate_manager.stride(
+                        input.coordinate_map_key, stride
+                    )
+                input = sorted_coordinates(input)
+                mode = ConvolutionMode.DETERMINISTIC
             outfeat = self.conv.apply(
                 input.F,
                 self.kernel,
                 self.kernel_generator,
-                self.convolution_mode,
+                mode,
                 input.coordinate_map_key,
                 out_coordinate_map_key,
                 input._manager,

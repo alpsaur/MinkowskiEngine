@@ -712,10 +712,14 @@ CoordinateMapManager<
     ASSERT(kernel_dim + 1 == in_map.coordinate_size(), "kernel size mismatch");
     ASSERT(kernel_dim + 1 == out_map.coordinate_size(), "kernel size mismatch");
 
-    // If either coordinate map is empty
+    // This function returns a reference: an empty map must live in the cache
+    // too, not in a temporary destroyed before the caller can inspect it.
     if (in_map.size() == 0 || out_map.size() == 0) {
-      return detail::empty_map_functor<coordinate_type, TemplatedAllocator,
-                                       CoordinateMapType, kernel_map_type>()();
+      auto inserted = m_kernel_maps.emplace(
+          kernel_map_key,
+          detail::empty_map_functor<coordinate_type, TemplatedAllocator,
+                                   CoordinateMapType, kernel_map_type>()());
+      return inserted.first->second;
     }
 
     if (!is_transpose) {

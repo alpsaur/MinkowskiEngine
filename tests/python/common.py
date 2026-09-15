@@ -29,9 +29,6 @@ import MinkowskiEngine as ME
 
 from urllib.request import urlretrieve
 
-if not os.path.isfile("1.ply"):
-    urlretrieve("http://cvgl.stanford.edu/data2/minkowskiengine/1.ply", "1.ply")
-
 
 def batched_coordinates(coords, dtype=torch.int32, device=None):
     return ME.utils.batched_coordinates(coords, dtype=dtype, device=device)
@@ -42,7 +39,13 @@ def load_file(file_name):
     # Skip the calling test rather than erroring when it is unavailable.
     import pytest
 
+    if os.environ.get("ME_RUN_DATA_TESTS") != "1":
+        pytest.skip("optional real-data/stress test; use --run-data-tests")
     o3d = pytest.importorskip("open3d")
+    # Only optional point-cloud tests need external data. Importing the shared
+    # synthetic helpers must never download files or require network access.
+    if not os.path.isfile(file_name):
+        urlretrieve("https://cvgl.stanford.edu/data2/minkowskiengine/1.ply", file_name)
     pcd = o3d.io.read_point_cloud(file_name)
     coords = np.array(pcd.points)
     colors = np.array(pcd.colors)

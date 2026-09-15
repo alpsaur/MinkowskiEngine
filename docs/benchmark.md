@@ -1,5 +1,49 @@
 # Benchmark
 
+## Reproducible fork benchmark (v0.5.9+)
+
+From a checkout with a matching, built extension:
+
+```bash
+# Same fixed synthetic inputs and weights; fresh process per configuration.
+OMP_NUM_THREADS=2 python scripts/benchmark.py --device cuda --precision fp32 --output baseline.json
+OMP_NUM_THREADS=2 python scripts/benchmark.py --device cuda --precision bf16 --lazy-sync --output bf16.json
+OMP_NUM_THREADS=2 python scripts/benchmark.py --device cuda --fused-copy off --output legacy.json
+
+# Separate reusable-map inference/training setups from map-rebuild overhead.
+python scripts/benchmark.py --device cuda --map-mode warm --channels 64
+# Quick CPU functionality check, not a GPU performance comparison:
+python scripts/benchmark.py --device cpu --points 128 --channels 4 --iterations 2
+```
+
+The harness runs a small sparse U-Net with a residual block, down/up sampling,
+and an explicit skip-coordinate target. It measures forward, loss/backward,
+and total step latency; reports CUDA allocator peak allocated/reserved memory;
+and emits JSON with seed, active point count, precision, settings, and native
+build provenance. `--help` lists all controls, including `--tf32` and
+`--deterministic`.
+
+- `--map-mode cold` (default) creates a fresh coordinate manager per step.
+  `warm` reuses maps across steps. Compare like with like.
+- Input generation, H2D transfer, DataLoader work, optimizer updates, and
+  gradient-scaler overhead are **not** included. Weights stay fixed; every
+  iteration clears gradients and performs a real backward pass.
+- CUDA forward/backward figures use events and include launch/idle gaps;
+  they are not summed GPU-kernel busy time. Total step time is synchronized
+  wall-clock latency. CPU figures use the wall clock.
+- Warmup runs precede measurement. CUDA memory includes model/inputs/cached
+  maps; CPU allocator memory is not reported. Avoid other GPU workloads and
+  compare multiple runs, not one noisy minimum.
+- `ME_LAZY_SYNC` is latched on first native use: launch a new process for each
+  configuration. The harness explicitly sets both lazy-sync and fused-copy
+  options, rather than silently inheriting those two environment flags.
+- This is a regression/experimentation tool, not evidence of a speedup on
+  your real training pipeline. Profile that pipeline before optimizing it.
+
+## Historical upstream results (v0.4.3, Titan X)
+
+The results below are retained for reference and are not measurements of this fork.
+
 We report the feed forward and backward pass time of a convolution layer, and a small U-network for v0.4.3. Note that the kernel map can be reused for other layers with the same tensor-stride, stride, and kernel offsets, thus the time reported in this page can be amortized across all layers used in a large nueral network.
 
 We use a Titan X for the experiments.

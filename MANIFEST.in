@@ -1,3 +1,5 @@
 include Makefile
 recursive-include src *.hpp *.cpp *.cu *.cuh *.h
-recursive-include pybind *.hpp *.cpp
+recursive-include pybind *.hpp *.cpp *.cu
+include MinkowskiEngineBackend/__init__.py
+exclude MinkowskiEngineBackend/_build_info.json

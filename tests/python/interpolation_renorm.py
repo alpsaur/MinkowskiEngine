@@ -239,6 +239,39 @@ class InterpolationRenormTestCase(unittest.TestCase):
     def test_features_at_coordinates_gpu(self):
         self._run_features_at_coordinates_case("cuda")
 
+    @unittest.skipUnless(torch.cuda.is_available(), "requires CUDA")
+    def test_renormalization_has_no_host_scalar_read(self):
+        from MinkowskiEngine.MinkowskiInterpolation import _renormalize_partial_neighborhoods
+        out = torch.tensor([[4.0], [8.0]], device="cuda")
+        mapping = torch.tensor([0, 1], dtype=torch.int32, device="cuda")
+        weights = torch.tensor([1.0, 0.5], device="cuda")
+        with torch.profiler.profile(activities=[torch.profiler.ProfilerActivity.CPU]) as prof:
+            result, normalized = _renormalize_partial_neighborhoods(out, mapping, weights, 3)
+        self.assertFalse(any("_local_scalar_dense" in event.key for event in prof.key_averages()))
+        torch.testing.assert_close(result, torch.tensor([[4.0], [16.0]], device="cuda"))
+        torch.testing.assert_close(normalized, torch.ones_like(weights))
+
+    def test_full_neighborhood_metadata_fast_path(self):
+        from MinkowskiEngine.MinkowskiInterpolation import _renormalize_partial_neighborhoods
+        out = torch.randn(2, 3)
+        mapping = torch.arange(2).repeat_interleave(8)
+        weights = torch.full((16,), 0.125)
+        result, normalized = _renormalize_partial_neighborhoods(out, mapping, weights, 3)
+        self.assertIs(result, out)
+        self.assertIs(normalized, weights)
+
+    def test_empty_and_zero_weight_neighborhoods(self):
+        from MinkowskiEngine.MinkowskiInterpolation import _renormalize_partial_neighborhoods
+        out = torch.zeros(2, 3)
+        mapping = torch.tensor([0, 1], dtype=torch.int32)
+        weights = torch.zeros(2)
+        result, normalized = _renormalize_partial_neighborhoods(out, mapping, weights, 3)
+        self.assertTrue(torch.equal(result, out))
+        self.assertTrue(torch.equal(normalized, weights))
+        empty, empty_weights = _renormalize_partial_neighborhoods(out[:0], mapping[:0], weights[:0], 3)
+        self.assertEqual(tuple(empty.shape), (0, 3))
+        self.assertEqual(len(empty_weights), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

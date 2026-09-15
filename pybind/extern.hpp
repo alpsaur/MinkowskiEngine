@@ -738,6 +738,7 @@ void initialize_non_templated_classes(py::module &m) {
       .value("DEFAULT", minkowski::ConvolutionMode::Type::DEFAULT)
       .value("DIRECT_GEMM", minkowski::ConvolutionMode::Type::DIRECT_GEMM)
       .value("COPY_GEMM", minkowski::ConvolutionMode::Type::COPY_GEMM)
+      .value("DETERMINISTIC", minkowski::ConvolutionMode::Type::DETERMINISTIC)
       .export_values();
 
   // Classes
