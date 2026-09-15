@@ -335,7 +335,8 @@ class MinkowskiConvolutionBase(MinkowskiModuleBase):
             # Resolve targets against the caller's manager, BEFORE sorting.
             out_coordinate_map_key = _get_coordinate_map_key(
                 input, coordinates, tensor_stride=out_stride,
-                expand_coordinates=self.kernel_generator.expand_coordinates,
+                # An explicit target takes precedence over coordinate expansion.
+                expand_coordinates=self.kernel_generator.expand_coordinates and coordinates is None,
             )
             if deterministic:
                 if (coordinates is None and not self.is_transpose

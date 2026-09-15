@@ -48,7 +48,10 @@ def print_diagnostics():
         import MinkowskiEngine as ME
 
         info["minkowski_version"] = ME.__version__
-        info["extension_build"] = ME.get_build_info()
+        # Run-by-path can import an older installed ME, not this checkout.
+        # Missing provenance is unknown, not this checkout's sidecar metadata.
+        get_build_info = getattr(ME, "get_build_info", None)
+        info["extension_build"] = get_build_info() if get_build_info else None
         info["compiled_nvcc"] = ME.cuda_version()
         info["compiled_cudart"] = ME.cudart_version()
     except ImportError as exc:

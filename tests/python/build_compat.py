@@ -4,6 +4,11 @@ import contextlib
 import copy
 import io
 import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -52,6 +57,36 @@ class TestBuildCompatibility(unittest.TestCase):
         cpu["cpu_only"] = True
         check_build_compatibility(cpu, runtime(cuda=None))
         check_build_compatibility(cpu, runtime(cuda="13.0"))
+
+    def test_standalone_diagnostics_with_legacy_install(self):
+        script = Path(ME.__file__).parent / "diagnostics.py"
+        with tempfile.TemporaryDirectory() as directory:
+            # Simulate an older install rather than borrowing a possibly newer
+            # checkout's metadata for a different imported native extension.
+            (Path(directory) / "MinkowskiEngine.py").write_text(
+                '__version__ = "0.5.4"\n'
+                "def cuda_version(): return 12080\n"
+                "def cudart_version(): return 12080\n"
+            )
+            result = subprocess.run(
+                [sys.executable, str(script)],
+                cwd=directory,
+                env=dict(
+                    os.environ,
+                    PYTHONPATH=directory,
+                    PATH="",
+                    CUDA_VISIBLE_DEVICES="",
+                    PYTHONDONTWRITEBYTECODE="1",
+                ),
+                text=True,
+                capture_output=True,
+                check=True,
+                timeout=60,
+            )
+        info = json.loads(result.stdout)
+        self.assertEqual(info["minkowski_version"], "0.5.4")
+        self.assertIsNone(info["extension_build"])
+        self.assertEqual(info["compiled_cudart"], 12080)
 
     def test_diagnostics_without_external_tools(self):
         with (
