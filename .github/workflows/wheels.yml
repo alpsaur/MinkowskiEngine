@@ -7,10 +7,10 @@
 #    TORCH_CUDA_ARCH_LIST to add other arches.
 #  - No auditwheel repair is applied on purpose: this extension dynamically links
 #    to torch and CUDA runtime libs that the user's environment provides.
-#  - This workflow is SCAFFOLDING to iterate on. It was NOT run/validated locally;
-#    correctness is confirmed only when this workflow runs green on a tag push.
-#  - Building needs only the CUDA toolkit (nvcc), not a GPU. Runtime GPU validation
-#    is covered by the self-hosted gpu-test job in ci.yml.
+#  - Every artifact is installed and import/CPU-smoke-tested outside checkout.
+#  - Building needs only nvcc, not a GPU. GPU validation must also pass on a
+#    trusted host (scripts/check_wheel.py --cuda) before publishing the draft.
+#  - Tags create DRAFT releases only, after ALL wheel jobs pass.
 
 name: wheels
 
@@ -21,7 +21,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write # softprops/action-gh-release attaches assets to the Release
+  contents: read
 
 jobs:
   build-wheels:
@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.10", "3.11", "3.12"]
+        python: ["3.10", "3.11", "3.12", "3.13"]
 
     steps:
       - name: Install build deps in CUDA container
@@ -57,7 +57,7 @@ jobs:
           # (undefined symbol: c10::TensorImpl::incref_pyobject). 2.9.x matches
           # the README-recommended runtime; bump deliberately, with a re-tag.
           python -m pip install --no-cache-dir "torch~=2.9.0" --index-url https://download.pytorch.org/whl/cu128
-          python -m pip install --no-cache-dir wheel setuptools ninja
+          python -m pip install --no-cache-dir wheel setuptools ninja numpy
 
       - name: Build wheel
         env:
@@ -73,14 +73,32 @@ jobs:
           python -m pip wheel . --no-build-isolation --no-deps -w wheelhouse/
           ls -la wheelhouse/
 
+      - name: Install and smoke-test the wheel outside checkout
+        env:
+          OMP_NUM_THREADS: "2"
+        run: python scripts/check_wheel.py wheelhouse/*.whl
+
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v4
         with:
           name: wheel-py${{ matrix.python }}
           path: wheelhouse/minkowskiengine-*.whl
 
-      - name: Attach wheel to Release (tag builds only)
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
+  draft-release:
+    name: Attach validated wheels to draft release
+    needs: build-wheels
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
         with:
+          pattern: wheel-py*
+          merge-multiple: true
+          path: wheelhouse
+      - uses: softprops/action-gh-release@v2
+        with:
+          draft: true
           files: wheelhouse/minkowskiengine-*.whl
+          fail_on_unmatched_files: true

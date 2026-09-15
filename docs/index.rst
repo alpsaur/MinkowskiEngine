@@ -58,7 +58,9 @@ Table of Contents
    issues
    guides
    performance
+   profiling
    operations
+   releasing
    migration_05
    benchmark
 

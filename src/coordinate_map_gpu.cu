@@ -505,14 +505,12 @@ template <typename coordinate_type, //
           typename size_type,       //
           typename index_type,      //
           typename map_type>
-__global__ void kernel_region_insert(
+__global__ void kernel_region_coordinates(
     size_type const num_threads,                                //
-    map_type __restrict__ out_map,                              //
     coordinate_type const *const __restrict__ p_in_coordinates, //
     index_type const *const __restrict__ in_valid_row_index,    //
     coordinate_type *__restrict__ p_out_coordinates,            //
     index_type *__restrict__ out_valid_row_index,               //
-    index_type *__restrict__ out_valid_map_index,               //
     gpu_kernel_region<coordinate_type> kernel,                  //
     size_type const *const __restrict__ out_tensor_stride,      //
     index_type const unused_key) {                              //
@@ -559,56 +557,40 @@ __global__ void kernel_region_insert(
           kernel_ind,
           &p_in_coordinates[in_valid_row_index[x] * coordinate_size], sh_tmp);
 
-      // Creating generative conv transpose
-      if (kernel.is_transpose()) {
-        // initialize out coordinate
+      if (kernel.is_transpose() ||
+          is_coordinate_aligned(sh_tmp, sh_out_tensor_stride, coordinate_size)) {
         for (uint32_t i = 0; i < coordinate_size; ++i)
-          p_out_coordinates[out_index * coordinate_size + i] =
-              curr_coordinate[i];
-
-        auto const result = out_map.insert(thrust::make_pair(
-            coordinate<coordinate_type>{
-                &p_out_coordinates[out_index * coordinate_size]},
-            out_index));
-
-        if (result.second) {
-          // row index in the out_coordinates
-          out_valid_row_index[out_index] = out_index;
-          // offset in the coordinate map
-          out_valid_map_index[out_index] = result.first.offset();
-        } else {
-          out_valid_row_index[out_index] = unused_key;
-        }
-        ++out_index;
+          p_out_coordinates[out_index * coordinate_size + i] = curr_coordinate[i];
+        out_valid_row_index[out_index] = out_index;
       } else {
-        // skip if the coordinate is not aligned
-        if (!is_coordinate_aligned(sh_tmp, sh_out_tensor_stride,
-                                   coordinate_size)) {
-          out_valid_row_index[out_index] = unused_key;
-          ++out_index;
-        } else {
-          // initialize out coordinate
-          for (uint32_t i = 0; i < coordinate_size; ++i)
-            p_out_coordinates[out_index * coordinate_size + i] =
-                curr_coordinate[i];
-
-          auto const result = out_map.insert(thrust::make_pair(
-              coordinate<coordinate_type>{
-                  &p_out_coordinates[out_index * coordinate_size]},
-              out_index));
-
-          if (result.second) {
-            // row index in the out_coordinates
-            out_valid_row_index[out_index] = out_index;
-            // offset in the coordinate map
-            out_valid_map_index[out_index] = result.first.offset();
-          } else {
-            out_valid_row_index[out_index] = unused_key;
-          }
-          ++out_index;
-        }
+        out_valid_row_index[out_index] = unused_key;
       }
+      ++out_index;
     }
+  }
+}
+
+// Coordinate keys are pointers: equality dereferences their global-memory
+// payload. Publishing a pointer in the SAME kernel that writes that payload
+// races other threads' comparisons (atomicCAS does not publish prior stores).
+// A separate, stream-ordered launch makes ALL candidate coordinates visible
+// before any hash-map lookup, including compiler-cacheable coordinate loads.
+template <typename coordinate_type, typename size_type, typename index_type,
+          typename map_type>
+__global__ void kernel_region_insert(
+    size_type const num_threads, map_type out_map,
+    coordinate_type const *__restrict__ coordinates,
+    index_type *__restrict__ valid_row_index,
+    index_type *__restrict__ valid_map_index,
+    size_type const coordinate_size, index_type const unused_key) {
+  auto const x = blockDim.x * blockIdx.x + threadIdx.x;
+  if (x < num_threads && valid_row_index[x] != unused_key) {
+    auto const result = out_map.insert(thrust::make_pair(
+        coordinate<coordinate_type>{&coordinates[x * coordinate_size]}, x));
+    if (result.second)
+      valid_map_index[x] = result.first.offset();
+    else
+      valid_row_index[x] = unused_key;
   }
 }
 
@@ -638,6 +620,10 @@ CoordinateMapGPU<coordinate_type, TemplatedAllocator>::stride_region(
   self_type stride_map(N_out, m_coordinate_size, m_hashtable_occupancy,
                        out_tensor_stride, m_map_allocator,
                        base_type::m_byte_allocator);
+  if (N_in == 0) {
+    stride_map.m_size = 0;
+    return stride_map; // No zero-block CUDA launches for an empty region.
+  }
 
   index_storage_type d_out_tensor_stride(out_tensor_stride);
 
@@ -653,18 +639,22 @@ CoordinateMapGPU<coordinate_type, TemplatedAllocator>::stride_region(
       4 * m_coordinate_size * sizeof(index_type) + // stride, kernel, dilation
       CUDA_NUM_THREADS * m_coordinate_size * sizeof(coordinate_type); // tmp
 
-  detail::kernel_region_insert<coordinate_type, size_type, index_type, map_type>
+  detail::kernel_region_coordinates<coordinate_type, size_type, index_type, map_type>
       <<<GET_BLOCKS(N_in, CUDA_NUM_THREADS), CUDA_NUM_THREADS,
          shared_memory_size_in_bytes>>>(N_in,                         //
-                                        *stride_map.m_map,            //
                                         const_coordinate_data(),      //
                                         m_valid_row_index.cbegin(),   //
                                         stride_map.coordinate_data(), //
                                         out_valid_row_index.data(),   //
-                                        out_valid_map_index.data(),   //
                                         gpu_kernel,                   //
                                         d_out_tensor_stride.cbegin(), //
                                         unused_key);                  //
+  CUDA_CHECK(cudaGetLastError());
+  detail::kernel_region_insert<coordinate_type, size_type, index_type, map_type>
+      <<<GET_BLOCKS(N_out, CUDA_NUM_THREADS), CUDA_NUM_THREADS>>>(
+          N_out, *stride_map.m_map, stride_map.const_coordinate_data(),
+          out_valid_row_index.data(), out_valid_map_index.data(),
+          m_coordinate_size, unused_key);
   CUDA_CHECK(cudaStreamSynchronize(0));
   LOG_DEBUG("kernel_region_insert done");
 

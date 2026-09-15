@@ -11,8 +11,8 @@ authors:
     given-names: Silvio
 repository-code: "https://github.com/alpsaur/MinkowskiEngine"
 url: "https://github.com/alpsaur/MinkowskiEngine"
-version: "0.5.8"
-date-released: "2026-07-17"
+version: "0.5.9"
+date-released: "2026-09-15"
 license: MIT
 keywords:
   - sparse-tensor

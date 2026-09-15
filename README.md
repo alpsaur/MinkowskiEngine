@@ -24,23 +24,32 @@
    - See the [performance guide](docs/performance.md): combined with TF32, a real training pipeline measured ~2x faster per step at ~25% less memory vs stock-ME fp32
 3. **It's tested and installable**: [prebuilt wheels](https://github.com/alpsaur/MinkowskiEngine/releases/latest) (one `pip install`, no compile), CI on every change, a repaired test suite, working Docker, [hosted docs](https://alpsaur.github.io/MinkowskiEngine/), and built-in `torch.profiler` ranges (`ME::*`) for diagnosing your own workloads.
 
-### Quick Install (v0.5.8)
+### Quick Install (v0.5.9)
 
-**Prebuilt wheels** (fastest, no compilation; CUDA 12.8 / sm_120, built against **torch 2.9.x cu128**, Python 3.10–3.12):
+**Prebuilt wheels** (fastest, no compilation; CUDA 12.8 / sm_120, built against **torch 2.9.x cu128**, Python 3.10–3.13):
 
 ```bash
-# pick the wheel matching your Python from the release page
-pip install https://github.com/alpsaur/MinkowskiEngine/releases/download/v0.5.8/minkowskiengine-0.5.8-cp312-cp312-linux_x86_64.whl
+# Install the matching CUDA torch runtime first, then choose your Python wheel.
+python -m pip install "torch~=2.9.0" --index-url https://download.pytorch.org/whl/cu128
+python -m pip install https://github.com/alpsaur/MinkowskiEngine/releases/download/v0.5.9/minkowskiengine-0.5.9-cp312-cp312-linux_x86_64.whl
 ```
 
 All wheels: [Releases](https://github.com/alpsaur/MinkowskiEngine/releases/latest). The wheel dynamically links your torch install, so it needs a **torch 2.9.x + cu128** runtime; for other torch lines, build from source instead.
 
-**From source** (any torch >= 2.7 cu128; ~10–20 min compile):
+**From source** (build against your installed torch >= 2.7; CI covers 2.7 and 2.9):
 
 ```bash
-# Requires CUDA 12.8+ toolkit installed
-pip install git+https://github.com/alpsaur/MinkowskiEngine@master
+# Requires the CUDA toolkit matching your torch runtime (12.8 for cu128).
+# Install torch first, as above, then the build tools.
+python -m pip install setuptools wheel packaging ninja numpy
+python -m pip install --no-build-isolation --no-deps git+https://github.com/alpsaur/MinkowskiEngine@master
 ```
+
+`--no-build-isolation` is important: otherwise PEP 517 can download a different
+build-time torch than your runtime. Binary wheels constrain the torch minor;
+import-time checks also catch CUDA-runtime and C++ ABI mismatches. After a torch
+minor upgrade, rebuild ME rather than reusing the old extension.
+`ME.get_build_info()` and `ME.print_diagnostics()` report the compiled/runtime versions.
 
 Or build a **CUDA 12.8 / Blackwell** Docker image:
 
@@ -50,11 +59,19 @@ docker build -t minkowski_engine docker
 
 The build no longer wipes `build/` on every run, `python setup.py build_ext --inplace` works out of the box (a `MinkowskiEngineBackend/` namespace stub is included), and a minimal `pyproject.toml` is provided for PEP 517 installs. `FORCE_CUDA=1` (env var) forces a CUDA build on machines without a visible GPU.
 
+### New in v0.5.9
+
+- **Generated-coordinate correctness:** fixes an older GPU race that could create duplicate, zero-feature rows in transpose/expanded coordinate maps, plus empty-map lifetime and zero-size launch bugs.
+- **Determinism repair:** preserves residual/U-Net/TensorField coordinate relationships and selects a non-fused copy-GEMM path; canonical maps are cached. The guarantee is scoped to forward convolution on the same device/build, not bitwise-identical training. See [determinism](docs/operations.md#determinism).
+- **Safer installation/releases:** native build provenance and compatibility errors, torch-minor wheel requirements, complete GPU sources in source distributions, and isolated wheel install/smoke gates before draft-release upload. Python 3.13 wheels are included.
+- **Regression coverage:** public gradcheck works without pytest monkeypatches; restored analytic convolution value/gradient tests and new integration checks. GPU CI remains trusted/manual; automatic CI covers CPU builds/tests.
+- **Measurement and small optimization:** a [reproducible U-Net benchmark](docs/benchmark.md), and interpolation renormalization no longer reads a CUDA boolean back to the host.
+
 ### New in v0.5.8
 
 **Correct interpolation at sparse boundaries.** `MinkowskiInterpolation` / `features_at_coordinates` renormalizes weights over the lattice corners that actually exist, fixing the long-standing upstream bug ([#477](https://github.com/NVIDIA/MinkowskiEngine/issues/477)) where queries next to valid data decayed toward zero. Exact-on-voxel and full-neighborhood results are bit-identical to before; only previously-broken boundary queries change.
 
-**Opt-in deterministic convolution.** `ME.set_deterministic(True)` sorts conv inputs into a canonical coordinate order so outputs are reproducible run-to-run regardless of input row ordering (upstream [#554](https://github.com/NVIDIA/MinkowskiEngine/issues/554)). Off by default; costs one sort per conv.
+**Opt-in deterministic convolution.** Introduced `ME.set_deterministic(True)` for upstream [#554](https://github.com/NVIDIA/MinkowskiEngine/issues/554). The original sorting-only implementation broke coordinate-manager relationships and did not order fused atomic reductions; use v0.5.9 or newer.
 
 Also: regression tests locking in empty-pruning behavior ([#579](https://github.com/NVIDIA/MinkowskiEngine/issues/579)) and TensorField backprop ([#395](https://github.com/NVIDIA/MinkowskiEngine/issues/395)); a new [operations cookbook](docs/operations.md) (memory, DDP, torch.compile, determinism).
 
@@ -89,7 +106,7 @@ The official MinkowskiEngine repo (last updated 2022) doesn't compile with CUDA 
 
 This fork applies community workarounds from issues [#543](https://github.com/NVIDIA/MinkowskiEngine/issues/543), [#594](https://github.com/NVIDIA/MinkowskiEngine/issues/594), and [#596](https://github.com/NVIDIA/MinkowskiEngine/issues/596).
 
-**Tested on:** RTX 5090 (sm_120), CUDA 12.8, PyTorch 2.9 (cu128), Python 3.12, GCC 13. Half-precision paths validated against fp32 references on-GPU (`tests/python/half_precision.py`); the released wheels are import- and smoke-tested on real Blackwell hardware.
+**Tested on:** RTX 5090 (sm_120), CUDA 12.8, PyTorch 2.9 (cu128), Python 3.12, GCC 13. Half-precision paths are validated against fp32 references on-GPU (`tests/python/half_precision.py`). Every wheel passes an isolated install/import/CPU smoke check; release GPU validation is performed on a trusted Blackwell host. See the [release checklist](docs/releasing.md).
 
 > All changes live on the default `master` branch. The previous `cuda12-compat` branch was merged in and removed; install from `master`. BLAS is auto-detected at build time (OpenBLAS by default), so `--install-option` is not required.
 
@@ -97,7 +114,7 @@ This fork applies community workarounds from issues [#543](https://github.com/NV
 
 - Linux (tested on Ubuntu 24.04 under WSL2); CUDA Toolkit **12.8 or newer** (must match the CUDA PyTorch was built with)
 - PyTorch **>= 2.7** with cu128 (CI tests 2.7 and 2.9; prebuilt wheels require **2.9.x**)
-- Python **3.10–3.13** (wheels: 3.10–3.12)
+- Python **3.10–3.13** (source and wheels)
 - GCC **11–13** (required by CUDA 12.8; source builds only)
 - `ninja` (source builds only); OpenBLAS (auto-detected at build time)
 
@@ -162,7 +179,7 @@ We visualized a sparse tensor network operation on a sparse tensor, convolution,
 
 ## Installation
 
-> **Blackwell / RTX 50-series users:** use the [Quick Install](#cuda-128--blackwell-gpu-fork) at the top of this README (`pip install git+...@master`). The detailed sections below are retained from upstream for older CUDA configurations; BLAS is auto-detected, so `--install-option` is not required (and is unsupported on modern pip).
+> **Blackwell / RTX 50-series users:** use the [Quick Install](#cuda-128--blackwell-gpu-fork) at the top of this README (`pip install --no-build-isolation --no-deps git+...@master`). The detailed sections below are retained from upstream for older CUDA configurations; BLAS is auto-detected, so `--install-option` is not required (and is unsupported on modern pip).
 
 You can install the Minkowski Engine with `pip`, with anaconda, or on the system directly. If you experience issues installing the package, please check the [installation wiki page](https://github.com/NVIDIA/MinkowskiEngine/wiki/Installation).
 If you cannot find a relevant problem, please report the issue on [this fork's issue page](https://github.com/alpsaur/MinkowskiEngine/issues).
@@ -175,16 +192,17 @@ If you cannot find a relevant problem, please report the issue on [this fork's i
 
 ### Pip
 
-> **Note:** the `MinkowskiEngine` package on PyPI is the unmaintained upstream 0.5.4, which does **not** build on NumPy 2 / CUDA 12.8. Use this fork's [prebuilt wheels](https://github.com/alpsaur/MinkowskiEngine/releases/tag/v0.5.6) or install from source below. (`--install-option` is also no longer supported by modern pip.)
+> **Note:** the `MinkowskiEngine` package on PyPI is the unmaintained upstream 0.5.4, which does **not** build on NumPy 2 / CUDA 12.8. Use this fork's [prebuilt wheels](https://github.com/alpsaur/MinkowskiEngine/releases/latest) or install from source below. (`--install-option` is also no longer supported by modern pip.)
 
 First, install pytorch following the [instruction](https://pytorch.org). Next, install `openblas`.
 
 ```
 sudo apt install build-essential python3-dev libopenblas-dev
-pip install torch ninja
+pip install "torch~=2.9.0" --index-url https://download.pytorch.org/whl/cu128
+pip install setuptools wheel packaging ninja numpy
 
 # From this fork's latest source (BLAS auto-detected):
-pip install -U git+https://github.com/alpsaur/MinkowskiEngine@master
+pip install -U --no-build-isolation --no-deps git+https://github.com/alpsaur/MinkowskiEngine@master
 ```
 
 Build-time knobs are environment variables now that pip no longer forwards setup flags:
@@ -194,8 +212,8 @@ Build-time knobs are environment variables now that pip no longer forwards setup
 # export CUDA_HOME=/usr/local/cuda-12.8  # select the CUDA toolkit explicitly
 # export FORCE_CUDA=1                  # force a CUDA build when no GPU is visible (e.g. containers/CI)
 # export TORCH_CUDA_ARCH_LIST="12.0+PTX"  # target specific compute capabilities
-# export MAX_COMPILATION_THREADS=24    # parallel compile jobs
-pip install -U git+https://github.com/alpsaur/MinkowskiEngine@master
+# export MAX_COMPILATION_THREADS=6     # tune to available RAM
+pip install -U --no-build-isolation --no-deps git+https://github.com/alpsaur/MinkowskiEngine@master
 ```
 
 ### Anaconda

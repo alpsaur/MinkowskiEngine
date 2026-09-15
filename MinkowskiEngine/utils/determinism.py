@@ -28,10 +28,11 @@ that differ in the low-order bits.  The effect is largest for strided
 https://github.com/NVIDIA/MinkowskiEngine/issues/554 and
 https://github.com/NVIDIA/MinkowskiEngine/issues/504.
 
-The community-confirmed workaround is to sort the coordinates into a canonical
-order before the convolution so that the insertion order (and therefore the
-accumulation order) becomes a deterministic function of the point *set* rather
-than of the incoming row order.  This module exposes that as:
+Canonical coordinate ordering is combined with the non-fused copy-GEMM
+backend: sorting alone cannot order the atomic adds in fused scatter kernels.
+Sorted maps are cached within the ORIGINAL coordinate manager, preserving
+residual connections, explicit output coordinates, and TensorField mappings.
+This module exposes that as:
 
 * :func:`sorted_coordinates` -- return a new :class:`SparseTensor` whose rows
   are in a canonical lexicographic coordinate order, and
@@ -61,17 +62,19 @@ def set_deterministic(mode: bool = True):
 
     When enabled, :class:`MinkowskiEngine.MinkowskiConvolution` and
     :class:`MinkowskiEngine.MinkowskiConvolutionTranspose` sort their input into
-    a canonical coordinate order (via :func:`sorted_coordinates`) before calling
-    the backend, so that the convolution output is a deterministic function of
-    the input *point set*, independent of the input row ordering.
+    a canonical coordinate order and select non-fused copy-GEMM, overriding
+    the convolution algorithm and ``ME_FUSED_COPY`` performance preferences.
+    The contract covers convolution forward values on the same device/build,
+    not bitwise deterministic training, other operations, or different GPUs.
+    Backward remains supported, but weight-gradient reductions and external
+    PyTorch/cuBLAS settings can introduce nondeterminism.
 
     .. warning::
 
-        This costs one coordinate sort **per convolution** (a handful of stable
-        ``argsort`` passes plus one ``SparseTensor`` reconstruction). It is
-        intended for reproducibility / debugging, not for throughput-critical
-        training or inference. The default (``False``) preserves the original,
-        faster, order-dependent behavior.
+        This costs a sort and an additional map per distinct input map (cached
+        for the coordinate manager's lifetime), feature reindexing per call,
+        and slower per-offset gather/scatter. It is intended for debugging,
+        not throughput-critical training. The default is ``False``.
 
     Args:
         :attr:`mode` (bool): ``True`` to enable deterministic convolutions,
@@ -113,14 +116,15 @@ def sorted_coordinates(sparse_tensor: SparseTensor) -> SparseTensor:
 
     The returned :class:`SparseTensor` contains the same points and features as
     the input, but its rows are sorted by a lexicographic ranking of the
-    coordinates (batch index most significant). Because the row (insertion)
-    order is now a deterministic function of the point set, feeding the result
-    into a convolution removes the order-dependent low-order-bit nondeterminism
-    described in the module docstring.
+    coordinates (batch index most significant). The row (insertion) order
+    becomes a deterministic function of the point set, independent of the
+    input row permutation.
 
-    The reconstruction preserves the input ``tensor_stride`` and
-    ``quantization_mode`` and builds a fresh coordinate manager on the same
-    device. Gradients flow through the reordered features.
+    The reconstruction preserves the input ``tensor_stride``,
+    ``quantization_mode``, and coordinate manager. Only the map and permutation
+    are cached, never features or an autograd graph. Gradients flow through
+    reordered features. Sorting alone does NOT make fused convolution
+    deterministic; use :func:`set_deterministic` for that.
 
     Args:
         :attr:`sparse_tensor` (:class:`MinkowskiEngine.SparseTensor`): the tensor
@@ -133,22 +137,33 @@ def sorted_coordinates(sparse_tensor: SparseTensor) -> SparseTensor:
         sparse_tensor, SparseTensor
     ), "sorted_coordinates expects a SparseTensor"
 
-    coords = sparse_tensor.C
-    feats = sparse_tensor.F
-
-    # Nothing to reorder for empty / single-row tensors; return as-is.
-    if coords.shape[0] <= 1:
+    manager = sparse_tensor.coordinate_manager
+    stride, string_id = sparse_tensor.coordinate_map_key.get_key()
+    cache_key = (tuple(stride), string_id)
+    cache = getattr(manager, "_deterministic_maps", None)
+    if cache is None:
+        cache = manager._deterministic_maps = {}
+    if cache_key not in cache:
+        coords = sparse_tensor.C
+        if len(coords) <= 1:
+            return sparse_tensor
+        with torch.no_grad():
+            perm = _lexicographic_permutation(coords)
+            unique_key = manager.get_unique_coordinate_map_key(stride)
+            key, (unique, _) = manager.insert_and_map(
+                coords[perm], stride, unique_key[1]
+            )
+            # Honor the backend's insertion mapping; never assume row order.
+            perm = perm[unique.long()]
+        cache[cache_key] = (key, perm)
+        # Sorting an already canonical map need not allocate another map.
+        cache[(tuple(stride), key.get_key()[1])] = (key, None)
+    key, perm = cache[cache_key]
+    if perm is None:
         return sparse_tensor
-
-    with torch.no_grad():
-        perm = _lexicographic_permutation(coords)
-
-    sorted_coords = coords[perm]
-    sorted_feats = feats[perm]
-
     return SparseTensor(
-        sorted_feats,
-        coordinates=sorted_coords,
-        tensor_stride=sparse_tensor.tensor_stride,
+        sparse_tensor.F[perm],
+        coordinate_map_key=key,
+        coordinate_manager=manager,
         quantization_mode=sparse_tensor.quantization_mode,
     )

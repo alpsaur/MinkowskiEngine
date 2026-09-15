@@ -22,6 +22,8 @@
 # Please cite "4D Spatio-Temporal ConvNets: Minkowski Convolutional Neural
 # Networks", CVPR'19 (https://arxiv.org/abs/1904.08755) if you use any part
 # of the code.
+import itertools
+import os
 import torch
 import unittest
 import time
@@ -45,7 +47,55 @@ from MinkowskiEngine.utils import batched_coordinates
 from tests.python.common import data_loader, load_file
 from utils.gradcheck import gradcheck
 
-LEAK_TEST_ITER = 100000
+# Long leak probes are opt-in, not part of a normal regression/CI run.
+LEAK_TEST_ITER = int(os.environ.get("ME_LEAK_TEST_ITER", "0"))
+
+
+def _check_analytic(test, dimension, kernel_size, transpose=False):
+    """Compare values and gradients with an independent sparse sum oracle."""
+    for device in (["cpu", "cuda"] if torch.cuda.is_available() else ["cpu"]):
+        for stride in (1, 2):
+            points = list(itertools.product(range(2), repeat=dimension))
+            coords = torch.tensor([[0, *p] for p in points], dtype=torch.int32)
+            tensor_stride = stride if transpose else 1
+            coords[:, 1:] *= tensor_stride
+            feats = torch.arange(len(coords) * 2, dtype=torch.double).reshape(-1, 2)
+            x = SparseTensor(feats, coords, tensor_stride=tensor_stride, device=device)
+            x.F.requires_grad_()
+            cls = MinkowskiConvolutionTranspose if transpose else MinkowskiConvolution
+            conv = cls(2, 2, kernel_size, stride=stride, dimension=dimension).to(
+                device=device, dtype=torch.double
+            )
+            with torch.no_grad():
+                conv.kernel.copy_(torch.arange(
+                    conv.kernel.numel(), device=device, dtype=torch.double
+                ).reshape_as(conv.kernel) / conv.kernel.numel())
+            actual = conv(x)
+            # ME enumerates dimension 0 fastest. Odd kernels are centered;
+            # even kernels start at offset zero.
+            start = -(kernel_size // 2) if kernel_size % 2 else 0
+            axis = range(start, start + kernel_size)
+            offsets = [tuple(reversed(p)) for p in itertools.product(
+                axis, repeat=dimension
+            )]
+            rows = {tuple(c): i for i, c in enumerate(x.C.cpu().tolist())}
+            spacing = actual.tensor_stride if transpose else x.tensor_stride
+            sign = -1 if transpose else 1
+            expected = []
+            for c in actual.C.cpu().tolist():
+                value = x.F.new_zeros(2)
+                for k, offset in enumerate(offsets):
+                    source = (c[0], *(c[d + 1] + sign * offset[d] * spacing[d]
+                                     for d in range(dimension)))
+                    if source in rows:
+                        value = value + x.F[rows[source]] @ conv.kernel[k]
+                expected.append(value)
+            expected = torch.stack(expected)
+            torch.testing.assert_close(actual.F, expected, atol=1e-10, rtol=1e-10)
+            got_grads = torch.autograd.grad(actual.F.sum(), (x.F, conv.kernel))
+            ref_grads = torch.autograd.grad(expected.sum(), (x.F, conv.kernel))
+            for got, ref in zip(got_grads, ref_grads):
+                torch.testing.assert_close(got, ref, atol=1e-10, rtol=1e-10)
 
 
 class TestConvolution(unittest.TestCase):
@@ -224,25 +274,7 @@ class TestConvolution(unittest.TestCase):
                 print(i)
 
     def test_analytic(self):
-        print(f"{self.__class__.__name__}: test")
-        in_channels, out_channels, D = 2, 2, 1
-        coords = torch.IntTensor([[0, 0], [0, 1], [0, 2]])
-        feats = torch.FloatTensor([[0, 1], [1, 0], [1, 1]])
-        input = SparseTensor(feats, coordinates=coords)
-        # Initialize context
-        conv = MinkowskiConvolution(
-            in_channels, out_channels, kernel_size=2, stride=2, bias=False, dimension=D
-        )
-        conv.kernel[:] = torch.FloatTensor([[[1, 2], [2, 1]], [[0, 1], [1, 0]]])
-        output = conv(input)
-        print(output)
-
-        conv = MinkowskiConvolution(
-            in_channels, out_channels, kernel_size=2, stride=1, bias=False, dimension=D
-        )
-        conv.kernel[:] = torch.FloatTensor([[[1, 2], [2, 1]], [[0, 1], [1, 0]]])
-        output = conv(input)
-        print(output)
+        _check_analytic(self, dimension=1, kernel_size=2)
 
 
 class TestConvolutionMode(unittest.TestCase):
@@ -400,74 +432,10 @@ class TestConvolutionTranspose(unittest.TestCase):
         )
 
     def test_analytic(self):
-        print(f"{self.__class__.__name__}: test")
-        in_channels, out_channels, D = 2, 2, 2
-        coords = torch.IntTensor([[0, 0, 0], [0, 1, 1], [0, 2, 1]])
-        feats = torch.FloatTensor([[0, 1], [1, 0], [1, 1]])
-        input = SparseTensor(feats, coordinates=coords)
-        # Initialize context
-        conv = MinkowskiConvolution(
-            in_channels, out_channels, kernel_size=2, stride=2, bias=False, dimension=D
-        )
-        conv.kernel[:] = torch.FloatTensor(
-            [[[1, 2], [2, 1]], [[0, 1], [1, 0]], [[0, 1], [1, 1]], [[1, 1], [1, 0]]]
-        )
-        output = conv(input)
-        print(output)
-
-        conv_tr = MinkowskiConvolutionTranspose(
-            in_channels, out_channels, kernel_size=2, stride=2, bias=False, dimension=D
-        )
-        conv_tr.kernel[:] = torch.FloatTensor(
-            [[[1, 2], [2, 1]], [[0, 1], [1, 0]], [[0, 1], [1, 1]], [[1, 1], [1, 0]]]
-        )
-        output_tr = conv_tr(output)
-        print(output_tr)
+        _check_analytic(self, dimension=2, kernel_size=2, transpose=True)
 
     def test_analytic_odd(self):
-        print(f"{self.__class__.__name__}: test")
-        in_channels, out_channels, D = 2, 2, 2
-        coords = torch.IntTensor([[0, 0, 0], [0, 1, 1], [0, 2, 1]])
-        feats = torch.FloatTensor([[0, 1], [1, 0], [1, 1]])
-        input = SparseTensor(feats, coordinates=coords)
-        # Initialize context
-        conv = MinkowskiConvolution(
-            in_channels, out_channels, kernel_size=3, stride=2, bias=False, dimension=D
-        )
-        conv.kernel[:] = torch.FloatTensor(
-            [
-                [[1, 2], [2, 1]],
-                [[0, 1], [1, 0]],
-                [[0, 1], [1, 1]],
-                [[1, 1], [1, 0]],
-                [[1, 1], [1, 0]],
-                [[2, 1], [1, 0.5]],
-                [[1, 1], [1, 0.1]],
-                [[1, 1], [1, 0.7]],
-                [[1, 0.3], [1, 0.5]],
-            ]
-        )
-        output = conv(input)
-        print(output)
-
-        conv_tr = MinkowskiConvolutionTranspose(
-            in_channels, out_channels, kernel_size=3, stride=2, bias=False, dimension=D
-        )
-        conv_tr.kernel[:] = torch.FloatTensor(
-            [
-                [[1, 2], [2, 1]],
-                [[0, 1], [1, 0]],
-                [[0, 1], [1, 1]],
-                [[1, 1], [1, 0]],
-                [[1, 1], [1, 0]],
-                [[2, 1], [1, 0.5]],
-                [[1, 1], [1, 0.1]],
-                [[1, 1], [1, 0.7]],
-                [[1, 0.3], [1, 0.5]],
-            ]
-        )
-        output_tr = conv_tr(output)
-        print(output_tr)
+        _check_analytic(self, dimension=2, kernel_size=3, transpose=True)
 
 
 class TestGenerativeConvolutionTranspose(unittest.TestCase):

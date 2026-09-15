@@ -22,8 +22,9 @@
 # Please cite "4D Spatio-Temporal ConvNets: Minkowski Convolutional Neural
 # Networks", CVPR'19 (https://arxiv.org/abs/1904.08755) if you use any part
 # of the code.
-__version__ = "0.5.8"
+__version__ = "0.5.9"
 
+import json
 import os
 import sys
 import warnings
@@ -49,9 +50,36 @@ if os.cpu_count() > 16 and "OMP_NUM_THREADS" not in os.environ:
 import torch
 
 from diagnostics import print_diagnostics
+from ._compat import read_build_info, check_build_compatibility, _REBUILD
+
+# The adjacent manifest lets us reject an incompatible libtorch BEFORE dlopen.
+# Cross-check with the embedded copy afterward, so a stale sidecar cannot hide
+# an old binary left over from an in-place or interrupted build.
+_build_info = read_build_info()
+if _build_info is not None:
+    check_build_compatibility(_build_info, torch)
+try:
+    import MinkowskiEngineBackend._C as _backend
+except ImportError as exc:
+    raise ImportError(
+        f"Cannot load MinkowskiEngine's native extension with torch {torch.__version__}. {_REBUILD}"
+    ) from exc
+if not isinstance(getattr(_backend, "_build_info", None), str):
+    raise ImportError(f"MinkowskiEngine's extension predates build metadata. {_REBUILD}")
+_native_build_info = json.loads(_backend._build_info)
+if _build_info is not None and _build_info != _native_build_info:
+    raise ImportError(f"MinkowskiEngine build metadata and native binary disagree. {_REBUILD}")
+check_build_compatibility(_native_build_info, torch)
+
+
+def get_build_info():
+    """Return a fresh JSON-serializable copy of the native extension's build facts."""
+    return json.loads(_backend._build_info)
+
 
 from MinkowskiEngineBackend._C import (
     MinkowskiAlgorithm,
+    ConvolutionMode,
     CoordinateMapKey,
     GPUMemoryAllocatorType,
     CoordinateMapType,

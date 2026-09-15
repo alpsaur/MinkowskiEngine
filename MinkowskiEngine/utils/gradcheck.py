@@ -23,8 +23,6 @@
 # of the code.
 import torch
 
-assert torch.__version__ >= "1.7.0", "Gradcheck requires pytorch 1.7 or higher"
-
 from torch.types import _TensorOrTensors
 from typing import Callable, Union, Optional
 
@@ -43,6 +41,17 @@ def gradcheck(
     check_undefined_grad: bool = True,
     check_grad_dtypes: bool = False,
 ) -> bool:
+    """Check a custom autograd Function using PyTorch's current gradcheck API.
+
+    ``check_sparse_nnz`` is retained only for source compatibility with old
+    callers using its default. For sparse inputs, use
+    ``torch.sparse.as_sparse_gradcheck(torch.autograd.gradcheck)`` directly.
+    """
+    if check_sparse_nnz:
+        raise ValueError(
+            "check_sparse_nnz was removed by PyTorch; use "
+            "torch.sparse.as_sparse_gradcheck(torch.autograd.gradcheck) instead."
+        )
     return _gradcheck(
         lambda *x: func.apply(*x),
         inputs,
@@ -50,7 +59,6 @@ def gradcheck(
         atol=atol,
         rtol=rtol,
         raise_exception=raise_exception,
-        check_sparse_nnz=check_sparse_nnz,
         nondet_tol=nondet_tol,
         check_undefined_grad=check_undefined_grad,
         check_grad_dtypes=check_grad_dtypes,

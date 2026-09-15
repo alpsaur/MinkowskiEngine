@@ -166,6 +166,8 @@ enum Type {
   DEFAULT,
   DIRECT_GEMM,
   COPY_GEMM,
+  // Fixed per-offset copy/GEMM/scatter order; never use fused atomics.
+  DETERMINISTIC,
 };
 }
 

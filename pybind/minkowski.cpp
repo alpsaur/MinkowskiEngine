@@ -32,8 +32,10 @@
 #include <pybind11/stl.h>
 
 #include "extern.hpp"
+#include "ME_build_info.h"
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
+  m.attr("_build_info") = ME_BUILD_INFO;
   // Constant function
   m.def("is_cuda_available", &is_cuda_available);
   m.def("cuda_version", &cuda_version);

@@ -9,6 +9,8 @@ build/
 objs/
 dist/
 MinkowskiEngine.egg-info/
+MinkowskiEngineBackend/_build_info.json
+wheelhouse/
 
 # test artifacts
 *.ply

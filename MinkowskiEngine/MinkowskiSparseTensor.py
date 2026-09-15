@@ -710,7 +710,7 @@ class SparseTensor(Tensor):
         assert (
             query_coordinates.device == self.device
         ), "query coordinates device ({query_coordinates.device}) does not match the sparse tensor device ({self.device})."
-        return MinkowskiInterpolationFunction().apply(
+        return MinkowskiInterpolationFunction.apply(
             self._F,
             query_coordinates,
             self.coordinate_map_key,

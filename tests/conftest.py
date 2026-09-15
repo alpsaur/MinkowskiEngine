@@ -5,7 +5,7 @@ and `import MinkowskiEngineBackend._C` resolve to the in-repo source / freshly
 built extension (e.g. from `python setup.py build_ext --inplace`), rather than
 some other installed copy.
 """
-import glob
+
 import os
 import re
 import sys
@@ -22,51 +22,44 @@ collect_ignore_glob = ["python/common.py"]
 # test in them errors at runtime. Don't collect them.
 collect_ignore = ["python/chwise_conv.py", "python/conv_on_coords.py"]
 
-# summary.py / global.py / network_speed.py / strided_conv.py import open3d —
-# a heavy optional dependency that is not in requirements.txt and not installed
-# in CI — and re-raise on ImportError, breaking collection when open3d is
-# absent. When open3d is not importable, also skip collecting every
-# tests/python module that references it; when open3d is available (e.g. local
-# runs) they collect normally.
-try:
-    import open3d  # noqa: F401
-except ImportError:
-    _HERE = os.path.dirname(os.path.abspath(__file__))
-    _open3d_re = re.compile(r"^\s*(?:import|from)\s+open3d\b", re.MULTILINE)
-    collect_ignore += [
-        os.path.relpath(p, _HERE)
-        for p in glob.glob(os.path.join(_HERE, "python", "*.py"))
-        if _open3d_re.search(open(p, encoding="utf-8").read())
-    ]
+# Real-data modules include multi-thousand-configuration performance sweeps.
+# Installing Open3D must not silently turn a regression run into those jobs.
+_open3d_re = re.compile(r"^\s*(?:import|from)\s+open3d\b", re.MULTILINE)
 
-import importlib  # noqa: E402
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--run-data-tests",
+        action="store_true",
+        default=False,
+        help="run optional Open3D/real-data tests and long benchmarks",
+    )
+
+
+def pytest_ignore_collect(collection_path, config):
+    enabled = (
+        config.getoption("--run-data-tests")
+        or os.environ.get("ME_RUN_DATA_TESTS") == "1"
+    )
+    if (
+        not enabled
+        and collection_path.parent.name == "python"
+        and collection_path.suffix == ".py"
+        and _open3d_re.search(collection_path.read_text(encoding="utf-8"))
+    ):
+        return True
+    return None
+
 
 import pytest  # noqa: E402
 import torch  # noqa: E402
 
-# `import torch.autograd.gradcheck as x` binds the same-named *function*
-# (torch.autograd re-exports it, shadowing the submodule) — go through
-# importlib to get the actual module so its attribute can be patched.
-_torch_gradcheck = importlib.import_module("torch.autograd.gradcheck")
 
-# MinkowskiEngine/utils/gradcheck.py wraps torch.autograd.gradcheck and forwards
-# kwargs (check_sparse_nnz, nondet_tol, check_grad_dtypes) that torch>=2.0
-# removed; the upstream test suite predates torch 2.0, so 19 gradcheck-based
-# tests otherwise TypeError. conftest is imported before the test modules (and
-# thus before utils.gradcheck, which captures the function via
-# `from torch.autograd.gradcheck import gradcheck as _gradcheck`), so patching
-# the module attribute here is picked up. The stripped kwargs are all passed at
-# their defaults, so this is behavior-preserving.
-_gradcheck_orig = _torch_gradcheck.gradcheck
+@pytest.fixture(autouse=True)
+def _enable_requested_data_tests(request, monkeypatch):
+    if request.config.getoption("--run-data-tests"):
+        monkeypatch.setenv("ME_RUN_DATA_TESTS", "1")
 
-
-def _gradcheck_compat(*args, **kwargs):
-    for _k in ("check_sparse_nnz", "nondet_tol", "check_grad_dtypes"):
-        kwargs.pop(_k, None)
-    return _gradcheck_orig(*args, **kwargs)
-
-
-_torch_gradcheck.gradcheck = _gradcheck_compat
 
 # CUDA-requiring tests that fail on a CPU-only build. Most carry gpu/cuda/device
 # in their name; several call .cuda() / device=0 internally despite a neutral
@@ -103,18 +96,6 @@ _LEGACY_FAILURES = {
     "tests/python/pruning.py::TestPruning::test_with_convtr": (
         "v0.4 API: MinkowskiConvolutionTranspose(generate_new_coords=) removed"
     ),
-    "tests/python/convolution.py::TestConvolution::test_analytic": (
-        "in-place op on a leaf view requiring grad; disallowed since torch 1.x/2.x"
-    ),
-    "tests/python/convolution.py::TestConvolutionTranspose::test_analytic": (
-        "in-place op on a leaf view requiring grad; disallowed since torch 1.x/2.x"
-    ),
-    "tests/python/convolution.py::TestConvolutionTranspose::test_analytic_odd": (
-        "in-place op on a leaf view requiring grad; disallowed since torch 1.x/2.x"
-    ),
-    "tests/python/kernel_map.py::TestKernelMap::test_kernelmap": (
-        "pre-existing numerical failure (assertTrue); not green upstream on torch 2.x"
-    ),
     "tests/python/interpolation.py::TestInterpolation::test": (
         "gradcheck IndexError on torch 2.x: MinkowskiInterpolationFunction returns "
         "non-differentiable extras (kernel maps) that modern gradcheck's "
@@ -136,4 +117,6 @@ def pytest_collection_modifyitems(config, items):
         if nid in _LEGACY_FAILURES:
             item.add_marker(pytest.mark.skip(reason=_LEGACY_FAILURES[nid]))
         elif no_cuda and nid in _CUDA_REQUIRED:
-            item.add_marker(pytest.mark.skip(reason="requires CUDA (CPU-only CI build)"))
+            item.add_marker(
+                pytest.mark.skip(reason="requires CUDA (CPU-only CI build)")
+            )
